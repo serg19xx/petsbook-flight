@@ -1,0 +1,29 @@
+├── docker/
+│   ├── php/
+│   │   └── Dockerfile
+│   └── nginx/
+│       └── nginx.conf
+├── src/
+│   ├── config/
+│   │   ├── database.php
+│   │   └── app.php
+│   ├── controllers/
+│   │   ├── BaseController.php
+│   │   └── ApiController.php
+│   ├── models/
+│   │   └── BaseModel.php
+│   ├── middleware/
+│   │   ├── AuthMiddleware.php
+│   │   └── CorsMiddleware.php
+│   ├── services/
+│   │   └── DatabaseService.php
+│   └── routes/
+│       └── api.php
+├── public/
+│   └── index.php
+├── tests/
+│   └── ApiTest.php
+├── .env
+├── .gitignore
+├── composer.json
+└── docker-compose.yml
