@@ -6,6 +6,9 @@ use PDO;
 use Flight;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\SMTP;
 
 class AuthController {
     private $db;
@@ -137,15 +140,78 @@ class AuthController {
     }
 
     public function register() {
-        $data = \Flight::request()->data;
-        
-        // Базовая валидация
-        if (empty($data->email) || empty($data->password) || empty($data->name)) {
-            return $this->error('Name, email and password are required');
-        }
+        try {
+            $requestBody = Flight::request()->getBody();
+            $data = json_decode($requestBody, true);
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \Exception('Invalid JSON data');
+            }
 
-        // TODO: Реализовать логику регистрации
-        return $this->success([], 'Registration successful');
+            // Валидация входных данных
+            if (empty($data['email']) || empty($data['password']) || empty($data['name']) || empty($data['role'])) {
+                return Flight::json([
+                    'success' => false,
+                    'message' => 'Все поля обязательны для заполнения'
+                ], 400);
+            }
+
+            // Проверяем корректность role
+            $allowedRoles = ['admin', 'moderator', 'partner', 'commercial', 'user'];
+            if (!in_array($data['role'], $allowedRoles)) {
+                return Flight::json([
+                    'success' => false,
+                    'message' => 'Некорректная роль пользователя'
+                ], 400);
+            }
+
+            $name = trim($data['name']);
+            $email = trim($data['email']);
+            // Хешируем пароль перед сохранением
+            $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT, ['cost' => 12]);
+            $role = $data['role'];
+
+            // Проверка формата email
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return Flight::json([
+                    'success' => false,
+                    'message' => 'Неверный формат email'
+                ], 400);
+            }
+
+            // Проверка длины пароля
+            if (strlen($data['password']) < 6) {
+                return Flight::json([
+                    'success' => false,
+                    'message' => 'Пароль должен быть не менее 6 символов'
+                ], 400);
+            }
+
+            // Вызываем хранимую процедуру с хешированным паролем
+            $stmt = $this->db->prepare("CALL sp_Register(?, ?, ?, ?)");
+            $stmt->execute([$name, $email, $hashedPassword, $role]);
+            
+            $result = $stmt->fetch();
+            
+            if ($result && !isset($result['error'])) {
+                // Send welcome email
+                $this->sendWelcomeEmail($email, $name);
+                return Flight::json([
+                    'success' => true,
+                    'message' => 'Регистрация успешно завершена'
+                ]);
+            } else {
+                throw new \Exception($result['error'] ?? 'Ошибка при регистрации пользователя');
+            }
+
+        } catch (\Exception $e) {
+            error_log("Registration error: " . $e->getMessage());
+            return Flight::json([
+                'success' => false,
+                'message' => 'Ошибка при регистрации',
+                'debug' => $_ENV['APP_DEBUG'] ? $e->getMessage() : null
+            ], 500);
+        }
     }
 
     public function logout() {
@@ -154,14 +220,53 @@ class AuthController {
     }
 
     public function passwordReset() {
-        $data = \Flight::request()->data;
-        
-        if (empty($data->email)) {
-            return $this->error('Email is required');
-        }
+        try {
+            // Получаем данные запроса
+            $requestBody = Flight::request()->getBody();
+            $data = json_decode($requestBody, true);
 
-        // TODO: Реализовать логику сброса пароля
-        return $this->success([], 'Password reset instructions sent');
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \Exception('Invalid JSON data');
+            }
+
+            // Проверяем наличие email
+            if (empty($data['email'])) {
+                return Flight::json([
+                    'success' => false,
+                    'message' => 'Email обязателен'
+                ], 400);
+            }
+
+            $email = trim($data['email']);
+
+            // Проверяем существование пользователя
+            $stmt = $this->db->prepare("SELECT id FROM users WHERE email = ?");
+            $stmt->execute([$email]);
+            if (!$stmt->fetch()) {
+                // Для безопасности возвращаем тот же ответ, что и при успехе
+                return Flight::json([
+                    'success' => true,
+                    'message' => 'Если указанный email существует, инструкции по сбросу пароля будут отправлены'
+                ]);
+            }
+
+            // TODO: Здесь должна быть логика отправки email
+            // Пока просто логируем
+            error_log("Password reset requested for email: " . $email);
+
+            return Flight::json([
+                'success' => true,
+                'message' => 'Если указанный email существует, инструкции по сбросу пароля будут отправлены'
+            ]);
+
+        } catch (\Exception $e) {
+            error_log("Password reset error: " . $e->getMessage());
+            return Flight::json([
+                'success' => false,
+                'message' => 'Ошибка при обработке запроса',
+                'debug' => $_ENV['APP_DEBUG'] ? $e->getMessage() : null
+            ], 500);
+        }
     }
 
     private function generateJWT($payload) {
@@ -194,5 +299,84 @@ class AuthController {
             'message' => $message,
             'data' => $data
         ], 200);
+    }
+
+    private function sendWelcomeEmail($email, $name) {
+        try {
+            $mail = new PHPMailer(true);
+
+            // Server settings
+            $mail->isSMTP();
+            $mail->Host       = $_ENV['SMTP_HOST'];
+            $mail->SMTPAuth   = true;
+            $mail->Username   = $_ENV['SMTP_USERNAME'];
+            $mail->Password   = $_ENV['SMTP_PASSWORD'];
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = $_ENV['SMTP_PORT'];
+
+            // Recipients
+            $mail->setFrom($_ENV['MAIL_FROM_ADDRESS'], 'PetsBook');
+            $mail->addAddress($email, $name);
+
+            // Content
+            $mail->isHTML(true);
+            $mail->Subject = 'Welcome to PetsBook!';
+            
+            $mail->Body = "
+            <html>
+            <head>
+                <title>Welcome to PetsBook</title>
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                    .header { color: #2563eb; font-size: 24px; margin-bottom: 20px; }
+                    .footer { margin-top: 30px; font-size: 14px; color: #666; }
+                </style>
+            </head>
+            <body>
+                <div class='container'>
+                    <div class='header'>
+                        <h2>Hello, {$name}!</h2>
+                    </div>
+                    <div class='content'>
+                        <p>Welcome to PetsBook - the social network for pet owners and their beloved animals.</p>
+                        <p>Your account has been successfully created and is ready to use.</p>
+                        <p>You can now:</p>
+                        <ul>
+                            <li>Complete your profile</li>
+                            <li>Add your pets</li>
+                            <li>Connect with other pet owners</li>
+                            <li>Share your pet stories</li>
+                        </ul>
+                    </div>
+                    <div class='footer'>
+                        <p>Best regards,<br>The PetsBook Team</p>
+                        <small>This is an automated message, please do not reply to this email.</small>
+                    </div>
+                </div>
+            </body>
+            </html>
+            ";
+
+            // Plain text version for non-HTML mail clients
+            $mail->AltBody = "Hello, {$name}!\n\n" .
+                "Welcome to PetsBook - the social network for pet owners and their beloved animals.\n\n" .
+                "Your account has been successfully created and is ready to use.\n\n" .
+                "You can now:\n" .
+                "- Complete your profile\n" .
+                "- Add your pets\n" .
+                "- Connect with other pet owners\n" .
+                "- Share your pet stories\n\n" .
+                "Best regards,\n" .
+                "The PetsBook Team";
+
+            $mail->send();
+            error_log("Welcome email sent successfully to: " . $email);
+            return true;
+
+        } catch (Exception $e) {
+            error_log("Error sending welcome email: " . $e->getMessage());
+            return false;
+        }
     }
 }
