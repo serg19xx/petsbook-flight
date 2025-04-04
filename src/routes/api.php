@@ -2,19 +2,23 @@
 
 use App\Middleware\CorsMiddleware;
 use App\Controllers\AuthController;
+use App\Controllers\UserController;
 
 // Enable CORS
 CorsMiddleware::handle();
 
-// Инициализация контроллера
+// Инициализация контроллеров
 $authController = new AuthController();
+$userController = new UserController();
 
 // Маршруты аутентификации
-Flight::route('POST /api/auth/login', [$authController, 'login']); // Добавляем префикс /api
+Flight::route('POST /api/auth/login', [$authController, 'login']);
 Flight::route('POST /api/auth/register', [$authController, 'register']);
 Flight::route('POST /api/auth/logout', [$authController, 'logout']);
 Flight::route('POST /api/auth/password-reset', [$authController, 'passwordReset']);
-Flight::route('GET /api/auth/user', [$authController, 'getUserData']);
+
+// Маршруты пользователя
+Flight::route('GET /api/user/getuser', [$userController, 'getUserData']);
 
 // Handle 404
 Flight::map('notFound', function() {
