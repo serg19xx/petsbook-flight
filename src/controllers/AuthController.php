@@ -235,34 +235,55 @@ class AuthController extends BaseController {
             $data = json_decode($requestBody, true);
 
             if (!isset($data['email'])) {
-                return $this->error('EMAIL_REQUIRED');
+                return Flight::json([
+                    'success' => false,
+                    'message' => 'Email обязателен'
+                ], 400);
             }
 
             $email = trim($data['email']);
 
             // Проверяем существование пользователя
-            $stmt = $this->db->prepare("SELECT id FROM users WHERE email = ?");
+            $stmt = $this->db->prepare("
+                SELECT id, email 
+                FROM logins 
+                WHERE email = ? 
+                AND is_active = 1
+            ");
             $stmt->execute([$email]);
-            if (!$stmt->fetch()) {
-                // Для безопасности возвращаем тот же ответ, что и при успехе
+            $user = $stmt->fetch();
+
+            if (!$user) {
                 return Flight::json([
                     'success' => true,
                     'message' => 'Если указанный email существует, инструкции по сбросу пароля будут отправлены'
                 ]);
             }
 
-            // TODO: Здесь должна быть логика отправки email
-            // Пока просто логируем
-            error_log("Password reset requested for email: " . $email);
+            // Генерируем токен для сброса пароля
+            $token = bin2hex(random_bytes(32));
+
+            // Сохраняем токен в базе данных
+            $stmt = $this->db->prepare("
+                INSERT INTO password_reset_tokens (login_id, token, expires_at, used) 
+                VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR), FALSE)
+            ");
+            $stmt->execute([$user['id'], $token]);
+
+            // Отправляем email через отдельный метод
+            $this->sendPasswordResetEmail($user['email'], $user['name'] ?? 'Пользователь', $token);
 
             return Flight::json([
                 'success' => true,
-                'message' => 'Если указанный email существует, инструкции по сбросу пароля будут отправлены'
+                'message' => 'Инструкции по сбросу пароля отправлены на ваш email'
             ]);
 
         } catch (\Exception $e) {
             error_log("Password reset error: " . $e->getMessage());
-            return $this->error('SYSTEM_ERROR', 500);
+            return Flight::json([
+                'success' => false,
+                'message' => 'Произошла ошибка при обработке запроса'
+            ], 500);
         }
     }
 
@@ -558,6 +579,164 @@ class AuthController extends BaseController {
         } catch (\Exception $e) {
             error_log("Email verification error: " . $e->getMessage());
             return $this->error('SYSTEM_ERROR', 500);
+        }
+    }
+
+    private function sendPasswordResetEmail($email, $name, $token) {
+        try {
+            $mail = new PHPMailer(true);
+
+            // Server settings
+            $mail->isSMTP();
+            $mail->Host = $_ENV['SMTP_HOST'];
+            $mail->SMTPAuth = true;
+            $mail->Username = $_ENV['SMTP_USERNAME'];
+            $mail->Password = $_ENV['SMTP_PASSWORD'];
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port = $_ENV['SMTP_PORT'];
+            $mail->CharSet = 'UTF-8';
+
+            // Recipients
+            $mail->setFrom($_ENV['MAIL_FROM_ADDRESS'], $_ENV['MAIL_FROM_NAME']);
+            $mail->addAddress($email, $name);
+
+            // Content
+            $resetUrl = "http://localhost:5173/reset-password/" . $token;  // Исправленный URL с портом 5173
+            
+            $mail->isHTML(true);
+            $mail->Subject = 'Сброс пароля';
+            $mail->Body = "
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                    <h2>Здравствуйте, {$name}!</h2>
+                    <p>Мы получили запрос на сброс пароля для вашей учетной записи.</p>
+                    <p>Для создания нового пароля, пожалуйста, перейдите по ссылке ниже:</p>
+                    <p style='text-align: center;'>
+                        <a href='{$resetUrl}' 
+                           style='display: inline-block; padding: 10px 20px; 
+                                  background-color: #4CAF50; color: white; 
+                                  text-decoration: none; border-radius: 5px;'>
+                            Сбросить пароль
+                        </a>
+                    </p>
+                    <p>Или используйте эту ссылку: <a href='{$resetUrl}'>{$resetUrl}</a></p>
+                    <p>Ссылка действительна в течение 1 часа.</p>
+                    <p>Если вы не запрашивали сброс пароля, проигнорируйте это письмо.</p>
+                </div>";
+
+            $mail->AltBody = "Здравствуйте, {$name}!\n\n" .
+                "Мы получили запрос на сброс пароля для вашей учетной записи.\n\n" .
+                "Для создания нового пароля перейдите по ссылке: {$resetUrl}\n\n" .
+                "Ссылка действительна в течение 1 часа.\n\n" .
+                "Если вы не запрашивали сброс пароля, проигнорируйте это письмо.";
+
+            $mail->send();
+            return true;
+        } catch (\Exception $e) {
+            error_log("Error sending password reset email: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    // Новый метод для установки нового пароля
+    public function setNewPassword() {
+        try {
+            $requestBody = Flight::request()->getBody();
+            $data = json_decode($requestBody, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return Flight::json([
+                    'success' => false,
+                    'message' => 'Неверный формат данных'
+                ], 400);
+            }
+
+            if (!isset($data['token']) || !isset($data['password'])) {
+                return Flight::json([
+                    'success' => false,
+                    'message' => 'Отсутствует токен или новый пароль'
+                ], 400);
+            }
+
+            $token = trim($data['token']);
+            $password = trim($data['password']);
+
+            // Проверка длины пароля
+            if (strlen($password) < 8) {
+                return Flight::json([
+                    'success' => false,
+                    'message' => 'Пароль должен содержать минимум 8 символов'
+                ], 400);
+            }
+
+            // Проверяем токен
+            $stmt = $this->db->prepare("
+                SELECT prt.login_id, l.email 
+                FROM password_reset_tokens prt
+                JOIN logins l ON l.id = prt.login_id
+                WHERE prt.token = ? 
+                    AND prt.expires_at > NOW() 
+                    AND prt.used = FALSE
+                LIMIT 1
+            ");
+            $stmt->execute([$token]);
+            $result = $stmt->fetch();
+
+            if (!$result) {
+                return Flight::json([
+                    'success' => false,
+                    'message' => 'Недействительная или устаревшая ссылка для сброса пароля'
+                ], 400);
+            }
+
+            // Хешируем новый пароль
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+            // Начинаем транзакцию
+            $this->db->beginTransaction();
+
+            try {
+                // Обновляем пароль
+                $stmt = $this->db->prepare("
+                    UPDATE logins 
+                    SET password = ? 
+                    WHERE id = ?
+                ");
+                $stmt->execute([$hashedPassword, $result['login_id']]);
+
+                // Помечаем токен как использованный
+                $stmt = $this->db->prepare("
+                    UPDATE password_reset_tokens 
+                    SET used = TRUE 
+                    WHERE token = ?
+                ");
+                $stmt->execute([$token]);
+
+                // Удаляем все старые неиспользованные токены для этого пользователя
+                $stmt = $this->db->prepare("
+                    DELETE FROM password_reset_tokens 
+                    WHERE login_id = ? 
+                    AND used = FALSE
+                ");
+                $stmt->execute([$result['login_id']]);
+
+                $this->db->commit();
+
+                return Flight::json([
+                    'success' => true,
+                    'message' => 'Пароль успешно изменен'
+                ]);
+
+            } catch (\Exception $e) {
+                $this->db->rollBack();
+                throw $e;
+            }
+
+        } catch (\Exception $e) {
+            error_log("Set new password error: " . $e->getMessage());
+            return Flight::json([
+                'success' => false,
+                'message' => 'Произошла ошибка при смене пароля'
+            ], 500);
         }
     }
 }
