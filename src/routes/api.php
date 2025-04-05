@@ -16,6 +16,8 @@ Flight::route('POST /api/auth/login', [$authController, 'login']);
 Flight::route('POST /api/auth/register', [$authController, 'register']);
 Flight::route('POST /api/auth/logout', [$authController, 'logout']);
 Flight::route('POST /api/auth/password-reset', [$authController, 'passwordReset']);
+// Маршрут верификации email
+Flight::route('GET /api/auth/verify-email/@token', [$authController, 'verifyEmail']);
 
 // Маршруты пользователя
 Flight::route('GET /api/user/getuser', [$userController, 'getUserData']);
