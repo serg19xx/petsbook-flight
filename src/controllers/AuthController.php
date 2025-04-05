@@ -15,18 +15,21 @@ class AuthController extends BaseController {
 
     public function __construct() {
         try {
-            // Подключение к БД
+            // Добавляем установку кодировки соединения
+            $options = [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false,
+                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"
+            ];
+
             $this->db = new PDO(
                 "mysql:host=" . $_ENV['DB_HOST'] . 
                 ";dbname=" . $_ENV['DB_NAME'] . 
                 ";charset=utf8mb4",
                 $_ENV['DB_USER'],
                 $_ENV['DB_PASSWORD'],
-                [
-                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::ATTR_EMULATE_PREPARES => false
-                ]
+                $options
             );
 
             error_log("Database connection successful");
@@ -137,80 +140,87 @@ class AuthController extends BaseController {
             $data = json_decode($requestBody, true);
             
             if (json_last_error() !== JSON_ERROR_NONE) {
+                error_log("JSON decode error: " . json_last_error_msg());
                 return $this->error('INVALID_JSON_FORMAT');
             }
 
-            if (empty($data['email']) || empty($data['password']) || 
-                empty($data['name']) || empty($data['role'])) {
+            // Санитизация и нормализация входных данных
+            $name = isset($data['name']) ? trim(mb_convert_encoding($data['name'], 'UTF-8', 'auto')) : '';
+            $email = isset($data['email']) ? trim(mb_convert_encoding($data['email'], 'UTF-8', 'auto')) : '';
+            $password = isset($data['password']) ? $data['password'] : '';
+            $role = isset($data['role']) ? trim(mb_convert_encoding($data['role'], 'UTF-8', 'auto')) : '';
+
+            // Проверки данных...
+            if (empty($email) || empty($password) || empty($name) || empty($role)) {
                 return $this->error('MISSING_REQUIRED_FIELDS');
             }
 
             $allowedRoles = ['admin', 'moderator', 'partner', 'commercial', 'user'];
-            if (!in_array($data['role'], $allowedRoles)) {
+            if (!in_array($role, $allowedRoles)) {
                 return $this->error('INVALID_ROLE');
             }
 
-            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-                return $this->error('INVALID_EMAIL_FORMAT');
-            }
-
-            if (strlen($data['password']) < 6) {
-                return $this->error('PASSWORD_TOO_SHORT');
-            }
-
-            $name = trim($data['name']);
-            $email = trim($data['email']);
-            // Хешируем пароль перед сохранением
-            $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT, ['cost' => 12]);
-            $role = $data['role'];
-
-            // Проверка формата email
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                return Flight::json([
-                    'success' => false,
-                    'message' => 'Неверный формат email'
-                ], 400);
-            }
-
-            // Проверка длины пароля
-            if (strlen($data['password']) < 6) {
-                return Flight::json([
-                    'success' => false,
-                    'message' => 'Пароль должен быть не менее 6 символов'
-                ], 400);
-            }
-
-            // Вызываем хранимую процедуру с хешированным паролем
+            // Хешируем пароль
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+            
+            // Вызов процедуры
             $stmt = $this->db->prepare("CALL sp_Register(?, ?, ?, ?)");
             $stmt->execute([$name, $email, $hashedPassword, $role]);
-            
             $result = $stmt->fetch();
             
-            if ($result && !isset($result['error'])) {
-                // Создаем токен верификации
-                $token = $this->createVerificationToken($result['id']);
-                
-                // Отправляем email для верификации
-                $this->sendVerificationEmail($email, $name, $token);
-                
-                return Flight::json([
-                    'success' => true,
-                    'message' => 'Регистрация успешна. Пожалуйста, проверьте вашу почту для подтверждения email адреса.',
-                    'user' => [
-                        'id' => $result['id'],
-                        'email' => $email,
-                        'name' => $name,
-                        'role' => $role,
-                        'email_verified' => false
-                    ]
-                ]);
+            // Закрываем курсор
+            $stmt->closeCursor();
+
+            if ($result && isset($result['success']) && $result['success']) {
+                try {
+                    // Создаем токен верификации
+                    $token = $this->createVerificationToken($result['id']);
+                    
+                    // Закрываем все возможные открытые курсоры перед следующим запросом
+                    while ($this->db->inTransaction()) {
+                        $this->db->commit();
+                    }
+                    
+                    // Отправляем email
+                    $emailSent = $this->sendVerificationEmail($email, $name, $token);
+                    
+                    return Flight::json([
+                        'success' => true,
+                        'message' => 'Регистрация успешна. Пожалуйста, проверьте вашу почту для подтверждения email адреса.',
+                        'user' => [
+                            'id' => $result['id'],
+                            'email' => $email,
+                            'name' => $name,
+                            'role' => $role,
+                            'email_verified' => false
+                        ]
+                    ], 200);
+                } catch (\Exception $e) {
+                    error_log("Post-registration process error: " . $e->getMessage());
+                    // Даже если возникла ошибка с email, регистрация уже выполнена успешно
+                    return Flight::json([
+                        'success' => true,
+                        'message' => 'Регистрация успешна, но возникли проблемы с отправкой email для подтверждения.',
+                        'user' => [
+                            'id' => $result['id'],
+                            'email' => $email,
+                            'name' => $name,
+                            'role' => $role,
+                            'email_verified' => false
+                        ]
+                    ], 200);
+                }
             } else {
-                throw new \Exception($result['error'] ?? 'Ошибка при регистрации пользователя');
+                throw new \Exception('Registration failed: ' . ($result['message'] ?? 'Unknown error'));
             }
 
         } catch (\Exception $e) {
             error_log("Registration error: " . $e->getMessage());
-            return $this->error('SYSTEM_ERROR', 500);
+            return Flight::json([
+                'success' => false,
+                'error_code' => 'SYSTEM_ERROR',
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -368,85 +378,148 @@ class AuthController extends BaseController {
     }
 
     private function createVerificationToken($userId) {
-        $token = bin2hex(random_bytes(32)); // 64 символа
-        $expires = date('Y-m-d H:i:s', strtotime('+24 hours'));
+        try {
+            $token = bin2hex(random_bytes(32));
+            $stmt = $this->db->prepare("
+                INSERT INTO email_verification_tokens (user_id, token, expires_at)
+                VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 24 HOUR))
+            ");
+            $stmt->execute([$userId, $token]);
+            $stmt->closeCursor(); // Закрываем курсор
+            return $token;
+        } catch (\Exception $e) {
+            error_log("Token creation error: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    private function logMessage($message, $type = 'INFO') {
+        $logFile = __DIR__ . '/../../logs/auth.log';
+        $timestamp = date('Y-m-d H:i:s');
+        $formattedMessage = "[$timestamp][$type] $message" . PHP_EOL;
         
-        $stmt = $this->db->prepare("
-            INSERT INTO email_verification_tokens (user_id, token, expires_at) 
-            VALUES (?, ?, ?)
-        ");
-        $stmt->execute([$userId, $token, $expires]);
+        // Создаем директорию для логов, если она не существует
+        if (!file_exists(dirname($logFile))) {
+            mkdir(dirname($logFile), 0777, true);
+        }
         
-        return $token;
+        file_put_contents($logFile, $formattedMessage, FILE_APPEND);
     }
 
     private function sendVerificationEmail($email, $name, $token) {
         try {
+            // Проверяем наличие необходимых переменных окружения
+            $requiredEnvVars = [
+                'APP_URL',
+                'SMTP_HOST',
+                'SMTP_PORT',
+                'SMTP_USERNAME',
+                'SMTP_PASSWORD',
+                'MAIL_FROM_ADDRESS',
+                'MAIL_FROM_NAME'
+            ];
+
+            foreach ($requiredEnvVars as $var) {
+                if (!isset($_ENV[$var])) {
+                    throw new \Exception("Missing required environment variable: $var");
+                }
+            }
+
+            $this->logMessage("=== Starting Email Sending Process ===");
+            $this->logMessage("Recipient: $email, Name: $name");
+            
             $mail = new PHPMailer(true);
+            
+            // Debug output
+            $mail->SMTPDebug = SMTP::DEBUG_SERVER;
+            $mail->Debugoutput = function($str, $level) {
+                $this->logMessage($str, $level);
+            };
 
             // Server settings
             $mail->isSMTP();
-            $mail->Host       = $_ENV['SMTP_HOST'];
-            $mail->SMTPAuth   = true;
-            $mail->Username   = $_ENV['SMTP_USERNAME'];
-            $mail->Password   = $_ENV['SMTP_PASSWORD'];
+            $mail->Host = $_ENV['SMTP_HOST'];
+            $mail->Port = intval($_ENV['SMTP_PORT']);
+            $mail->SMTPAuth = true;
+            $mail->Username = $_ENV['SMTP_USERNAME'];
+            $mail->Password = $_ENV['SMTP_PASSWORD'];
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port       = $_ENV['SMTP_PORT'];
+            
+            // Log SMTP configuration
+            $this->logMessage("SMTP Configuration:");
+            $this->logMessage("Host: " . $mail->Host);
+            $this->logMessage("Port: " . $mail->Port);
+            $this->logMessage("Username: " . $mail->Username);
+            $this->logMessage("SMTPSecure: " . $mail->SMTPSecure);
+            
+            // Test SMTP connection
+            $this->logMessage("Testing SMTP connection...");
+            try {
+                if ($mail->smtpConnect()) {
+                    $this->logMessage("SMTP connection test successful");
+                    $mail->smtpClose();
+                }
+            } catch (\Exception $e) {
+                $this->logMessage("SMTP connection test failed: " . $e->getMessage(), 'ERROR');
+                throw $e;
+            }
 
             // Recipients
-            $mail->setFrom($_ENV['MAIL_FROM_ADDRESS'], 'PetsBook');
+            $mail->setFrom($_ENV['MAIL_FROM_ADDRESS'], $_ENV['MAIL_FROM_NAME']);
             $mail->addAddress($email, $name);
-
-            // Формируем ссылку для верификации
-            $verificationUrl = $_ENV['APP_URL'] . "/verify-email/" . $token;
+            $this->logMessage("From: " . $_ENV['MAIL_FROM_ADDRESS']);
+            $this->logMessage("To: " . $email);
 
             // Content
+            $frontendUrl = "http://localhost:5173/verify-email/" . $token;
+            $this->logMessage("Verification URL: " . $frontendUrl);
+            
             $mail->isHTML(true);
+            $mail->CharSet = 'UTF-8';
             $mail->Subject = 'Подтверждение email адреса';
             
             $mail->Body = "
-            <html>
-            <head>
-                <title>Подтверждение email адреса</title>
-                <style>
-                    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                    .button { 
-                        display: inline-block; 
-                        padding: 10px 20px; 
-                        background-color: #2563eb; 
-                        color: white; 
-                        text-decoration: none; 
-                        border-radius: 5px; 
-                    }
-                </style>
-            </head>
-            <body>
-                <div class='container'>
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
                     <h2>Здравствуйте, {$name}!</h2>
                     <p>Для завершения регистрации необходимо подтвердить ваш email адрес.</p>
                     <p>Пожалуйста, нажмите на кнопку ниже:</p>
-                    <p>
-                        <a href='{$verificationUrl}' class='button'>Подтвердить email</a>
+                    <p style='text-align: center;'>
+                        <a href='{$frontendUrl}' 
+                           style='display: inline-block; padding: 10px 20px; 
+                                  background-color: #4CAF50; color: white; 
+                                  text-decoration: none; border-radius: 5px;'>
+                            Подтвердить email
+                        </a>
                     </p>
-                    <p>Или перейдите по ссылке: {$verificationUrl}</p>
+                    <p>Или перейдите по ссылке: <a href='{$frontendUrl}'>{$frontendUrl}</a></p>
                     <p>Ссылка действительна в течение 24 часов.</p>
                     <p>Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.</p>
-                </div>
-            </body>
-            </html>
-            ";
+                </div>";
 
             $mail->AltBody = "Здравствуйте, {$name}!\n\n" .
                 "Для завершения регистрации необходимо подтвердить ваш email адрес.\n\n" .
-                "Перейдите по ссылке: {$verificationUrl}\n\n" .
+                "Перейдите по ссылке: {$frontendUrl}\n\n" .
                 "Ссылка действительна в течение 24 часов.\n\n" .
                 "Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.";
 
-            $mail->send();
+            $this->logMessage("Attempting to send email...");
+            
+            if (!$mail->send()) {
+                $this->logMessage("Mailer Error: " . $mail->ErrorInfo, 'ERROR');
+                throw new \Exception("Failed to send email: " . $mail->ErrorInfo);
+            }
+            
+            $this->logMessage("Email sent successfully to: " . $email);
             return true;
-        } catch (Exception $e) {
-            error_log("Error sending verification email: " . $e->getMessage());
+
+        } catch (\Exception $e) {
+            $this->logMessage("=== Email Sending Error ===", 'ERROR');
+            $this->logMessage("Error message: " . $e->getMessage(), 'ERROR');
+            $this->logMessage("Stack trace: " . $e->getTraceAsString(), 'ERROR');
+            if (isset($mail)) {
+                $this->logMessage("Mailer Error Details: " . $mail->ErrorInfo, 'ERROR');
+            }
+            $this->logMessage("=== End Email Sending Error ===", 'ERROR');
             return false;
         }
     }

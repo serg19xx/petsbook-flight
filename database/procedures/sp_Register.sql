@@ -3,10 +3,10 @@ DELIMITER //
 DROP PROCEDURE IF EXISTS sp_Register //
 
 CREATE PROCEDURE sp_Register(
-    IN p_name VARCHAR(255),
-    IN p_email VARCHAR(255),
-    IN p_password VARCHAR(255),
-    IN p_role VARCHAR(50)
+    IN p_name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_email VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_password VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+    IN p_role VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci
 )
 BEGIN
     DECLARE v_user_table VARCHAR(45);
@@ -18,6 +18,9 @@ BEGIN
         ROLLBACK;
         RESIGNAL;
     END;
+
+    -- Установка кодировки для сессии
+    SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
     
     SELECT user_tbl INTO v_user_table 
     FROM role_table 
