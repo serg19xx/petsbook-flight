@@ -12,7 +12,7 @@ sp_login_label: BEGIN
     DECLARE v_email_verified TINYINT;
     DECLARE v_is_active TINYINT;
     
-    -- Получаем данные пользователя
+    -- Get user data
     SELECT 
         id, 
         password, 
@@ -29,11 +29,11 @@ sp_login_label: BEGIN
     WHERE email = p_email 
     LIMIT 1;
     
-    -- Проверяем существование пользователя
+    -- Check if user exists
     IF v_user_id IS NULL THEN
         SELECT 
             FALSE as success,
-            'Неверные учетные данные' as message,
+            'Invalid credentials' as message,
             'INVALID_CREDENTIALS' as error_code,
             NULL as id,
             NULL as stored_password,
@@ -41,11 +41,11 @@ sp_login_label: BEGIN
         LEAVE sp_login_label;
     END IF;
 
-    -- Проверяем активность аккаунта
+    -- Check account status
     IF v_is_active = 0 THEN
         SELECT 
             FALSE as success,
-            'Ваш аккаунт заблокирован. Пожалуйста, обратитесь в службу поддержки.' as message,
+            'Your account is blocked. Please contact support.' as message,
             'ACCOUNT_BLOCKED' as error_code,
             NULL as id,
             NULL as stored_password,
@@ -53,11 +53,11 @@ sp_login_label: BEGIN
         LEAVE sp_login_label;
     END IF;
 
-    -- Проверяем верификацию email
+    -- Check email verification
     IF v_email_verified = 0 THEN
         SELECT 
             FALSE as success,
-            'Ваш email не подтвержден. Пожалуйста, проверьте вашу почту и пройдите по ссылке для подтверждения.' as message,
+            'Your email is not verified. Please check your inbox and follow the verification link.' as message,
             'EMAIL_NOT_VERIFIED' as error_code,
             NULL as id,
             NULL as stored_password,
@@ -65,10 +65,10 @@ sp_login_label: BEGIN
         LEAVE sp_login_label;
     END IF;
 
-    -- Возвращаем данные для проверки
+    -- Return data for verification
     SELECT 
         TRUE as success,
-        'Вход выполнен успешно' as message,
+        'Login successful' as message,
         NULL as error_code,
         v_user_id as id,
         v_stored_password as stored_password,

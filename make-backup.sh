@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# === НАСТРОЙКИ ===
-MAX_BACKUPS=5          # Сколько последних бэкапов хранить
-TAG_PREFIX="backup-"   # Префикс тега
-REMOTE_NAME="origin"   # Название удалённого репозитория
+# === SETTINGS ===
+MAX_BACKUPS=5          # Number of backups to keep
+TAG_PREFIX="backup-"   # Tag prefix
+REMOTE_NAME="origin"   # Remote repository name
 
-# === ПРОВЕРКА НЕЗАКОММИЧЕННЫХ ИЗМЕНЕНИЙ ===
+# === CHECK FOR UNCOMMITTED CHANGES ===
 if [[ -n $(git status --porcelain) ]]; then
   echo "⚠️  У вас есть незакоммиченные изменения."
   read -p "Хотите закоммитить их перед созданием бэкапа? (y/n): " answer
@@ -21,7 +21,7 @@ if [[ -n $(git status --porcelain) ]]; then
   fi
 fi
 
-# === СОЗДАНИЕ ТЕГА ===
+# === CREATE TAG ===
 timestamp=$(date +"%Y%m%d-%H%M")
 tag_name="${TAG_PREFIX}${timestamp}"
 
@@ -32,17 +32,17 @@ git push "$REMOTE_NAME" "$tag_name"
 
 echo "✅ Бэкап сохранён как тег: $tag_name"
 
-# === ОЧИСТКА СТАРЫХ ТЕГОВ ===
+# === CLEANUP OLD TAGS ===
 echo "🧹 Проверка на количество старых бэкапов..."
 
-# Получаем список всех тегов с нужным префиксом, отсортированный по дате
+# Get list of all tags with prefix, sorted by date
 old_tags=$(git tag --sort=-creatordate | grep "^$TAG_PREFIX" | tail -n +$((MAX_BACKUPS + 1)))
 
 if [[ -n "$old_tags" ]]; then
   echo "Удаляются старые теги:"
   echo "$old_tags"
 
-  # Удаляем локально и на удалёнке
+  # Delete locally and remotely
   for tag in $old_tags; do
     git tag -d "$tag"
     git push "$REMOTE_NAME" --delete "$tag"

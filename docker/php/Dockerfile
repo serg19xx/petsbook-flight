@@ -22,4 +22,4 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Примечание: мы убрали команды COPY и composer install
+# Note: we removed COPY and composer install commands

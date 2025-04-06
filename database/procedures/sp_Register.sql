@@ -13,12 +13,29 @@ BEGIN
     DECLARE v_error VARCHAR(255);
     DECLARE v_login_id BIGINT;
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    -- Обработчик должен быть в самом начале процедуры
+    DECLARE EXIT HANDLER FOR 1062
     BEGIN
-        ROLLBACK;
-        RESIGNAL;
+        SELECT 
+            FALSE as success,
+            NULL as id,
+            'EMAIL_EXISTS' as error_code,
+            'Email already exists' as message;
     END;
 
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 v_error = MESSAGE_TEXT;
+        ROLLBACK;
+        SELECT 
+            FALSE as success,
+            NULL as id,
+            'SQL_ERROR' as error_code,
+            v_error as message;
+    END;
+
+    START TRANSACTION;
+    
     -- Установка кодировки для сессии
     SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
     

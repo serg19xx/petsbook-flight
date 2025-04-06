@@ -9,13 +9,25 @@ use Firebase\JWT\Key;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\SMTP;
+use App\Constants\ResponseCodes;
 
+/**
+ * Authentication Controller
+ * 
+ * Handles all authentication-related operations including login, registration,
+ * password reset, and email verification.
+ */
 class AuthController extends BaseController {
+    /** @var PDO Database connection instance */
     private $db;
 
+    /**
+     * Constructor initializes database connection
+     * 
+     * @throws \Exception When database connection fails
+     */
     public function __construct() {
         try {
-            // Добавляем установку кодировки соединения
             $options = [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
@@ -40,31 +52,65 @@ class AuthController extends BaseController {
     }
 
     /**
-     * Login method response codes:
+     * API Response Codes
      * 
-     * Success responses:
-     * - LOGIN_SUCCESS: Успешная авторизация
+     * Success codes:
+     * - LOGIN_SUCCESS: Successful authorization
+     * - REGISTRATION_SUCCESS: Successful registration
+     * - USER_DATA_SUCCESS: Successfully retrieved user data
+     * - PASSWORD_RESET_SUCCESS: Successfully reset password
+     * - EMAIL_VERIFICATION_SUCCESS: Successfully verified email
      * 
-     * Error responses:
-     * - MISSING_CREDENTIALS: Отсутствуют email или пароль
-     * - INVALID_CREDENTIALS: Неверный email или пароль
-     * - LOGIN_FAILED: Ошибка входа (общая)
-     * - ACCOUNT_INACTIVE: Аккаунт неактивен
-     * - EMAIL_NOT_VERIFIED: Email не подтвержден
-     * - ACCOUNT_BLOCKED: Аккаунт заблокирован
-     * - SYSTEM_ERROR: Системная ошибка
+     * Authentication error codes:
+     * - MISSING_CREDENTIALS: Missing email or password
+     * - INVALID_CREDENTIALS: Invalid email or password
+     * - LOGIN_FAILED: Login error (general)
+     * - ACCOUNT_INACTIVE: Account is inactive
+     * - EMAIL_NOT_VERIFIED: Email not verified
+     * - ACCOUNT_BLOCKED: Account is blocked
+     * - EMAIL_ALREADY_EXISTS: Email address is already registered in the system
+     * 
+     * Token error codes:
+     * - TOKEN_NOT_PROVIDED: Token was not provided
+     * - INVALID_TOKEN: Invalid token
+     * - TOKEN_EXPIRED: Token has expired
+     * 
+     * User error codes:
+     * - USER_NOT_FOUND: User not found
+     * - INVALID_ROLE: Invalid user role
+     * - EMAIL_ALREADY_EXISTS: Email already exists
+     * - INVALID_USER_DATA: Invalid user data
+     * 
+     * System error codes:
+     * - SYSTEM_ERROR: System error
+     * - DATABASE_ERROR: Database error
+     * - EMAIL_SEND_ERROR: Email sending error
+     */
+    /**
+     * Handles user login
+     * 
+     * @return void JSON response with user data and JWT token on success
+     * 
+     * @api {post} /api/auth/login Login user
+     * @apiBody {String} email User's email
+     * @apiBody {String} password User's password
+     * 
+     * @apiSuccess {String} token JWT authentication token
+     * @apiSuccess {Object} user User information
+     * 
+     * @apiError {String} error_code Error code (INVALID_EMAIL, INVALID_PASSWORD, etc.)
      */
     public function login() {
         try {
             $requestBody = Flight::request()->getBody();
             $data = json_decode($requestBody, true);
-
-            //print_r(data);
             
             if (!isset($data['email']) || !isset($data['password'])) {
                 return Flight::json([
                     'status' => 400,
-                    'error_code' => 'MISSING_CREDENTIALS'
+                    'error_code' => ResponseCodes::MISSING_CREDENTIALS,
+                    'message' => '',
+                    'data' => null
                 ], 400);
             }
 
@@ -75,33 +121,41 @@ class AuthController extends BaseController {
             $stmt->execute([':email' => $email]);
             $user = $stmt->fetch();
 
-            // Проверка статуса аккаунта
+            // Check account status
             if ($user && isset($user['is_active']) && !$user['is_active']) {
                 return Flight::json([
                     'status' => 400,
-                    'error_code' => 'ACCOUNT_INACTIVE'
+                    'error_code' => ResponseCodes::ACCOUNT_INACTIVE,
+                    'message' => '',
+                    'data' => null
                 ], 400);
             }
 
-            // Проверка верификации email
+            // Check email verification
             if ($user && isset($user['email_verified']) && !$user['email_verified']) {
                 return Flight::json([
                     'status' => 400,
-                    'error_code' => 'EMAIL_NOT_VERIFIED'
+                    'error_code' => ResponseCodes::EMAIL_NOT_VERIFIED,
+                    'message' => '',
+                    'data' => null
                 ], 400);
             }
 
             if (!$user || !isset($user['success']) || !$user['success']) {
                 return Flight::json([
                     'status' => 400,
-                    'error_code' => $user['error_code'] ?? 'LOGIN_FAILED'
+                    'error_code' => ResponseCodes::INVALID_EMAIL,
+                    'message' => '',
+                    'data' => null
                 ], 400);
             }
 
             if (!password_verify($password, $user['stored_password'])) {
                 return Flight::json([
                     'status' => 400,
-                    'error_code' => 'INVALID_CREDENTIALS'
+                    'error_code' => ResponseCodes::INVALID_PASSWORD,
+                    'message' => '',
+                    'data' => null
                 ], 400);
             }
 
@@ -113,7 +167,8 @@ class AuthController extends BaseController {
 
             return Flight::json([
                 'status' => 200,
-                'error_code' => 'LOGIN_SUCCESS',
+                'error_code' => ResponseCodes::LOGIN_SUCCESS,
+                'message' => '',
                 'data' => [
                     'token' => $token,
                     'user' => [
@@ -128,12 +183,28 @@ class AuthController extends BaseController {
             error_log("Login error: " . $e->getMessage());
             return Flight::json([
                 'status' => 500,
-                'error_code' => 'SYSTEM_ERROR',
+                'error_code' => ResponseCodes::SYSTEM_ERROR,
+                'message' => '',
                 'data' => null
             ], 500);
         }
     }
 
+    /**
+     * Handles new user registration
+     * 
+     * @return void JSON response with registration status
+     * 
+     * @api {post} /api/auth/register Register new user
+     * @apiBody {String} name User's full name
+     * @apiBody {String} email User's email
+     * @apiBody {String} password User's password
+     * @apiBody {String} role User's role
+     * 
+     * @apiSuccess {Object} user Created user information
+     * 
+     * @apiError {String} error_code Error code (EMAIL_ALREADY_EXISTS, INVALID_ROLE, etc.)
+     */
     public function register() {
         try {
             $requestBody = Flight::request()->getBody();
@@ -141,72 +212,108 @@ class AuthController extends BaseController {
             
             if (json_last_error() !== JSON_ERROR_NONE) {
                 error_log("JSON decode error: " . json_last_error_msg());
-                return $this->error('INVALID_JSON_FORMAT');
+                return Flight::json([
+                    'status' => 400,
+                    'error_code' => ResponseCodes::INVALID_USER_DATA,
+                    'message' => '',
+                    'data' => null
+                ], 400);
             }
 
-            // Санитизация и нормализация входных данных
+            // Input data sanitization and normalization
             $name = isset($data['name']) ? trim(mb_convert_encoding($data['name'], 'UTF-8', 'auto')) : '';
             $email = isset($data['email']) ? trim(mb_convert_encoding($data['email'], 'UTF-8', 'auto')) : '';
             $password = isset($data['password']) ? $data['password'] : '';
             $role = isset($data['role']) ? trim(mb_convert_encoding($data['role'], 'UTF-8', 'auto')) : '';
 
-            // Проверки данных...
+            // Data validation
             if (empty($email) || empty($password) || empty($name) || empty($role)) {
-                return $this->error('MISSING_REQUIRED_FIELDS');
+                return Flight::json([
+                    'status' => 400,
+                    'error_code' => ResponseCodes::MISSING_CREDENTIALS,
+                    'message' => '',
+                    'data' => null
+                ], 400);
             }
 
             $allowedRoles = ['admin', 'moderator', 'partner', 'commercial', 'user'];
             if (!in_array($role, $allowedRoles)) {
-                return $this->error('INVALID_ROLE');
+                return Flight::json([
+                    'status' => 400,
+                    'error_code' => ResponseCodes::INVALID_ROLE,
+                    'message' => '',
+                    'data' => null
+                ], 400);
             }
 
-            // Хешируем пароль
+            // Password hashing
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
             
-            // Вызов процедуры
+            // Call registration procedure
             $stmt = $this->db->prepare("CALL sp_Register(?, ?, ?, ?)");
             $stmt->execute([$name, $email, $hashedPassword, $role]);
             $result = $stmt->fetch();
             
-            // Закрываем курсор
+            // Создаем свой лог-файл
+            $logFile = __DIR__ . '/../../logs/auth.log';
+            $timestamp = date('Y-m-d H:i:s');
+            $logMessage = "[$timestamp] Registration result: " . print_r($result, true) . PHP_EOL;
+            
+            file_put_contents($logFile, $logMessage, FILE_APPEND);
+            
             $stmt->closeCursor();
-
+            
+            if ($result['success'] === 0 && $result['message'] === 'Email already exists') {
+                return Flight::json([
+                    'status' => 400,
+                    'error_code' => ResponseCodes::EMAIL_ALREADY_EXISTS,
+                    'message' => '',
+                    'data' => null
+                ], 400);
+            }
+            
             if ($result && isset($result['success']) && $result['success']) {
                 try {
-                    // Создаем токен верификации
+                    // Create verification token
                     $token = $this->createVerificationToken($result['id']);
                     
-                    // Закрываем все возможные открытые курсоры перед следующим запросом
+                    // Close all possible open cursors before next query
                     while ($this->db->inTransaction()) {
                         $this->db->commit();
                     }
                     
-                    // Отправляем email
+                    // Send verification email
                     $emailSent = $this->sendVerificationEmail($email, $name, $token);
                     
                     return Flight::json([
-                        'success' => true,
-                        'message' => 'Регистрация успешна. Пожалуйста, проверьте вашу почту для подтверждения email адреса.',
-                        'user' => [
-                            'id' => $result['id'],
-                            'email' => $email,
-                            'name' => $name,
-                            'role' => $role,
-                            'email_verified' => false
+                        'status' => 200,
+                        'error_code' => ResponseCodes::REGISTRATION_SUCCESS,
+                        'message' => '',
+                        'data' => [
+                            'user' => [
+                                'id' => $result['id'],
+                                'email' => $email,
+                                'name' => $name,
+                                'role' => $role,
+                                'email_verified' => false
+                            ]
                         ]
                     ], 200);
                 } catch (\Exception $e) {
                     error_log("Post-registration process error: " . $e->getMessage());
-                    // Даже если возникла ошибка с email, регистрация уже выполнена успешно
+                    // Registration is successful even if email sending failed
                     return Flight::json([
-                        'success' => true,
-                        'message' => 'Регистрация успешна, но возникли проблемы с отправкой email для подтверждения.',
-                        'user' => [
-                            'id' => $result['id'],
-                            'email' => $email,
-                            'name' => $name,
-                            'role' => $role,
-                            'email_verified' => false
+                        'status' => 200,
+                        'error_code' => ResponseCodes::EMAIL_SEND_ERROR,
+                        'message' => '',
+                        'data' => [
+                            'user' => [
+                                'id' => $result['id'],
+                                'email' => $email,
+                                'name' => $name,
+                                'role' => $role,
+                                'email_verified' => false
+                            ]
                         ]
                     ], 200);
                 }
@@ -215,18 +322,26 @@ class AuthController extends BaseController {
             }
 
         } catch (\Exception $e) {
-            error_log("Registration error: " . $e->getMessage());
+            $errorMessage = "[$timestamp] Registration error: " . $e->getMessage() . PHP_EOL;
+            file_put_contents($logFile, $errorMessage, FILE_APPEND);
+            
             return Flight::json([
-                'success' => false,
-                'error_code' => 'SYSTEM_ERROR',
-                'message' => $e->getMessage()
+                'status' => 500,
+                'error_code' => ResponseCodes::SYSTEM_ERROR,
+                'message' => '',
+                'data' => null
             ], 500);
         }
     }
 
     public function logout() {
-        // TODO: Реализовать логику выхода
-        return $this->success([], 'Logout successful');
+        // Implementation of logout logic will be added here
+        return Flight::json([
+            'status' => 200,
+            'error_code' => ResponseCodes::LOGIN_SUCCESS,
+            'message' => '',
+            'data' => null
+        ], 200);
     }
 
     public function passwordReset() {
@@ -236,14 +351,16 @@ class AuthController extends BaseController {
 
             if (!isset($data['email'])) {
                 return Flight::json([
-                    'success' => false,
-                    'message' => 'Email обязателен'
+                    'status' => 400,
+                    'error_code' => ResponseCodes::MISSING_CREDENTIALS,
+                    'message' => '',
+                    'data' => null
                 ], 400);
             }
 
             $email = trim($data['email']);
 
-            // Проверяем существование пользователя
+            // Check if user exists
             $stmt = $this->db->prepare("
                 SELECT id, email 
                 FROM logins 
@@ -255,42 +372,55 @@ class AuthController extends BaseController {
 
             if (!$user) {
                 return Flight::json([
-                    'success' => true,
-                    'message' => 'Если указанный email существует, инструкции по сбросу пароля будут отправлены'
-                ]);
+                    'status' => 200,
+                    'error_code' => ResponseCodes::PASSWORD_RESET_SUCCESS,
+                    'message' => '',
+                    'data' => null
+                ], 200);
             }
 
-            // Генерируем токен для сброса пароля
+            // Generate password reset token
             $token = bin2hex(random_bytes(32));
 
-            // Сохраняем токен в базе данных
+            // Save token in database
             $stmt = $this->db->prepare("
                 INSERT INTO password_reset_tokens (login_id, token, expires_at, used) 
                 VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR), FALSE)
             ");
             $stmt->execute([$user['id'], $token]);
 
-            // Отправляем email через отдельный метод
-            $this->sendPasswordResetEmail($user['email'], $user['name'] ?? 'Пользователь', $token);
+            // Send password reset email
+            $this->sendPasswordResetEmail($user['email'], $user['name'] ?? 'User', $token);
 
             return Flight::json([
-                'success' => true,
-                'message' => 'Инструкции по сбросу пароля отправлены на ваш email'
-            ]);
+                'status' => 200,
+                'error_code' => ResponseCodes::PASSWORD_RESET_SUCCESS,
+                'message' => '',
+                'data' => null
+            ], 200);
 
         } catch (\Exception $e) {
             error_log("Password reset error: " . $e->getMessage());
             return Flight::json([
-                'success' => false,
-                'message' => 'Произошла ошибка при обработке запроса'
+                'status' => 500,
+                'error_code' => ResponseCodes::SYSTEM_ERROR,
+                'message' => '',
+                'data' => null
             ], 500);
         }
     }
 
+    /**
+     * Generates JWT token for authenticated user
+     * 
+     * @param array $payload Data to be encoded in token
+     * @return string Generated JWT token
+     * @throws \Exception When JWT_SECRET is not configured
+     */
     private function generateJWT($payload) {
         try {
             if (!isset($_ENV['JWT_SECRET'])) {
-                throw new \Exception('JWT_SECRET не настроен');
+                throw new \Exception('JWT_SECRET not configured');
             }
 
             return JWT::encode([
@@ -302,21 +432,6 @@ class AuthController extends BaseController {
             error_log("JWT generation error: " . $e->getMessage());
             throw $e;
         }
-    }
-
-    protected function error($message, $code = 400) {
-        Flight::json([
-            'success' => false,
-            'message' => $message
-        ], $code);
-    }
-
-    protected function success($data = [], $message = '') {
-        Flight::json([
-            'success' => true,
-            'message' => $message,
-            'data' => $data
-        ], 200);
     }
 
     private function sendWelcomeEmail($email, $name) {
@@ -389,11 +504,9 @@ class AuthController extends BaseController {
                 "The PetsBook Team";
 
             $mail->send();
-            error_log("Welcome email sent successfully to: " . $email);
             return true;
-
-        } catch (Exception $e) {
-            error_log("Error sending welcome email: " . $e->getMessage());
+        } catch (\Exception $e) {
+            error_log("Email sending error: " . $e->getMessage());
             return false;
         }
     }
@@ -414,6 +527,13 @@ class AuthController extends BaseController {
         }
     }
 
+    /**
+     * Logs messages to authentication log file
+     * 
+     * @param string $message Message to log
+     * @param string $type Log type (INFO, ERROR, etc.)
+     * @return void
+     */
     private function logMessage($message, $type = 'INFO') {
         $logFile = __DIR__ . '/../../logs/auth.log';
         $timestamp = date('Y-m-d H:i:s');
@@ -556,10 +676,15 @@ class AuthController extends BaseController {
             $result = $stmt->fetch();
 
             if (!$result) {
-                return $this->error('INVALID_OR_EXPIRED_TOKEN');
+                return Flight::json([
+                    'status' => 400,
+                    'error_code' => ResponseCodes::INVALID_TOKEN,
+                    'message' => '',
+                    'data' => null
+                ], 400);
             }
 
-            // Обновляем статус верификации
+            // Update verification status
             $stmt = $this->db->prepare("
                 UPDATE logins 
                 SET email_verified = 1 
@@ -567,18 +692,28 @@ class AuthController extends BaseController {
             ");
             $stmt->execute([$result['user_id']]);
 
-            // Удаляем использованный токен
+            // Remove used token
             $stmt = $this->db->prepare("
                 DELETE FROM email_verification_tokens 
                 WHERE token = ?
             ");
             $stmt->execute([$token]);
 
-            return $this->success();
+            return Flight::json([
+                'status' => 200,
+                'error_code' => ResponseCodes::EMAIL_VERIFICATION_SUCCESS,
+                'message' => '',
+                'data' => null
+            ], 200);
 
         } catch (\Exception $e) {
             error_log("Email verification error: " . $e->getMessage());
-            return $this->error('SYSTEM_ERROR', 500);
+            return Flight::json([
+                'status' => 500,
+                'error_code' => ResponseCodes::SYSTEM_ERROR,
+                'message' => '',
+                'data' => null
+            ], 500);
         }
     }
 
