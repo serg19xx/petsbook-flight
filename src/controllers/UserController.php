@@ -79,6 +79,7 @@ class UserController {
      */
     public function getUserData() {
         try {
+            // Получаем и проверяем токен
             $headers = getallheaders();
             $authHeader = isset($headers['Authorization']) ? $headers['Authorization'] : '';
             
@@ -86,7 +87,7 @@ class UserController {
                 return Flight::json([
                     'status' => 401,
                     'error_code' => 'TOKEN_NOT_PROVIDED',
-                    'message' => '',
+                    'message' => 'Authorization token is required',
                     'data' => null
                 ], 401);
             }
@@ -97,7 +98,7 @@ class UserController {
                 return Flight::json([
                     'status' => 500,
                     'error_code' => 'JWT_CONFIG_MISSING',
-                    'message' => '',
+                    'message' => 'JWT configuration is missing',
                     'data' => null
                 ], 500);
             }
@@ -108,96 +109,61 @@ class UserController {
                 return Flight::json([
                     'status' => 401,
                     'error_code' => 'INVALID_TOKEN',
-                    'message' => '',
+                    'message' => 'Invalid token',
                     'data' => null
                 ], 401);
             }
             
-            $userId = $decoded->id;
-            $userRole = $decoded->role;
-            
-            $stmt = $this->db->prepare("SELECT user_tbl FROM role_table WHERE role = :role");
-            $stmt->execute([':role' => $userRole]);
+            // Вызываем хранимую процедуру
+            $stmt = $this->db->prepare("CALL sp_GetUserData(:login_id)");
+            $stmt->execute([':login_id' => $decoded->id]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             
+            // Проверяем результат
             if (!$result) {
-                return Flight::json([
-                    'status' => 400,
-                    'error_code' => 'INVALID_ROLE',
-                    'message' => '',
-                    'data' => null
-                ], 400);
-            }
-            
-            $table = $result['user_tbl'];
-            
-            $stmt = $this->db->prepare("SELECT * FROM {$table} WHERE login_id = :id");
-            $stmt->execute([':id' => $userId]);
-            $userData = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-            if (!$userData) {
-                return Flight::json([
-                    'status' => 404,
-                    'error_code' => 'USER_NOT_FOUND',
-                    'message' => '',
-                    'data' => null
-                ], 404);
+                throw new \Exception('No data returned from database');
             }
 
-            // Avatar processing
-            if (empty($userData['avatar'])) {
-                $userData['avatar'] = $this->generateDicebearUrl($userData);
+            // Декодируем JSON из поля data
+            $userData = json_decode($result['data'], true);
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \Exception('Failed to decode JSON data: ' . json_last_error_msg());
+            }
+
+            // СОХРАНЯЕМ существующую обработку аватара
+            if (empty($userData['user']['avatar'])) {
+                $userData['user']['avatar'] = $this->generateDicebearUrl($userData['user']);
             } else {
-                $avatarUrl = $userData['avatar'];
+                $avatarUrl = $userData['user']['avatar'];
                 
                 if (filter_var($avatarUrl, FILTER_VALIDATE_URL)) {
                     $headers = @get_headers($avatarUrl);
                     if (!$headers || strpos($headers[0], '200') === false) {
-                        $userData['avatar'] = $this->generateDicebearUrl($userData);
+                        $userData['user']['avatar'] = $this->generateDicebearUrl($userData['user']);
                     }
                 } else {
                     $localPath = $_SERVER['DOCUMENT_ROOT'] . $avatarUrl;
                     if (!file_exists($localPath)) {
-                        $userData['avatar'] = $this->generateDicebearUrl($userData);
+                        $userData['user']['avatar'] = $this->generateDicebearUrl($userData['user']);
                     }
                 }
             }
 
-            // Format user data
-            $formattedUserData = [
-                'login_id' => (int)$userData['login_id'],
-                'name' => $userData['name'],
-                'dob' => $userData['dob'],
-                'gender' => $userData['gender'],
-                'appt' => $userData['appt'],
-                'street' => $userData['street'],
-                'city' => $userData['city'],
-                'subdivision' => $userData['subdivision'],
-                'subdivision_code' => $userData['subdivision_code'],
-                'country' => $userData['country'],
-                'country_code2' => $userData['country_code2'],
-                'postal' => $userData['postal'],
-                'cellPhone' => $userData['cellPhone'],
-                'avatar' => $userData['avatar'],
-                'date_created' => $userData['date_created'],
-                'date_updated' => $userData['date_updated']
-            ];
-
+            // Возвращаем успешный ответ
             return Flight::json([
                 'status' => 200,
-                'error_code' => 'USER_DATA_SUCCESS',
-                'message' => '',
-                'data' => [
-                    'user' => $formattedUserData
-                ]
+                'error_code' => null,
+                'message' => null,
+                'data' => $userData
             ], 200);
-
+            
         } catch (\Exception $e) {
             error_log("Get user data error: " . $e->getMessage());
             return Flight::json([
                 'status' => 500,
                 'error_code' => 'SYSTEM_ERROR',
-                'message' => '',
+                'message' => $e->getMessage(),
                 'data' => null
             ], 500);
         }
