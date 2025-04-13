@@ -199,28 +199,153 @@ class UserController {
      * @api {put} /api/user/update Update user profile
      * @apiHeader {String} Authorization JWT token
      * @apiBody {Object} userData Updated user information
-     * 
-     * @apiSuccess {Object} user Updated user information
-     * 
-     * @apiError {String} error_code Error code (INVALID_DATA, UPDATE_FAILED, etc.)
      */
     public function updateUser() {
         try {
-            // TODO: Implement user data update
+            // Получаем и проверяем токен
+            $headers = getallheaders();
+            $authHeader = isset($headers['Authorization']) ? $headers['Authorization'] : '';
+            
+            if (empty($authHeader) || !preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
+                return Flight::json([
+                    'status' => 401,
+                    'error_code' => 'TOKEN_NOT_PROVIDED',
+                    'message' => 'Authorization token is required',
+                    'data' => null
+                ], 401);
+            }
+
+            $token = $matches[1];
+            
+            try {
+                $decoded = JWT::decode($token, new Key($_ENV['JWT_SECRET'], 'HS256'));
+            } catch (\Exception $e) {
+                return Flight::json([
+                    'status' => 401,
+                    'error_code' => 'INVALID_TOKEN',
+                    'message' => 'Invalid token',
+                    'data' => null
+                ], 401);
+            }
+
+            // Получаем данные из запроса
+            $requestBody = Flight::request()->getBody();
+            $data = json_decode($requestBody, true);
+
+            if (!$data) {
+                return Flight::json([
+                    'status' => 400,
+                    'error_code' => 'INVALID_REQUEST_DATA',
+                    'message' => 'Invalid request data format',
+                    'data' => null
+                ], 400);
+            }
+
+            // Подготавливаем параметры для процедуры
+            $params = [
+                ':p_login_id' => $decoded->id,
+                ':p_full_name' => $data['fullName'] ?? null,
+                ':p_nickname' => $data['nickname'] ?? null,
+                ':p_gender' => $data['gender'] ?? null,
+                ':p_birth_date' => $data['birthDate'] ?? null,
+                ':p_about_me' => $data['aboutMe'] ?? null,
+                ':p_email' => $data['email'] ?? null,
+                ':p_phone' => $data['phone'] ?? null,
+                ':p_website' => $data['website'] ?? null,
+                ':p_avatar' => $data['avatar'] ?? null,
+                ':p_full_address' => $data['location']['fullAddress'] ?? null,
+                ':p_latitude' => $data['location']['coordinates']['lat'] ?? null,
+                ':p_longitude' => $data['location']['coordinates']['lng'] ?? null,
+                ':p_street' => $data['location']['components']['street'] ?? null,
+                ':p_house_number' => $data['location']['components']['houseNumber'] ?? null,
+                ':p_city' => $data['location']['components']['city'] ?? null,
+                ':p_district' => $data['location']['components']['district'] ?? null,
+                ':p_region' => $data['location']['components']['region'] ?? null,
+                ':p_postcode' => $data['location']['components']['postcode'] ?? null,
+                ':p_country' => $data['location']['components']['country'] ?? null,
+                ':p_country_code2' => $data['location']['components']['countryCode'] ?? null
+            ];
+
+            // Валидация обязательных полей
+            $requiredFields = ['fullName', 'nickname', 'gender', 'birthDate', 'email'];
+            foreach ($requiredFields as $field) {
+                if (empty($data[$field])) {
+                    return Flight::json([
+                        'status' => 400,
+                        'error_code' => 'MISSING_REQUIRED_FIELD',
+                        'message' => "Field {$field} is required",
+                        'data' => null
+                    ], 400);
+                }
+            }
+
+            // Валидация формата даты
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['birthDate'])) {
+                return Flight::json([
+                    'status' => 400,
+                    'error_code' => 'INVALID_DATE_FORMAT',
+                    'message' => 'Birth date must be in YYYY-MM-DD format',
+                    'data' => null
+                ], 400);
+            }
+
+            // Валидация email
+            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+                return Flight::json([
+                    'status' => 400,
+                    'error_code' => 'INVALID_EMAIL',
+                    'message' => 'Invalid email format',
+                    'data' => null
+                ], 400);
+            }
+
+            // Вызываем процедуру обновления
+            $stmt = $this->db->prepare("CALL sp_UpdateUserProfile(
+                :p_login_id, :p_full_name, :p_nickname, :p_gender, :p_birth_date,
+                :p_about_me, :p_email, :p_phone, :p_website, :p_avatar, 
+                :p_full_address, :p_latitude, :p_longitude, :p_street, 
+                :p_house_number, :p_city, :p_district, :p_region, :p_postcode, 
+                :p_country, :p_country_code2
+            )");
+            
+            $stmt->execute($params);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$result) {
+                throw new \Exception('No data returned from database');
+            }
+
+            // Обработка аватара, если он был обновлен
+            $userData = json_decode($result['data'], true);
+            if (!empty($userData['user']['avatar'])) {
+                $avatarUrl = $userData['user']['avatar'];
+                
+                if (filter_var($avatarUrl, FILTER_VALIDATE_URL)) {
+                    $headers = @get_headers($avatarUrl);
+                    if (!$headers || strpos($headers[0], '200') === false) {
+                        $userData['user']['avatar'] = $this->generateDicebearUrl($userData['user']);
+                    }
+                } else {
+                    $localPath = $_SERVER['DOCUMENT_ROOT'] . $avatarUrl;
+                    if (!file_exists($localPath)) {
+                        $userData['user']['avatar'] = $this->generateDicebearUrl($userData['user']);
+                    }
+                }
+            }
+
             return Flight::json([
                 'status' => 200,
-                'error_code' => 'USER_UPDATE_SUCCESS',
-                'message' => '',
-                'data' => [
-                    'user' => []
-                ]
+                'error_code' => null,
+                'message' => null,
+                'data' => $userData
             ], 200);
+
         } catch (\Exception $e) {
             error_log("Update user error: " . $e->getMessage());
             return Flight::json([
                 'status' => 500,
                 'error_code' => 'SYSTEM_ERROR',
-                'message' => '',
+                'message' => $e->getMessage(),
                 'data' => null
             ], 500);
         }

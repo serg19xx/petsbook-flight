@@ -40,6 +40,7 @@ Flight::route('GET /api/auth/verify-email/@token', [$authController, 'verifyEmai
  * @route GET /api/user/getuser - Get current user data
  */
 Flight::route('GET /api/user/getuser', [$userController, 'getUserData']);
+Flight::route('PUT /api/user/update', [$userController, 'updateUser']);
 
 // Handle 404
 Flight::map('notFound', function() {
