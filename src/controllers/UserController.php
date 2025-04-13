@@ -6,6 +6,8 @@ use PDO;
 use Flight;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
 /**
  * API Response Codes
@@ -217,6 +219,16 @@ class UserController {
 
             $token = $matches[1];
             
+            if (!isset($_ENV['JWT_SECRET'])) {
+                return Flight::json([
+                    'status' => 500,
+                    'error_code' => 'JWT_CONFIG_MISSING',
+                    'message' => 'JWT configuration is missing',
+                    'data' => null
+                ], 500);
+            }
+
+            // Декодируем токен используя $_ENV['JWT_SECRET'] вместо $this->jwtKey
             try {
                 $decoded = JWT::decode($token, new Key($_ENV['JWT_SECRET'], 'HS256'));
             } catch (\Exception $e) {
@@ -228,15 +240,14 @@ class UserController {
                 ], 401);
             }
 
-            // Получаем данные из запроса
-            $requestBody = Flight::request()->getBody();
-            $data = json_decode($requestBody, true);
-
-            if (!$data) {
+            // Получаем данные из тела запроса
+            $data = json_decode(Flight::request()->getBody(), true);
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
                 return Flight::json([
                     'status' => 400,
-                    'error_code' => 'INVALID_REQUEST_DATA',
-                    'message' => 'Invalid request data format',
+                    'error_code' => 'INVALID_JSON',
+                    'message' => 'Invalid JSON data',
                     'data' => null
                 ], 400);
             }
@@ -244,100 +255,77 @@ class UserController {
             // Подготавливаем параметры для процедуры
             $params = [
                 ':p_login_id' => $decoded->id,
-                ':p_full_name' => $data['fullName'] ?? null,
-                ':p_nickname' => $data['nickname'] ?? null,
-                ':p_gender' => $data['gender'] ?? null,
-                ':p_birth_date' => $data['birthDate'] ?? null,
-                ':p_about_me' => $data['aboutMe'] ?? null,
-                ':p_email' => $data['email'] ?? null,
-                ':p_phone' => $data['phone'] ?? null,
-                ':p_website' => $data['website'] ?? null,
-                ':p_avatar' => $data['avatar'] ?? null,
-                ':p_full_address' => $data['location']['fullAddress'] ?? null,
-                ':p_latitude' => $data['location']['coordinates']['lat'] ?? null,
-                ':p_longitude' => $data['location']['coordinates']['lng'] ?? null,
-                ':p_street' => $data['location']['components']['street'] ?? null,
-                ':p_house_number' => $data['location']['components']['houseNumber'] ?? null,
-                ':p_city' => $data['location']['components']['city'] ?? null,
-                ':p_district' => $data['location']['components']['district'] ?? null,
-                ':p_region' => $data['location']['components']['region'] ?? null,
-                ':p_postcode' => $data['location']['components']['postcode'] ?? null,
-                ':p_country' => $data['location']['components']['country'] ?? null,
-                ':p_country_code2' => $data['location']['components']['countryCode'] ?? null
+                ':p_full_name' => isset($data['fullName']) ? trim($data['fullName']) : '',
+                ':p_nickname' => isset($data['nickname']) ? trim($data['nickname']) : '',
+                ':p_gender' => isset($data['gender']) ? trim($data['gender']) : 'Male',
+                ':p_birth_date' => isset($data['birthDate']) ? trim($data['birthDate']) : null,
+                ':p_about_me' => isset($data['aboutMe']) ? trim($data['aboutMe']) : '',
+                ':p_contact_email' => isset($data['contactEmail']) ? trim($data['contactEmail']) : '',
+                ':p_phone' => isset($data['phone']) ? trim($data['phone']) : '',
+                ':p_website' => isset($data['website']) ? trim($data['website']) : ''
             ];
 
-            // Валидация обязательных полей
-            $requiredFields = ['fullName', 'nickname', 'gender', 'birthDate', 'email'];
-            foreach ($requiredFields as $field) {
-                if (empty($data[$field])) {
-                    return Flight::json([
-                        'status' => 400,
-                        'error_code' => 'MISSING_REQUIRED_FIELD',
-                        'message' => "Field {$field} is required",
-                        'data' => null
-                    ], 400);
+            // Обработка данных местоположения
+            if (isset($data['location'])) {
+                $location = $data['location'];
+                $params[':p_full_address'] = isset($location['fullAddress']) ? trim($location['fullAddress']) : '';
+                
+                // Координаты
+                if (isset($location['coordinates'])) {
+                    $params[':p_latitude'] = isset($location['coordinates']['lat']) ? $location['coordinates']['lat'] : null;
+                    $params[':p_longitude'] = isset($location['coordinates']['lng']) ? $location['coordinates']['lng'] : null;
+                } else {
+                    $params[':p_latitude'] = null;
+                    $params[':p_longitude'] = null;
                 }
+
+                // Компоненты адреса
+                if (isset($location['components'])) {
+                    $components = $location['components'];
+                    $params[':p_street_name'] = isset($components['streetName']) ? trim($components['streetName']) : '';
+                    $params[':p_street_numb'] = isset($components['streetNumber']) ? trim($components['streetNumber']) : '';
+                    $params[':p_unit_numb'] = isset($components['unitNumber']) ? trim($components['unitNumber']) : '';
+                    $params[':p_city'] = isset($components['city']) ? trim($components['city']) : '';
+                    $params[':p_district'] = isset($components['district']) ? trim($components['district']) : '';
+                    $params[':p_region'] = isset($components['region']) ? trim($components['region']) : '';
+                    $params[':p_region_code'] = isset($components['regionCode']) ? trim($components['regionCode']) : '';
+                    $params[':p_postcode'] = isset($components['postcode']) ? trim($components['postcode']) : '';
+                    $params[':p_country'] = isset($components['country']) ? trim($components['country']) : '';
+                    $params[':p_country_code'] = isset($components['countryCode']) ? trim($components['countryCode']) : '';
+                }
+            } else {
+                $params[':p_full_address'] = '';
+                $params[':p_latitude'] = null;
+                $params[':p_longitude'] = null;
+                $params[':p_street_name'] = '';
+                $params[':p_street_numb'] = '';
+                $params[':p_unit_numb'] = '';
+                $params[':p_city'] = '';
+                $params[':p_district'] = '';
+                $params[':p_region'] = '';
+                $params[':p_region_code'] = '';
+                $params[':p_postcode'] = '';
+                $params[':p_country'] = '';
+                $params[':p_country_code'] = '';
             }
 
-            // Валидация формата даты
-            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['birthDate'])) {
-                return Flight::json([
-                    'status' => 400,
-                    'error_code' => 'INVALID_DATE_FORMAT',
-                    'message' => 'Birth date must be in YYYY-MM-DD format',
-                    'data' => null
-                ], 400);
-            }
-
-            // Валидация email
-            if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-                return Flight::json([
-                    'status' => 400,
-                    'error_code' => 'INVALID_EMAIL',
-                    'message' => 'Invalid email format',
-                    'data' => null
-                ], 400);
-            }
-
-            // Вызываем процедуру обновления
-            $stmt = $this->db->prepare("CALL sp_UpdateUserProfile(
-                :p_login_id, :p_full_name, :p_nickname, :p_gender, :p_birth_date,
-                :p_about_me, :p_email, :p_phone, :p_website, :p_avatar, 
-                :p_full_address, :p_latitude, :p_longitude, :p_street, 
-                :p_house_number, :p_city, :p_district, :p_region, :p_postcode, 
-                :p_country, :p_country_code2
-            )");
-            
+            // Вызываем хранимую процедуру
+            $stmt = $this->db->prepare("CALL sp_UpdateUserProfile(" . implode(',', array_keys($params)) . ")");
             $stmt->execute($params);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if (!$result) {
-                throw new \Exception('No data returned from database');
+            if ($result === false) {
+                throw new \Exception('Failed to update user profile');
             }
 
-            // Обработка аватара, если он был обновлен
-            $userData = json_decode($result['data'], true);
-            if (!empty($userData['user']['avatar'])) {
-                $avatarUrl = $userData['user']['avatar'];
-                
-                if (filter_var($avatarUrl, FILTER_VALIDATE_URL)) {
-                    $headers = @get_headers($avatarUrl);
-                    if (!$headers || strpos($headers[0], '200') === false) {
-                        $userData['user']['avatar'] = $this->generateDicebearUrl($userData['user']);
-                    }
-                } else {
-                    $localPath = $_SERVER['DOCUMENT_ROOT'] . $avatarUrl;
-                    if (!file_exists($localPath)) {
-                        $userData['user']['avatar'] = $this->generateDicebearUrl($userData['user']);
-                    }
-                }
-            }
+            // Декодируем JSON данные из результата
+            $resultData = json_decode($result['data'], true);
 
             return Flight::json([
                 'status' => 200,
                 'error_code' => null,
-                'message' => null,
-                'data' => $userData
+                'message' => 'Profile updated successfully',
+                'data' => $resultData
             ], 200);
 
         } catch (\Exception $e) {
@@ -422,5 +410,75 @@ class UserController {
         $style = $this->avatarSettings['style'];
         
         return "{$baseUrl}/{$style}/svg?" . http_build_query($params);
+    }
+
+    private function sendContactEmailVerification($email, $name, $token) {
+        try {
+            $mail = new PHPMailer(true);
+
+            // Server settings
+            $mail->isSMTP();
+            $mail->Host = $_ENV['SMTP_HOST'];
+            $mail->SMTPAuth = true;
+            $mail->Username = $_ENV['SMTP_USERNAME'];
+            $mail->Password = $_ENV['SMTP_PASSWORD'];
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port = $_ENV['SMTP_PORT'];
+            $mail->CharSet = 'UTF-8';
+
+            // Recipients
+            $mail->setFrom($_ENV['MAIL_FROM_ADDRESS'], $_ENV['MAIL_FROM_NAME']);
+            $mail->addAddress($email, $name);
+
+            // Content
+            $verifyUrl = "http://localhost:5173/verify-contact-email/" . $token;
+            
+            $mail->isHTML(true);
+            $mail->Subject = 'Подтверждение контактного email адреса';
+            $mail->Body = "
+                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+                    <h2>Здравствуйте, {$name}!</h2>
+                    <p>Вы изменили контактный email адрес в вашем профиле.</p>
+                    <p>Для подтверждения нового адреса, пожалуйста, нажмите на кнопку ниже:</p>
+                    <p style='text-align: center;'>
+                        <a href='{$verifyUrl}' 
+                           style='display: inline-block; padding: 10px 20px; 
+                                  background-color: #4CAF50; color: white; 
+                                  text-decoration: none; border-radius: 5px;'>
+                            Подтвердить email
+                        </a>
+                    </p>
+                    <p>Или перейдите по ссылке: <a href='{$verifyUrl}'>{$verifyUrl}</a></p>
+                    <p>Ссылка действительна в течение 24 часов.</p>
+                    <p>Если вы не меняли контактный email, пожалуйста, проигнорируйте это письмо.</p>
+                </div>";
+
+            $mail->AltBody = "Здравствуйте, {$name}!\n\n" .
+                "Вы изменили контактный email адрес в вашем профиле.\n\n" .
+                "Для подтверждения нового адреса перейдите по ссылке: {$verifyUrl}\n\n" .
+                "Ссылка действительна в течение 24 часов.\n\n" .
+                "Если вы не меняли контактный email, пожалуйста, проигнорируйте это письмо.";
+
+            $mail->send();
+            return true;
+        } catch (\Exception $e) {
+            error_log("Error sending contact email verification: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    private function createContactEmailVerificationToken($userId) {
+        try {
+            $token = bin2hex(random_bytes(32));
+            $stmt = $this->db->prepare("
+                INSERT INTO contact_email_verification_tokens (user_id, token, expires_at)
+                VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 24 HOUR))
+            ");
+            $stmt->execute([$userId, $token]);
+            return $token;
+        } catch (\Exception $e) {
+            error_log("Token creation error: " . $e->getMessage());
+            throw $e;
+        }
     }
 }

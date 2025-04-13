@@ -1,0 +1,34 @@
+{
+    "user": {
+        "id": "p_login_id",
+        "loginEmail": "v_login_email",
+        "contactEmail": "p_contact_email",
+        "role": "@user_role",
+        "fullName": "p_full_name",
+        "nickname": "p_nickname",
+        "gender": "p_gender",
+        "birthDate": "DATE_FORMAT(p_birth_date, '%Y-%m-%d')",
+        "aboutMe": "IFNULL(p_about_me, '')",
+        "phone": "p_phone",
+        "website": "IFNULL(p_website, '')",
+        "location": {
+            "fullAddress": "p_full_address",
+            "coordinates": {
+                "lat": "p_latitude",
+                "lng": "p_longitude"
+            },
+            "components": {
+                "streetName": "p_street_name",
+                "streetNumber": "p_street_numb",
+                "unitNumber": "p_unit_numb",
+                "city": "p_city",
+                "district": "p_district",
+                "region": "p_region",
+                "regionCode": "p_region_code",
+                "postcode": "p_postcode",
+                "country": "p_country",
+                "countryCode": "p_country_code"
+            }
+        }
+    }
+}
