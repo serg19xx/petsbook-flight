@@ -107,74 +107,54 @@ class AuthController extends BaseController {
             
             if (!isset($data['email']) || !isset($data['password'])) {
                 return Flight::json([
-                    'status' => 400,
-                    'error_code' => ResponseCodes::MISSING_CREDENTIALS,
-                    'message' => '',
-                    'data' => null
+                    'success' => false,
+                    'message' => 'Invalid credentials',
+                    'error_code' => 'INVALID_CREDENTIALS'
                 ], 400);
             }
 
             $email = trim($data['email']);
             $password = $data['password'];
 
+            // Вызов хранимой процедуры
             $stmt = $this->db->prepare("CALL sp_Login(:email)");
             $stmt->execute([':email' => $email]);
-            $user = $stmt->fetch();
+            $result = $stmt->fetch();
 
-            // Check account status
-            if ($user && isset($user['is_active']) && !$user['is_active']) {
+            // Если процедура вернула ошибку - возвращаем как есть
+            if (!$result['success']) {
                 return Flight::json([
-                    'status' => 400,
-                    'error_code' => ResponseCodes::ACCOUNT_INACTIVE,
-                    'message' => '',
-                    'data' => null
+                    'success' => false,
+                    'message' => $result['message'],
+                    'error_code' => $result['error_code']
                 ], 400);
             }
 
-            // Check email verification
-            if ($user && isset($user['email_verified']) && !$user['email_verified']) {
+            // Проверка пароля
+            if (!password_verify($password, $result['stored_password'])) {
                 return Flight::json([
-                    'status' => 400,
-                    'error_code' => ResponseCodes::EMAIL_NOT_VERIFIED,
-                    'message' => '',
-                    'data' => null
+                    'success' => false,
+                    'message' => 'Invalid credentials',
+                    'error_code' => 'INVALID_CREDENTIALS'
                 ], 400);
             }
 
-            if (!$user || !isset($user['success']) || !$user['success']) {
-                return Flight::json([
-                    'status' => 400,
-                    'error_code' => ResponseCodes::INVALID_EMAIL,
-                    'message' => '',
-                    'data' => null
-                ], 400);
-            }
-
-            if (!password_verify($password, $user['stored_password'])) {
-                return Flight::json([
-                    'status' => 400,
-                    'error_code' => ResponseCodes::INVALID_PASSWORD,
-                    'message' => '',
-                    'data' => null
-                ], 400);
-            }
-
+            // Генерация JWT токена при успешной аутентификации
             $token = $this->generateJWT([
-                'id' => $user['id'],
+                'id' => $result['id'],
                 'email' => $email,
-                'role' => $user['role']
+                'role' => $result['role']
             ]);
 
             return Flight::json([
-                'status' => 200,
-                'error_code' => ResponseCodes::LOGIN_SUCCESS,
-                'message' => '',
+                'success' => true,
+                'message' => $result['message'],
                 'data' => [
                     'token' => $token,
                     'user' => [
-                        'id' => $user['id'],
+                        'id' => $result['id'],
                         'email' => $email,
-                        'role' => $user['role']
+                        'role' => $result['role']
                     ]
                 ]
             ], 200);
@@ -182,10 +162,9 @@ class AuthController extends BaseController {
         } catch (\Exception $e) {
             error_log("Login error: " . $e->getMessage());
             return Flight::json([
-                'status' => 500,
-                'error_code' => ResponseCodes::SYSTEM_ERROR,
-                'message' => '',
-                'data' => null
+                'success' => false,
+                'message' => 'System error occurred',
+                'error_code' => 'SYSTEM_ERROR'
             ], 500);
         }
     }
