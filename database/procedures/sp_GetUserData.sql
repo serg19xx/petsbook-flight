@@ -50,20 +50,34 @@ BEGIN
                     'isActive', IF(l.is_active = 1, true, false),
                     'fullName', IFNULL(up.full_name, ''),
                     'nickname', IFNULL(up.nickname, ''),
-                    'gender', IFNULL(up.gender, ''),
+                    'gender', IFNULL(up.gender, 'Male'),
                     'birthDate', IFNULL(DATE_FORMAT(up.birth_date, '%Y-%m-%d'), ''),
+                    'aboutMe', IFNULL(up.about_me, ''),
+                    'contactEmail', IFNULL(up.contact_email, ''),
                     'phone', IFNULL(up.phone, ''),
                     'website', IFNULL(up.website, ''),
                     'avatar', IFNULL(up.avatar, ''),
                     'location', JSON_OBJECT(
                         'fullAddress', IFNULL(up.full_address, ''),
                         'coordinates', JSON_OBJECT(
-                            'lat', IFNULL(CAST(up.latitude AS DECIMAL(10,6)), 0.000000),
-                            'lng', IFNULL(CAST(up.longitude AS DECIMAL(10,6)), 0.000000)
+                            'lat', IFNULL(CAST(up.latitude AS DECIMAL(10,8)), 0.000000),
+                            'lng', IFNULL(CAST(up.longitude AS DECIMAL(10,8)), 0.000000)
+                        ),
+                        'components', JSON_OBJECT(
+                            'streetName', IFNULL(up.street_name, ''),
+                            'streetNumber', IFNULL(up.street_numb, ''),
+                            'unitNumber', IFNULL(up.unit_numb, ''),
+                            'city', IFNULL(up.city, ''),
+                            'district', IFNULL(up.district, ''),
+                            'region', IFNULL(up.region, ''),
+                            'regionCode', IFNULL(up.region_code, ''),
+                            'postcode', IFNULL(up.postcode, ''),
+                            'country', IFNULL(up.country, ''),
+                            'countryCode', IFNULL(up.country_code, '')
                         )
                     ),
-                    'createdAt', DATE_FORMAT(l.created_at, '%Y-%m-%d %H:%i:%s'),
-                    'updatedAt', DATE_FORMAT(l.updated_at, '%Y-%m-%d %H:%i:%s')
+                    'dateCreated', DATE_FORMAT(up.date_created, '%Y-%m-%d %H:%i:%s'),
+                    'dateUpdated', DATE_FORMAT(up.date_updated, '%Y-%m-%d %H:%i:%s')
                 )
             ) as data
         FROM logins l
