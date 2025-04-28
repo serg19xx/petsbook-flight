@@ -26,29 +26,8 @@ class AuthController extends BaseController {
      * 
      * @throws \Exception When database connection fails
      */
-    public function __construct() {
-        try {
-            $options = [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_EMULATE_PREPARES => false,
-                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"
-            ];
-
-            $this->db = new PDO(
-                "mysql:host=" . $_ENV['DB_HOST'] . 
-                ";dbname=" . $_ENV['DB_NAME'] . 
-                ";charset=utf8mb4",
-                $_ENV['DB_USER'],
-                $_ENV['DB_PASSWORD'],
-                $options
-            );
-
-            error_log("Database connection successful");
-        } catch (\PDOException $e) {
-            error_log("Database connection error: " . $e->getMessage());
-            throw new \Exception('Database connection failed: ' . $e->getMessage());
-        }
+    public function __construct($db) {
+        $this->db = $db;
     }
 
     /**
@@ -323,21 +302,44 @@ class AuthController extends BaseController {
         ], 200);
     }
 
+    /**
+     * Handles password reset request
+     * 
+     * @return void JSON response with status
+     * 
+     * @api {post} /api/auth/password-reset Request password reset
+     * @apiBody {String} email User's email
+     * 
+     * @apiSuccess {String} status Success status
+     * @apiSuccess {String} error_code Response code
+     */
     public function passwordReset() {
         try {
+            $this->logMessage("=== Starting Password Reset Process ===");
+            
+            // Добавляем логирование Origin
+            $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+            $this->logMessage("Origin: " . $origin);
+            $this->logMessage("All headers: " . print_r(getallheaders(), true));
+            
             $requestBody = Flight::request()->getBody();
             $data = json_decode($requestBody, true);
+            
+            $this->logMessage("Request body: " . $requestBody);
+            $this->logMessage("Decoded data: " . print_r($data, true));
 
             if (!isset($data['email'])) {
+                $this->logMessage("Email not provided in request", 'ERROR');
                 return Flight::json([
                     'status' => 400,
                     'error_code' => ResponseCodes::MISSING_CREDENTIALS,
-                    'message' => '',
+                    'message' => 'Email is required',
                     'data' => null
                 ], 400);
             }
 
             $email = trim($data['email']);
+            $this->logMessage("Processing password reset for email: " . $email);
 
             // Check if user exists
             $stmt = $this->db->prepare("
@@ -350,40 +352,53 @@ class AuthController extends BaseController {
             $user = $stmt->fetch();
 
             if (!$user) {
+                $this->logMessage("User not found for email: " . $email);
                 return Flight::json([
                     'status' => 200,
                     'error_code' => ResponseCodes::PASSWORD_RESET_SUCCESS,
-                    'message' => '',
+                    'message' => 'If the email exists, you will receive a password reset link',
                     'data' => null
                 ], 200);
             }
 
+            $this->logMessage("User found: " . print_r($user, true));
+
             // Generate password reset token
             $token = bin2hex(random_bytes(32));
+            $this->logMessage("Generated token: " . $token);
 
-            // Save token in database
+            // Save token in database with 24 hour expiration
             $stmt = $this->db->prepare("
                 INSERT INTO password_reset_tokens (login_id, token, expires_at, used) 
-                VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR), FALSE)
+                VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 24 HOUR), FALSE)
             ");
             $stmt->execute([$user['id'], $token]);
+            $this->logMessage("Token saved to database for user ID: " . $user['id']);
 
             // Send password reset email
-            $this->sendPasswordResetEmail($user['email'], $user['name'] ?? 'User', $token);
+            $this->logMessage("Attempting to send password reset email");
+            try {
+                $this->sendPasswordResetEmail($user['email'], $user['email'], $token);
+                $this->logMessage("Password reset email sent successfully");
+            } catch (\Exception $e) {
+                $this->logMessage("Failed to send password reset email: " . $e->getMessage(), 'ERROR');
+                throw $e;
+            }
 
             return Flight::json([
                 'status' => 200,
                 'error_code' => ResponseCodes::PASSWORD_RESET_SUCCESS,
-                'message' => '',
+                'message' => 'If the email exists, you will receive a password reset link',
                 'data' => null
             ], 200);
 
         } catch (\Exception $e) {
-            error_log("Password reset error: " . $e->getMessage());
+            $this->logMessage("Password reset error: " . $e->getMessage(), 'ERROR');
+            $this->logMessage("Stack trace: " . $e->getTraceAsString(), 'ERROR');
             return Flight::json([
                 'status' => 500,
                 'error_code' => ResponseCodes::SYSTEM_ERROR,
-                'message' => '',
+                'message' => 'System error occurred: ' . $e->getMessage(),
                 'data' => null
             ], 500);
         }
@@ -514,16 +529,37 @@ class AuthController extends BaseController {
      * @return void
      */
     private function logMessage($message, $type = 'INFO') {
-        $logFile = __DIR__ . '/../../logs/auth.log';
-        $timestamp = date('Y-m-d H:i:s');
-        $formattedMessage = "[$timestamp][$type] $message" . PHP_EOL;
-        
-        // Создаем директорию для логов, если она не существует
-        if (!file_exists(dirname($logFile))) {
-            mkdir(dirname($logFile), 0777, true);
+        try {
+            $logDir = __DIR__ . '/../../logs';
+            $logFile = $logDir . '/auth.log';
+            
+            // Create log directory if it doesn't exist
+            if (!file_exists($logDir)) {
+                if (!mkdir($logDir, 0777, true)) {
+                    error_log("Failed to create log directory: " . $logDir);
+                    return;
+                }
+            }
+            
+            // Check if directory is writable
+            if (!is_writable($logDir)) {
+                error_log("Log directory is not writable: " . $logDir);
+                return;
+            }
+            
+            $timestamp = date('Y-m-d H:i:s');
+            $formattedMessage = "[$timestamp][$type] $message" . PHP_EOL;
+            
+            // Write to log file
+            if (file_put_contents($logFile, $formattedMessage, FILE_APPEND) === false) {
+                error_log("Failed to write to log file: " . $logFile);
+            }
+            
+            // Also output to error_log for debugging
+            error_log($formattedMessage);
+        } catch (\Exception $e) {
+            error_log("Error in logMessage: " . $e->getMessage());
         }
-        
-        file_put_contents($logFile, $formattedMessage, FILE_APPEND);
     }
 
     private function sendVerificationEmail($email, $name, $token) {
@@ -698,55 +734,143 @@ class AuthController extends BaseController {
 
     private function sendPasswordResetEmail($email, $name, $token) {
         try {
+            // Проверяем наличие необходимых переменных окружения
+            $requiredEnvVars = [
+                'SMTP_HOST',
+                'SMTP_PORT',
+                'SMTP_USERNAME',
+                'SMTP_PASSWORD',
+                'MAIL_FROM_ADDRESS',
+                'MAIL_FROM_NAME',
+                'APP_URL'
+            ];
+
+            foreach ($requiredEnvVars as $var) {
+                if (!isset($_ENV[$var])) {
+                    throw new \Exception("Missing required environment variable: $var");
+                }
+            }
+
+            $this->logMessage("=== Starting Password Reset Email Sending Process ===");
+            $this->logMessage("Recipient: $email, Name: $name");
+            
             $mail = new PHPMailer(true);
+            
+            // Debug output
+            $mail->SMTPDebug = SMTP::DEBUG_SERVER;
+            $mail->Debugoutput = function($str, $level) {
+                $this->logMessage($str, $level);
+            };
 
             // Server settings
             $mail->isSMTP();
             $mail->Host = $_ENV['SMTP_HOST'];
+            $mail->Port = intval($_ENV['SMTP_PORT']);
             $mail->SMTPAuth = true;
             $mail->Username = $_ENV['SMTP_USERNAME'];
             $mail->Password = $_ENV['SMTP_PASSWORD'];
+            
+            // Настройки шифрования для Mailtrap
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port = $_ENV['SMTP_PORT'];
+            $mail->SMTPAutoTLS = true;
+            
+            // Дополнительные настройки для отладки
+            $mail->SMTPOptions = [
+                'ssl' => [
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'allow_self_signed' => true
+                ]
+            ];
+            
             $mail->CharSet = 'UTF-8';
+            
+            // Log SMTP configuration
+            $this->logMessage("SMTP Configuration:");
+            $this->logMessage("Host: " . $mail->Host);
+            $this->logMessage("Port: " . $mail->Port);
+            $this->logMessage("Username: " . $mail->Username);
+            $this->logMessage("SMTPSecure: " . $mail->SMTPSecure);
+            
+            // Test SMTP connection
+            $this->logMessage("Testing SMTP connection...");
+            try {
+                if ($mail->smtpConnect()) {
+                    $this->logMessage("SMTP connection test successful");
+                    $mail->smtpClose();
+                }
+            } catch (\Exception $e) {
+                $this->logMessage("SMTP connection test failed: " . $e->getMessage(), 'ERROR');
+                throw $e;
+            }
 
             // Recipients
             $mail->setFrom($_ENV['MAIL_FROM_ADDRESS'], $_ENV['MAIL_FROM_NAME']);
             $mail->addAddress($email, $name);
+            $this->logMessage("From: " . $_ENV['MAIL_FROM_ADDRESS']);
+            $this->logMessage("To: " . $email);
 
-            // Content
-            $resetUrl = "http://localhost:5173/reset-password/" . $token;  // Исправленный URL с портом 5173
+            // Получаем Origin из заголовков запроса
+            $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+            $this->logMessage("Origin in sendPasswordResetEmail: " . $origin);
+            
+            // Если Origin не установлен, используем порт из APP_URL
+            if (empty($origin)) {
+                $appUrl = $_ENV['APP_URL'] ?? 'http://localhost:5173';
+                $port = (strpos($appUrl, ':4173') !== false) ? '4173' : '5173';
+            } else {
+                $port = (strpos($origin, ':4173') !== false) ? '4173' : '5173';
+            }
+            
+            // Формируем URL с динамическим портом
+            $resetUrl = "http://localhost:{$port}/reset-password/{$token}";
+            $this->logMessage("Reset URL: " . $resetUrl);
             
             $mail->isHTML(true);
-            $mail->Subject = 'Сброс пароля';
+            $mail->Subject = 'Password Reset';
+            
             $mail->Body = "
                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
-                    <h2>Здравствуйте, {$name}!</h2>
-                    <p>Мы получили запрос на сброс пароля для вашей учетной записи.</p>
-                    <p>Для создания нового пароля, пожалуйста, перейдите по ссылке ниже:</p>
+                    <h2>Hello, {$name}!</h2>
+                    <p>We received a request to reset your password.</p>
+                    <p>To create a new password, please click the button below:</p>
                     <p style='text-align: center;'>
                         <a href='{$resetUrl}' 
                            style='display: inline-block; padding: 10px 20px; 
                                   background-color: #4CAF50; color: white; 
                                   text-decoration: none; border-radius: 5px;'>
-                            Сбросить пароль
+                            Reset Password
                         </a>
                     </p>
-                    <p>Или используйте эту ссылку: <a href='{$resetUrl}'>{$resetUrl}</a></p>
-                    <p>Ссылка действительна в течение 1 часа.</p>
-                    <p>Если вы не запрашивали сброс пароля, проигнорируйте это письмо.</p>
+                    <p>Or use this link: <a href='{$resetUrl}'>{$resetUrl}</a></p>
+                    <p>This link is valid for 24 hours.</p>
+                    <p>If you did not request a password reset, please ignore this email.</p>
                 </div>";
 
-            $mail->AltBody = "Здравствуйте, {$name}!\n\n" .
-                "Мы получили запрос на сброс пароля для вашей учетной записи.\n\n" .
-                "Для создания нового пароля перейдите по ссылке: {$resetUrl}\n\n" .
-                "Ссылка действительна в течение 1 часа.\n\n" .
-                "Если вы не запрашивали сброс пароля, проигнорируйте это письмо.";
+            $mail->AltBody = "Hello, {$name}!\n\n" .
+                "We received a request to reset your password.\n\n" .
+                "To create a new password, please use this link: {$resetUrl}\n\n" .
+                "This link is valid for 24 hours.\n\n" .
+                "If you did not request a password reset, please ignore this email.";
 
-            $mail->send();
+            $this->logMessage("Attempting to send email...");
+            
+            if (!$mail->send()) {
+                $this->logMessage("Mailer Error: " . $mail->ErrorInfo, 'ERROR');
+                throw new \Exception("Failed to send email: " . $mail->ErrorInfo);
+            }
+            
+            $this->logMessage("Email sent successfully to: " . $email);
             return true;
+
         } catch (\Exception $e) {
-            error_log("Error sending password reset email: " . $e->getMessage());
+            $this->logMessage("=== Email Sending Error ===", 'ERROR');
+            $this->logMessage("Error message: " . $e->getMessage(), 'ERROR');
+            $this->logMessage("Stack trace: " . $e->getTraceAsString(), 'ERROR');
+            if (isset($mail)) {
+                $this->logMessage("Mailer Error Details: " . $mail->ErrorInfo, 'ERROR');
+            }
+            $this->logMessage("=== End Email Sending Error ===", 'ERROR');
             throw $e;
         }
     }
@@ -754,51 +878,61 @@ class AuthController extends BaseController {
     // Новый метод для установки нового пароля
     public function setNewPassword() {
         try {
+            $this->logMessage("=== Starting Set New Password Process ===");
+            
             $requestBody = Flight::request()->getBody();
             $data = json_decode($requestBody, true);
-
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                return Flight::json([
-                    'success' => false,
-                    'message' => 'Неверный формат данных'
-                ], 400);
-            }
+            
+            $this->logMessage("Request body: " . $requestBody);
+            $this->logMessage("Decoded data: " . print_r($data, true));
 
             if (!isset($data['token']) || !isset($data['password'])) {
+                $this->logMessage("Token or password not provided", 'ERROR');
                 return Flight::json([
                     'success' => false,
-                    'message' => 'Отсутствует токен или новый пароль'
+                    'message' => 'Token and password are required'
                 ], 400);
             }
 
             $token = trim($data['token']);
             $password = trim($data['password']);
-
-            // Проверка длины пароля
-            if (strlen($password) < 8) {
-                return Flight::json([
-                    'success' => false,
-                    'message' => 'Пароль должен содержать минимум 8 символов'
-                ], 400);
-            }
+            
+            $this->logMessage("Processing token: " . $token);
 
             // Проверяем токен
             $stmt = $this->db->prepare("
-                SELECT prt.login_id, l.email 
+                SELECT prt.login_id, l.email, prt.expires_at, prt.used
                 FROM password_reset_tokens prt
                 JOIN logins l ON l.id = prt.login_id
                 WHERE prt.token = ? 
-                    AND prt.expires_at > NOW() 
-                    AND prt.used = FALSE
                 LIMIT 1
             ");
             $stmt->execute([$token]);
             $result = $stmt->fetch();
+            
+            $this->logMessage("Token check result: " . print_r($result, true));
 
             if (!$result) {
+                $this->logMessage("Token not found", 'ERROR');
                 return Flight::json([
                     'success' => false,
-                    'message' => 'Недействительная или устаревшая ссылка для сброса пароля'
+                    'message' => 'Invalid or expired password reset link'
+                ], 400);
+            }
+
+            if ($result['used']) {
+                $this->logMessage("Token already used", 'ERROR');
+                return Flight::json([
+                    'success' => false,
+                    'message' => 'This password reset link has already been used'
+                ], 400);
+            }
+
+            if (strtotime($result['expires_at']) < time()) {
+                $this->logMessage("Token expired at: " . $result['expires_at'], 'ERROR');
+                return Flight::json([
+                    'success' => false,
+                    'message' => 'Password reset link has expired'
                 ], 400);
             }
 
@@ -807,6 +941,7 @@ class AuthController extends BaseController {
 
             // Начинаем транзакцию
             $this->db->beginTransaction();
+            $this->logMessage("Starting database transaction");
 
             try {
                 // Обновляем пароль
@@ -816,6 +951,7 @@ class AuthController extends BaseController {
                     WHERE id = ?
                 ");
                 $stmt->execute([$hashedPassword, $result['login_id']]);
+                $this->logMessage("Password updated for user ID: " . $result['login_id']);
 
                 // Помечаем токен как использованный
                 $stmt = $this->db->prepare("
@@ -824,6 +960,7 @@ class AuthController extends BaseController {
                     WHERE token = ?
                 ");
                 $stmt->execute([$token]);
+                $this->logMessage("Token marked as used");
 
                 // Удаляем все старые неиспользованные токены для этого пользователя
                 $stmt = $this->db->prepare("
@@ -832,24 +969,110 @@ class AuthController extends BaseController {
                     AND used = FALSE
                 ");
                 $stmt->execute([$result['login_id']]);
+                $this->logMessage("Old unused tokens deleted");
 
                 $this->db->commit();
-
+                $this->logMessage("Transaction committed successfully");
+                
                 return Flight::json([
                     'success' => true,
-                    'message' => 'Пароль успешно изменен'
-                ]);
+                    'message' => 'Password has been successfully reset'
+                ], 200);
 
             } catch (\Exception $e) {
                 $this->db->rollBack();
+                $this->logMessage("Transaction rolled back due to error: " . $e->getMessage(), 'ERROR');
                 throw $e;
             }
 
         } catch (\Exception $e) {
-            error_log("Set new password error: " . $e->getMessage());
+            $this->logMessage("Set new password error: " . $e->getMessage(), 'ERROR');
+            $this->logMessage("Stack trace: " . $e->getTraceAsString(), 'ERROR');
             return Flight::json([
                 'success' => false,
-                'message' => 'Произошла ошибка при смене пароля'
+                'message' => 'An error occurred while changing the password'
+            ], 500);
+        }
+    }
+
+    /**
+     * Validates password reset token
+     * 
+     * @return void JSON response with validation status
+     * 
+     * @api {post} /api/auth/validate-reset-token Validate reset token
+     * @apiBody {String} token Password reset token
+     * 
+     * @apiSuccess {String} status Success status
+     * @apiSuccess {String} error_code Response code
+     */
+    public function validateResetToken() {
+        try {
+            $requestBody = Flight::request()->getBody();
+            $data = json_decode($requestBody, true);
+
+            if (!isset($data['token'])) {
+                return Flight::json([
+                    'status' => 400,
+                    'error_code' => ResponseCodes::TOKEN_NOT_PROVIDED,
+                    'message' => 'Token is required',
+                    'data' => null
+                ], 400);
+            }
+
+            $token = trim($data['token']);
+
+            // Check token validity
+            $stmt = $this->db->prepare("
+                SELECT prt.login_id, prt.expires_at, prt.used
+                FROM password_reset_tokens prt
+                WHERE prt.token = ? 
+                LIMIT 1
+            ");
+            $stmt->execute([$token]);
+            $result = $stmt->fetch();
+
+            if (!$result) {
+                return Flight::json([
+                    'status' => 400,
+                    'error_code' => ResponseCodes::INVALID_TOKEN,
+                    'message' => 'Invalid or non-existent token',
+                    'data' => null
+                ], 400);
+            }
+
+            if ($result['used']) {
+                return Flight::json([
+                    'status' => 400,
+                    'error_code' => ResponseCodes::INVALID_TOKEN,
+                    'message' => 'Token has already been used',
+                    'data' => null
+                ], 400);
+            }
+
+            if (strtotime($result['expires_at']) < time()) {
+                return Flight::json([
+                    'status' => 400,
+                    'error_code' => ResponseCodes::TOKEN_EXPIRED,
+                    'message' => 'Token has expired',
+                    'data' => null
+                ], 400);
+            }
+
+            return Flight::json([
+                'status' => 200,
+                'error_code' => 'TOKEN_VALID',
+                'message' => 'Token is valid',
+                'data' => null
+            ], 200);
+
+        } catch (\Exception $e) {
+            error_log("Token validation error: " . $e->getMessage());
+            return Flight::json([
+                'status' => 500,
+                'error_code' => ResponseCodes::SYSTEM_ERROR,
+                'message' => 'System error occurred',
+                'data' => null
             ], 500);
         }
     }
