@@ -1,0 +1,8 @@
+/vendor/
+.env
+.DS_Store
+/logs/*
+/profile-images/*
+composer.phar
+.vscode/
+/node_modules/
