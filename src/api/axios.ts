@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 import axios from 'axios';
-
+//
 // Создаем экземпляр axios с базовой конфигурацией
 const defaultConfig = {
   baseURL: import.meta.env.VITE_API_URL,
