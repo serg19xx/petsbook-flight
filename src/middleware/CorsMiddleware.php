@@ -3,18 +3,25 @@
 namespace App\Middleware;
 
 class CorsMiddleware {
+    private static $logFile = __DIR__ . '/../../logs/cors.log';
+
     public static function handle() {
-        \Flight::after('start', function() {
-            // Указываем конкретный домен вместо *
-            header("Access-Control-Allow-Origin: http://localhost:5173");
-            header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-            header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
-            header("Access-Control-Allow-Credentials: true");
-            header("Access-Control-Max-Age: 3600");
-            
-            if (\Flight::request()->method === 'OPTIONS') {
-                \Flight::stop();
-            }
-        });
+        self::log("CORS middleware called for " . ($_SERVER['REQUEST_URI'] ?? 'NO URI'));
+
+        header('Access-Control-Allow-Origin: *');
+        header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH');
+        header('Access-Control-Allow-Headers: *');
+
+        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+            self::log("Handling OPTIONS request");
+            http_response_code(200);
+            exit();
+        }
+    }
+
+    private static function log($message) {
+        $timestamp = date('Y-m-d H:i:s');
+        $logMessage = "[$timestamp] $message\n";
+        error_log($logMessage, 3, self::$logFile);
     }
 }

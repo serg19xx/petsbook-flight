@@ -38,33 +38,8 @@ class UserController {
     /** @var PDO Database connection instance */
     private $db;
 
-    public function __construct() {
-        try {
-            // Database connection
-            $this->db = new PDO(
-                "mysql:host=" . $_ENV['DB_HOST'] . 
-                ";dbname=" . $_ENV['DB_NAME'] . 
-                ";charset=utf8mb4",
-                $_ENV['DB_USER'],
-                $_ENV['DB_PASSWORD'],
-                [
-                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::ATTR_EMULATE_PREPARES => false
-                ]
-            );
-
-            // Load avatar settings
-            $this->avatarSettings = require __DIR__ . '/../config/avatar.php';
-            if (!isset($this->avatarSettings['settings'])) {
-                throw new \Exception('Avatar configuration not found');
-            }
-            $this->avatarSettings = $this->avatarSettings['settings'];
-
-        } catch (\PDOException $e) {
-            error_log("Database connection error: " . $e->getMessage());
-            throw new \Exception('Database connection failed: ' . $e->getMessage());
-        }
+    public function __construct($db) {
+        $this->db = $db;
     }
 
     /**
@@ -80,7 +55,7 @@ class UserController {
      * @apiError {String} error_code Error code (USER_NOT_FOUND, INVALID_TOKEN, etc.)
      */
     public function getUserData() {
-        try {
+        try {          
             // Получаем и проверяем токен
             $headers = getallheaders();
             $authHeader = isset($headers['Authorization']) ? $headers['Authorization'] : '';
@@ -133,23 +108,44 @@ class UserController {
                 throw new \Exception('Failed to decode JSON data: ' . json_last_error_msg());
             }
 
-            // СОХРАНЯЕМ существующую обработку аватара
-            if (empty($userData['user']['avatar'])) {
-                $userData['user']['avatar'] = $this->generateDicebearUrl($userData['user']);
-            } else {
-                $avatarUrl = $userData['user']['avatar'];
+
+            // Initialize variables for file checks
+            $fileName = $decoded->role . '-' . $decoded->id;
+            $possibleExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+            $avatarExists = false;
+            $coverExists = false;
+
+       // Check avatar
+            foreach ($possibleExtensions as $ext) {
+                $avatarPath = '/profile-images/avatars/' . $fileName . '.' . $ext;
+                $localPath = $_SERVER['DOCUMENT_ROOT'] . $avatarPath;
                 
-                if (filter_var($avatarUrl, FILTER_VALIDATE_URL)) {
-                    $headers = @get_headers($avatarUrl);
-                    if (!$headers || strpos($headers[0], '200') === false) {
-                        $userData['user']['avatar'] = $this->generateDicebearUrl($userData['user']);
-                    }
-                } else {
-                    $localPath = $_SERVER['DOCUMENT_ROOT'] . $avatarUrl;
-                    if (!file_exists($localPath)) {
-                        $userData['user']['avatar'] = $this->generateDicebearUrl($userData['user']);
-                    }
+                if (file_exists($localPath)) {
+                    $userData['user']['avatar'] = 'http://' . $_SERVER['HTTP_HOST'] . $avatarPath;
+                    $avatarExists = true;
+                    break;
                 }
+            }
+
+            // Check cover
+            foreach ($possibleExtensions as $ext) {
+                $coverPath = '/profile-images/covers/' . $fileName . '.' . $ext;
+                $localPath = $_SERVER['DOCUMENT_ROOT'] . $coverPath;
+                
+                if (file_exists($localPath)) {
+                    $userData['user']['cover'] = 'http://' . $_SERVER['HTTP_HOST'] . $coverPath;
+                    $coverExists = true;
+                    break;
+                }
+            }
+
+            if (!$avatarExists) {
+                $userData['user']['avatar'] = $this->generateDicebearUrl($userData['user']);
+            }
+
+            // В методе getUserData():
+            if (!$coverExists) {
+                $userData['user']['cover'] = $this->generateDefaultCoverUrl();
             }
 
             // Возвращаем успешный ответ
@@ -379,6 +375,19 @@ class UserController {
                 'data' => null
             ], 500);
         }
+    }
+
+    private function generateDefaultCoverUrl() {
+        // Путь к папке с изображениями по умолчанию
+        $defaultImagesPath = $_SERVER['DOCUMENT_ROOT'] . '/profile-images/defaults/';
+        $defaultCover = '8331305.jpg'; // или .jpg в зависимости от формата вашего изображения
+        error_log("Looking for cover at: " . $defaultImagesPath . $defaultCover);
+        if (file_exists($defaultImagesPath . $defaultCover)) {
+            return 'http://' . $_SERVER['HTTP_HOST'] . '/profile-images/defaults/' . $defaultCover;
+        }
+
+        // Если файл не найден, возвращаем резервный вариант с цветом
+        return null;//'data:image/svg+xml;base64,' . base64_encode('<svg width="1200" height="400" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#4a5568"/></svg>');
     }
 
     private function generateDicebearUrl($userData) {
