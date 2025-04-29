@@ -36,6 +36,24 @@ $avatarController = new AvatarController($db);
 $coverController = new CoverController($db);
 $statsController = new StatsController($db);
 
+Flight::route('GET /api/test-db', function() use ($db) {
+    try {
+        // Пример: получить список таблиц
+        $stmt = $db->query("SHOW TABLES");
+        $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        Flight::json([
+            'status' => 'success',
+            'tables' => $tables
+        ]);
+    } catch (Exception $e) {
+        Flight::json([
+            'status' => 'error',
+            'message' => $e->getMessage()
+        ], 500);
+    }
+});
+
 /**
  * Authentication Routes
  * 
