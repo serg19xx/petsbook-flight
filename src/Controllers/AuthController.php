@@ -809,21 +809,9 @@ class AuthController extends BaseController {
             $mail->addAddress($email, $name);
             $this->logMessage("From: " . $_ENV['MAIL_FROM_ADDRESS']);
             $this->logMessage("To: " . $email);
-
-            // Получаем Origin из заголовков запроса
-            $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-            $this->logMessage("Origin in sendPasswordResetEmail: " . $origin);
-            
-            // Если Origin не установлен, используем порт из APP_URL
-            if (empty($origin)) {
-                $appUrl = $_ENV['APP_URL'] ?? 'http://localhost:5173';
-                $port = (strpos($appUrl, ':4173') !== false) ? '4173' : '5173';
-            } else {
-                $port = (strpos($origin, ':4173') !== false) ? '4173' : '5173';
-            }
             
             // Формируем URL с динамическим портом
-            $resetUrl = "http://localhost:{$port}/reset-password/{$token}";
+            $resetUrl = $_ENV['APP_URL']."/reset-password/{$token}";
             $this->logMessage("Reset URL: " . $resetUrl);
             
             $mail->isHTML(true);
