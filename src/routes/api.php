@@ -36,9 +36,17 @@ $avatarController = new AvatarController($db);
 $coverController = new CoverController($db);
 $statsController = new StatsController($db);
 
+// Тестовый endpoint без базы
+Flight::route('GET /api/test', function() {
+    Flight::json([
+        'status' => 'success',
+        'message' => 'API работает!'
+    ]);
+});
+
+// Тестовый endpoint с базой
 Flight::route('GET /api/test-db', function() use ($db) {
     try {
-        // Пример: получить список таблиц
         $stmt = $db->query("SHOW TABLES");
         $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
