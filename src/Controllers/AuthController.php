@@ -101,7 +101,7 @@ class AuthController extends BaseController {
             $result = $stmt->fetch();
 
             // Если процедура вернула ошибку - возвращаем как есть
-            if (!$result['success']) {
+            if ($result['success'] == 0) {
                 return Flight::json([
                     'success' => false,
                     'message' => $result['message'],

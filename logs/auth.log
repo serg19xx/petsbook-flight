@@ -7403,3 +7403,742 @@
 
 [2025-04-28 12:55:19][INFO] Email sent successfully to: serg.kostyuk@gmail.com
 [2025-04-28 12:55:19][INFO] Password reset email sent successfully
+[2025-04-30 14:28:13][INFO] === Starting Password Reset Process ===
+[2025-04-30 14:28:13][INFO] Origin: http://localhost:5173
+[2025-04-30 14:28:13][INFO] All headers: Array
+(
+    [Priority] => u=0
+    [Sec-Fetch-Site] => same-site
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost:5173/
+    [Connection] => keep-alive
+    [Origin] => http://localhost:5173
+    [Content-Length] => 34
+    [Content-Type] => application/json
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => en-CA,uk;q=0.8,ru;q=0.6,en-US;q=0.4,en;q=0.2
+    [Accept] => application/json
+    [User-Agent] => Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:137.0) Gecko/20100101 Firefox/137.0
+    [Host] => localhost:8080
+)
+
+[2025-04-30 14:28:13][INFO] Request body: {"email":"serg.kostyuk@gmail.com"}
+[2025-04-30 14:28:13][INFO] Decoded data: Array
+(
+    [email] => serg.kostyuk@gmail.com
+)
+
+[2025-04-30 14:28:13][INFO] Processing password reset for email: serg.kostyuk@gmail.com
+[2025-04-30 14:28:13][INFO] User found: Array
+(
+    [id] => 1
+    [email] => serg.kostyuk@gmail.com
+)
+
+[2025-04-30 14:28:13][INFO] Generated token: c5866aa086cf4efbaf103f5346c9228375c962787580bff194d7232aaf4d8278
+[2025-04-30 14:28:13][INFO] Token saved to database for user ID: 1
+[2025-04-30 14:28:13][INFO] Attempting to send password reset email
+[2025-04-30 14:28:13][INFO] === Starting Password Reset Email Sending Process ===
+[2025-04-30 14:28:13][INFO] Recipient: serg.kostyuk@gmail.com, Name: serg.kostyuk@gmail.com
+[2025-04-30 14:28:13][INFO] SMTP Configuration:
+[2025-04-30 14:28:13][INFO] Host: sandbox.smtp.mailtrap.io
+[2025-04-30 14:28:13][INFO] Port: 2525
+[2025-04-30 14:28:13][INFO] Username: 0433a9b7592b6d
+[2025-04-30 14:28:13][INFO] SMTPSecure: tls
+[2025-04-30 14:28:13][INFO] Testing SMTP connection...
+[2025-04-30 14:28:14][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-04-30 14:28:14][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250-AUTH PLAIN LOGIN CRAM-MD5
+250 STARTTLS
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: STARTTLS
+
+[2025-04-30 14:28:14][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-04-30 14:28:14][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250 AUTH PLAIN LOGIN CRAM-MD5
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: AUTH CRAM-MD5
+
+[2025-04-30 14:28:14][2] SERVER -> CLIENT: 334 PDI0MzMwMjU3OS4xNzQ2MDIzMjk0QHNtdHAubWFpbHRyYXAuaW8+
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: [credentials hidden]
+[2025-04-30 14:28:14][2] SERVER -> CLIENT: 235 2.0.0 OK
+
+[2025-04-30 14:28:14][INFO] SMTP connection test successful
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: QUIT
+
+[2025-04-30 14:28:14][2] SERVER -> CLIENT: 221 2.0.0 Bye
+
+[2025-04-30 14:28:14][INFO] From: noreply@petsbook.com
+[2025-04-30 14:28:14][INFO] To: serg.kostyuk@gmail.com
+[2025-04-30 14:28:14][INFO] Reset URL: http://localhost:4173/reset-password/c5866aa086cf4efbaf103f5346c9228375c962787580bff194d7232aaf4d8278
+[2025-04-30 14:28:14][INFO] Attempting to send email...
+[2025-04-30 14:28:14][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-04-30 14:28:14][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250-AUTH PLAIN LOGIN CRAM-MD5
+250 STARTTLS
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: STARTTLS
+
+[2025-04-30 14:28:14][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-04-30 14:28:14][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250 AUTH PLAIN LOGIN CRAM-MD5
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: AUTH CRAM-MD5
+
+[2025-04-30 14:28:14][2] SERVER -> CLIENT: 334 PDk3OTQ5Njc3NC4xNzQ2MDIzMjk0QHNtdHAubWFpbHRyYXAuaW8+
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: [credentials hidden]
+[2025-04-30 14:28:14][2] SERVER -> CLIENT: 235 2.0.0 OK
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: MAIL FROM:<noreply@petsbook.com>
+
+[2025-04-30 14:28:14][2] SERVER -> CLIENT: 250 2.1.0 Ok
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: RCPT TO:<serg.kostyuk@gmail.com>
+
+[2025-04-30 14:28:14][2] SERVER -> CLIENT: 250 2.1.0 Ok
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: DATA
+
+[2025-04-30 14:28:14][2] SERVER -> CLIENT: 354 Go ahead
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: Date: Wed, 30 Apr 2025 14:28:14 +0000
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: To: "serg.kostyuk@gmail.com" <serg.kostyuk@gmail.com>
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: From: PetsBook <noreply@petsbook.com>
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: Subject: Password Reset
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: Message-ID: <v2yVYykQr7y6yRGI0ooqtIFKTmMQjsfbOKZiQaEga8@localhost>
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: X-Mailer: PHPMailer 6.9.3 (https://github.com/PHPMailer/PHPMailer)
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: MIME-Version: 1.0
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: Content-Type: multipart/alternative;
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER:  boundary="b1=_v2yVYykQr7y6yRGI0ooqtIFKTmMQjsfbOKZiQaEga8"
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: 
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: --b1=_v2yVYykQr7y6yRGI0ooqtIFKTmMQjsfbOKZiQaEga8
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: Content-Type: text/plain; charset=us-ascii
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: 
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: Hello, serg.kostyuk@gmail.com!
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: 
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: We received a request to reset your password.
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: 
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: To create a new password, please use this link: http://localhost:4173/reset-password/c5866aa086cf4efbaf103f5346c9228375c962787580bff194d7232aaf4d8278
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: 
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: This link is valid for 24 hours.
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: 
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: If you did not request a password reset, please ignore this email.
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: 
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: --b1=_v2yVYykQr7y6yRGI0ooqtIFKTmMQjsfbOKZiQaEga8
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: Content-Type: text/html; charset=us-ascii
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: 
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: 
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER:                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER:                     <h2>Hello, serg.kostyuk@gmail.com!</h2>
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER:                     <p>We received a request to reset your password.</p>
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER:                     <p>To create a new password, please click the button below:</p>
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER:                     <p style='text-align: center;'>
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER:                         <a href='http://localhost:4173/reset-password/c5866aa086cf4efbaf103f5346c9228375c962787580bff194d7232aaf4d8278' 
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER:                            style='display: inline-block; padding: 10px 20px; 
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER:                                   background-color: #4CAF50; color: white; 
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER:                                   text-decoration: none; border-radius: 5px;'>
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER:                             Reset Password
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER:                         </a>
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER:                     </p>
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER:                     <p>Or use this link: <a href='http://localhost:4173/reset-password/c5866aa086cf4efbaf103f5346c9228375c962787580bff194d7232aaf4d8278'>http://localhost:4173/reset-password/c5866aa086cf4efbaf103f5346c9228375c962787580bff194d7232aaf4d8278</a></p>
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER:                     <p>This link is valid for 24 hours.</p>
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER:                     <p>If you did not request a password reset, please ignore this email.</p>
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER:                 </div>
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: 
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: 
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: --b1=_v2yVYykQr7y6yRGI0ooqtIFKTmMQjsfbOKZiQaEga8--
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: 
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: .
+
+[2025-04-30 14:28:14][2] SERVER -> CLIENT: 250 2.0.0 Ok: queued
+
+[2025-04-30 14:28:14][1] CLIENT -> SERVER: QUIT
+
+[2025-04-30 14:28:14][2] SERVER -> CLIENT: 221 2.0.0 Bye
+
+[2025-04-30 14:28:14][INFO] Email sent successfully to: serg.kostyuk@gmail.com
+[2025-04-30 14:28:14][INFO] Password reset email sent successfully
+[2025-04-30 14:30:00][INFO] === Starting Password Reset Process ===
+[2025-04-30 14:30:00][INFO] Origin: http://localhost:5173
+[2025-04-30 14:30:00][INFO] All headers: Array
+(
+    [Priority] => u=0
+    [Sec-Fetch-Site] => same-site
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost:5173/
+    [Connection] => keep-alive
+    [Origin] => http://localhost:5173
+    [Content-Length] => 34
+    [Content-Type] => application/json
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => en-CA,uk;q=0.8,ru;q=0.6,en-US;q=0.4,en;q=0.2
+    [Accept] => application/json
+    [User-Agent] => Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:137.0) Gecko/20100101 Firefox/137.0
+    [Host] => localhost:8080
+)
+
+[2025-04-30 14:30:00][INFO] Request body: {"email":"serg.kostyuk@gmail.com"}
+[2025-04-30 14:30:00][INFO] Decoded data: Array
+(
+    [email] => serg.kostyuk@gmail.com
+)
+
+[2025-04-30 14:30:00][INFO] Processing password reset for email: serg.kostyuk@gmail.com
+[2025-04-30 14:30:00][INFO] User found: Array
+(
+    [id] => 1
+    [email] => serg.kostyuk@gmail.com
+)
+
+[2025-04-30 14:30:00][INFO] Generated token: 782786704f922ef6420f8c6d47c96f7fa53504d5828812ed27ad2fb09c540a2f
+[2025-04-30 14:30:00][INFO] Token saved to database for user ID: 1
+[2025-04-30 14:30:00][INFO] Attempting to send password reset email
+[2025-04-30 14:30:00][INFO] === Starting Password Reset Email Sending Process ===
+[2025-04-30 14:30:00][INFO] Recipient: serg.kostyuk@gmail.com, Name: serg.kostyuk@gmail.com
+[2025-04-30 14:30:00][INFO] SMTP Configuration:
+[2025-04-30 14:30:00][INFO] Host: sandbox.smtp.mailtrap.io
+[2025-04-30 14:30:00][INFO] Port: 2525
+[2025-04-30 14:30:00][INFO] Username: 0433a9b7592b6d
+[2025-04-30 14:30:00][INFO] SMTPSecure: tls
+[2025-04-30 14:30:00][INFO] Testing SMTP connection...
+[2025-04-30 14:30:01][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-04-30 14:30:01][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250-AUTH PLAIN LOGIN CRAM-MD5
+250 STARTTLS
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: STARTTLS
+
+[2025-04-30 14:30:01][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-04-30 14:30:01][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250 AUTH PLAIN LOGIN CRAM-MD5
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: AUTH CRAM-MD5
+
+[2025-04-30 14:30:01][2] SERVER -> CLIENT: 334 PDc4MTUxNzYyOC4xNzQ2MDIzNDAxQHNtdHAubWFpbHRyYXAuaW8+
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: [credentials hidden]
+[2025-04-30 14:30:01][2] SERVER -> CLIENT: 235 2.0.0 OK
+
+[2025-04-30 14:30:01][INFO] SMTP connection test successful
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: QUIT
+
+[2025-04-30 14:30:01][2] SERVER -> CLIENT: 221 2.0.0 Bye
+
+[2025-04-30 14:30:01][INFO] From: noreply@petsbook.com
+[2025-04-30 14:30:01][INFO] To: serg.kostyuk@gmail.com
+[2025-04-30 14:30:01][INFO] Reset URL: http://localhost:5173/reset-password/782786704f922ef6420f8c6d47c96f7fa53504d5828812ed27ad2fb09c540a2f
+[2025-04-30 14:30:01][INFO] Attempting to send email...
+[2025-04-30 14:30:01][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-04-30 14:30:01][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250-AUTH PLAIN LOGIN CRAM-MD5
+250 STARTTLS
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: STARTTLS
+
+[2025-04-30 14:30:01][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-04-30 14:30:01][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250 AUTH PLAIN LOGIN CRAM-MD5
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: AUTH CRAM-MD5
+
+[2025-04-30 14:30:01][2] SERVER -> CLIENT: 334 PDk4Mzc3ODI1OC4xNzQ2MDIzNDAxQHNtdHAubWFpbHRyYXAuaW8+
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: [credentials hidden]
+[2025-04-30 14:30:01][2] SERVER -> CLIENT: 235 2.0.0 OK
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: MAIL FROM:<noreply@petsbook.com>
+
+[2025-04-30 14:30:01][2] SERVER -> CLIENT: 250 2.1.0 Ok
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: RCPT TO:<serg.kostyuk@gmail.com>
+
+[2025-04-30 14:30:01][2] SERVER -> CLIENT: 250 2.1.0 Ok
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: DATA
+
+[2025-04-30 14:30:01][2] SERVER -> CLIENT: 354 Go ahead
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: Date: Wed, 30 Apr 2025 14:30:01 +0000
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: To: "serg.kostyuk@gmail.com" <serg.kostyuk@gmail.com>
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: From: PetsBook <noreply@petsbook.com>
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: Subject: Password Reset
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: Message-ID: <D1Sg6Sniq3VOGbW3w1r4J9uQuzsWE1hSEQrQXekvg@localhost>
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: X-Mailer: PHPMailer 6.9.3 (https://github.com/PHPMailer/PHPMailer)
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: MIME-Version: 1.0
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: Content-Type: multipart/alternative;
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER:  boundary="b1=_D1Sg6Sniq3VOGbW3w1r4J9uQuzsWE1hSEQrQXekvg"
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: 
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: --b1=_D1Sg6Sniq3VOGbW3w1r4J9uQuzsWE1hSEQrQXekvg
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: Content-Type: text/plain; charset=us-ascii
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: 
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: Hello, serg.kostyuk@gmail.com!
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: 
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: We received a request to reset your password.
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: 
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: To create a new password, please use this link: http://localhost:5173/reset-password/782786704f922ef6420f8c6d47c96f7fa53504d5828812ed27ad2fb09c540a2f
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: 
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: This link is valid for 24 hours.
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: 
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: If you did not request a password reset, please ignore this email.
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: 
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: --b1=_D1Sg6Sniq3VOGbW3w1r4J9uQuzsWE1hSEQrQXekvg
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: Content-Type: text/html; charset=us-ascii
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: 
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: 
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER:                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER:                     <h2>Hello, serg.kostyuk@gmail.com!</h2>
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER:                     <p>We received a request to reset your password.</p>
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER:                     <p>To create a new password, please click the button below:</p>
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER:                     <p style='text-align: center;'>
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER:                         <a href='http://localhost:5173/reset-password/782786704f922ef6420f8c6d47c96f7fa53504d5828812ed27ad2fb09c540a2f' 
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER:                            style='display: inline-block; padding: 10px 20px; 
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER:                                   background-color: #4CAF50; color: white; 
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER:                                   text-decoration: none; border-radius: 5px;'>
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER:                             Reset Password
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER:                         </a>
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER:                     </p>
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER:                     <p>Or use this link: <a href='http://localhost:5173/reset-password/782786704f922ef6420f8c6d47c96f7fa53504d5828812ed27ad2fb09c540a2f'>http://localhost:5173/reset-password/782786704f922ef6420f8c6d47c96f7fa53504d5828812ed27ad2fb09c540a2f</a></p>
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER:                     <p>This link is valid for 24 hours.</p>
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER:                     <p>If you did not request a password reset, please ignore this email.</p>
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER:                 </div>
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: 
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: 
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: --b1=_D1Sg6Sniq3VOGbW3w1r4J9uQuzsWE1hSEQrQXekvg--
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: 
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: .
+
+[2025-04-30 14:30:01][2] SERVER -> CLIENT: 250 2.0.0 Ok: queued
+
+[2025-04-30 14:30:01][1] CLIENT -> SERVER: QUIT
+
+[2025-04-30 14:30:01][2] SERVER -> CLIENT: 221 2.0.0 Bye
+
+[2025-04-30 14:30:01][INFO] Email sent successfully to: serg.kostyuk@gmail.com
+[2025-04-30 14:30:01][INFO] Password reset email sent successfully
+[2025-04-30 15:30:35][INFO] === Starting Password Reset Process ===
+[2025-04-30 15:30:35][INFO] Origin: http://localhost:5173
+[2025-04-30 15:30:35][INFO] All headers: Array
+(
+    [Priority] => u=0
+    [Sec-Fetch-Site] => same-site
+    [Sec-Fetch-Mode] => cors
+    [Sec-Fetch-Dest] => empty
+    [Referer] => http://localhost:5173/
+    [Connection] => keep-alive
+    [Origin] => http://localhost:5173
+    [Content-Length] => 34
+    [Content-Type] => application/json
+    [Accept-Encoding] => gzip, deflate, br, zstd
+    [Accept-Language] => en-CA,uk;q=0.8,ru;q=0.6,en-US;q=0.4,en;q=0.2
+    [Accept] => application/json
+    [User-Agent] => Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:137.0) Gecko/20100101 Firefox/137.0
+    [Host] => localhost:8080
+)
+
+[2025-04-30 15:30:35][INFO] Request body: {"email":"serg.kostyuk@gmail.com"}
+[2025-04-30 15:30:35][INFO] Decoded data: Array
+(
+    [email] => serg.kostyuk@gmail.com
+)
+
+[2025-04-30 15:30:35][INFO] Processing password reset for email: serg.kostyuk@gmail.com
+[2025-04-30 15:30:36][INFO] User found: Array
+(
+    [id] => 1
+    [email] => serg.kostyuk@gmail.com
+)
+
+[2025-04-30 15:30:36][INFO] Generated token: 97d680fb9c795f4740015173672d6ebce23ae448c349acc2eea05afbbb0c1de0
+[2025-04-30 15:30:36][INFO] Token saved to database for user ID: 1
+[2025-04-30 15:30:36][INFO] Attempting to send password reset email
+[2025-04-30 15:30:36][INFO] === Starting Password Reset Email Sending Process ===
+[2025-04-30 15:30:36][INFO] Recipient: serg.kostyuk@gmail.com, Name: serg.kostyuk@gmail.com
+[2025-04-30 15:30:36][INFO] SMTP Configuration:
+[2025-04-30 15:30:36][INFO] Host: sandbox.smtp.mailtrap.io
+[2025-04-30 15:30:36][INFO] Port: 2525
+[2025-04-30 15:30:36][INFO] Username: 0433a9b7592b6d
+[2025-04-30 15:30:36][INFO] SMTPSecure: tls
+[2025-04-30 15:30:36][INFO] Testing SMTP connection...
+[2025-04-30 15:30:36][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
+
+[2025-04-30 15:30:36][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-04-30 15:30:36][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250-AUTH PLAIN LOGIN CRAM-MD5
+250 STARTTLS
+
+[2025-04-30 15:30:36][1] CLIENT -> SERVER: STARTTLS
+
+[2025-04-30 15:30:36][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
+
+[2025-04-30 15:30:36][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-04-30 15:30:36][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250 AUTH PLAIN LOGIN CRAM-MD5
+
+[2025-04-30 15:30:36][1] CLIENT -> SERVER: AUTH CRAM-MD5
+
+[2025-04-30 15:30:36][2] SERVER -> CLIENT: 334 PDE1OTgyNTY5Mi4xNzQ2MDI3MDM2QHNtdHAubWFpbHRyYXAuaW8+
+
+[2025-04-30 15:30:36][1] CLIENT -> SERVER: [credentials hidden]
+[2025-04-30 15:30:36][2] SERVER -> CLIENT: 235 2.0.0 OK
+
+[2025-04-30 15:30:36][INFO] SMTP connection test successful
+[2025-04-30 15:30:36][1] CLIENT -> SERVER: QUIT
+
+[2025-04-30 15:30:36][2] SERVER -> CLIENT: 221 2.0.0 Bye
+
+[2025-04-30 15:30:36][INFO] From: noreply@petsbook.com
+[2025-04-30 15:30:36][INFO] To: serg.kostyuk@gmail.com
+[2025-04-30 15:30:36][INFO] Reset URL: http://localhost:5173/reset-password/97d680fb9c795f4740015173672d6ebce23ae448c349acc2eea05afbbb0c1de0
+[2025-04-30 15:30:36][INFO] Attempting to send email...
+[2025-04-30 15:30:36][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
+
+[2025-04-30 15:30:36][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-04-30 15:30:36][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250-AUTH PLAIN LOGIN CRAM-MD5
+250 STARTTLS
+
+[2025-04-30 15:30:36][1] CLIENT -> SERVER: STARTTLS
+
+[2025-04-30 15:30:36][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
+
+[2025-04-30 15:30:36][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-04-30 15:30:37][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250 AUTH PLAIN LOGIN CRAM-MD5
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: AUTH CRAM-MD5
+
+[2025-04-30 15:30:37][2] SERVER -> CLIENT: 334 PDE0Njg2ODk1ODUuMTc0NjAyNzAzN0BzbXRwLm1haWx0cmFwLmlvPg==
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: [credentials hidden]
+[2025-04-30 15:30:37][2] SERVER -> CLIENT: 235 2.0.0 OK
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: MAIL FROM:<noreply@petsbook.com>
+
+[2025-04-30 15:30:37][2] SERVER -> CLIENT: 250 2.1.0 Ok
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: RCPT TO:<serg.kostyuk@gmail.com>
+
+[2025-04-30 15:30:37][2] SERVER -> CLIENT: 250 2.1.0 Ok
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: DATA
+
+[2025-04-30 15:30:37][2] SERVER -> CLIENT: 354 Go ahead
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: Date: Wed, 30 Apr 2025 15:30:36 +0000
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: To: "serg.kostyuk@gmail.com" <serg.kostyuk@gmail.com>
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: From: PetsBook <noreply@petsbook.com>
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: Subject: Password Reset
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: Message-ID: <YyedwtbhujsAkUGNOikI7Zrthxm9FcJozaiAAbfFI@localhost>
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: X-Mailer: PHPMailer 6.9.3 (https://github.com/PHPMailer/PHPMailer)
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: MIME-Version: 1.0
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: Content-Type: multipart/alternative;
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER:  boundary="b1=_YyedwtbhujsAkUGNOikI7Zrthxm9FcJozaiAAbfFI"
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: 
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: --b1=_YyedwtbhujsAkUGNOikI7Zrthxm9FcJozaiAAbfFI
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: Content-Type: text/plain; charset=us-ascii
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: 
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: Hello, serg.kostyuk@gmail.com!
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: 
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: We received a request to reset your password.
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: 
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: To create a new password, please use this link: http://localhost:5173/reset-password/97d680fb9c795f4740015173672d6ebce23ae448c349acc2eea05afbbb0c1de0
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: 
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: This link is valid for 24 hours.
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: 
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: If you did not request a password reset, please ignore this email.
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: 
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: --b1=_YyedwtbhujsAkUGNOikI7Zrthxm9FcJozaiAAbfFI
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: Content-Type: text/html; charset=us-ascii
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: 
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: 
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER:                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER:                     <h2>Hello, serg.kostyuk@gmail.com!</h2>
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER:                     <p>We received a request to reset your password.</p>
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER:                     <p>To create a new password, please click the button below:</p>
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER:                     <p style='text-align: center;'>
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER:                         <a href='http://localhost:5173/reset-password/97d680fb9c795f4740015173672d6ebce23ae448c349acc2eea05afbbb0c1de0' 
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER:                            style='display: inline-block; padding: 10px 20px; 
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER:                                   background-color: #4CAF50; color: white; 
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER:                                   text-decoration: none; border-radius: 5px;'>
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER:                             Reset Password
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER:                         </a>
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER:                     </p>
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER:                     <p>Or use this link: <a href='http://localhost:5173/reset-password/97d680fb9c795f4740015173672d6ebce23ae448c349acc2eea05afbbb0c1de0'>http://localhost:5173/reset-password/97d680fb9c795f4740015173672d6ebce23ae448c349acc2eea05afbbb0c1de0</a></p>
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER:                     <p>This link is valid for 24 hours.</p>
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER:                     <p>If you did not request a password reset, please ignore this email.</p>
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER:                 </div>
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: 
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: 
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: --b1=_YyedwtbhujsAkUGNOikI7Zrthxm9FcJozaiAAbfFI--
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: 
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: .
+
+[2025-04-30 15:30:37][2] SERVER -> CLIENT: 250 2.0.0 Ok: queued
+
+[2025-04-30 15:30:37][1] CLIENT -> SERVER: QUIT
+
+[2025-04-30 15:30:37][2] SERVER -> CLIENT: 221 2.0.0 Bye
+
+[2025-04-30 15:30:37][INFO] Email sent successfully to: serg.kostyuk@gmail.com
+[2025-04-30 15:30:37][INFO] Password reset email sent successfully
+[2025-04-30 15:31:05][INFO] === Starting Set New Password Process ===
+[2025-04-30 15:31:05][INFO] Request body: {"token":"97d680fb9c795f4740015173672d6ebce23ae448c349acc2eea05afbbb0c1de0","password":"Test54321"}
+[2025-04-30 15:31:05][INFO] Decoded data: Array
+(
+    [token] => 97d680fb9c795f4740015173672d6ebce23ae448c349acc2eea05afbbb0c1de0
+    [password] => Test54321
+)
+
+[2025-04-30 15:31:05][INFO] Processing token: 97d680fb9c795f4740015173672d6ebce23ae448c349acc2eea05afbbb0c1de0
+[2025-04-30 15:31:05][INFO] Token check result: Array
+(
+    [login_id] => 1
+    [email] => serg.kostyuk@gmail.com
+    [expires_at] => 2025-05-01 11:30:36
+    [used] => 0
+)
+
+[2025-04-30 15:31:05][INFO] Starting database transaction
+[2025-04-30 15:31:05][INFO] Password updated for user ID: 1
+[2025-04-30 15:31:06][INFO] Token marked as used
+[2025-04-30 15:31:06][INFO] Old unused tokens deleted
+[2025-04-30 15:31:06][INFO] Transaction committed successfully
