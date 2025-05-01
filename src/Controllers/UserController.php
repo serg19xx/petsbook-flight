@@ -56,7 +56,7 @@ class UserController {
      */
     public function getUserData() {
 
-        error_log('$_COOKIE: ' . print_r($_COOKIE, true));
+        error_log('$_COOKIE: ' . print_r($_COOKIE, true)); 
         try {          
             // Получаем и проверяем токен
             //$headers = getallheaders();
