@@ -81,6 +81,8 @@ class UserController {
                 ], 500);
             }
             
+error_log("GET USER_DATA - COOKIE:".print_r($_COOKIE, true));
+
             $token = $_COOKIE['auth_token'] ?? null;
             if (!$token) {
                 return Flight::json([
@@ -90,7 +92,7 @@ class UserController {
                     'data' => null
                 ], 401);
             }   
-            
+
             try {
                 $decoded = JWT::decode($token, new Key($_ENV['JWT_SECRET'], 'HS256'));
             } catch (\Exception $e) {
