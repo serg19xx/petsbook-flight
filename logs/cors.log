@@ -15157,3 +15157,46 @@
 [2025-05-01 18:12:50] CORS middleware called for /api/stats/visit
 [2025-05-01 18:12:50] CORS middleware called for /api/user/getuser
 [2025-05-01 18:12:51] CORS middleware called for /api/stats/visit
+[2025-05-01 18:25:57] CORS middleware called for /api/user/getuser
+[2025-05-01 18:25:57] Handling OPTIONS request
+[2025-05-01 18:25:57] CORS middleware called for /api/user/getuser
+[2025-05-01 18:25:57] CORS middleware called for /api/user/getuser
+[2025-05-01 18:25:58] CORS middleware called for /api/stats/visit
+[2025-05-01 18:25:58] Handling OPTIONS request
+[2025-05-01 18:25:58] CORS middleware called for /api/stats/visit
+[2025-05-01 18:25:58] CORS middleware called for /api/stats/visit
+[2025-05-01 18:42:47] CORS middleware called for /api/stats/visit
+[2025-05-01 18:42:47] Handling OPTIONS request
+[2025-05-01 18:42:47] CORS middleware called for /api/stats/visit
+[2025-05-01 18:42:48] CORS middleware called for /api/stats/visit
+[2025-05-01 18:52:45] CORS middleware called for /api/user/getuser
+[2025-05-01 18:52:45] Handling OPTIONS request
+[2025-05-01 18:52:45] CORS middleware called for /api/user/getuser
+[2025-05-01 18:52:46] CORS middleware called for /api/stats/visit
+[2025-05-01 18:52:46] Handling OPTIONS request
+[2025-05-01 18:52:46] CORS middleware called for /api/stats/visit
+[2025-05-01 18:52:59] CORS middleware called for /api/user/getuser
+[2025-05-01 18:52:59] Handling OPTIONS request
+[2025-05-01 18:52:59] CORS middleware called for /api/user/getuser
+[2025-05-01 18:53:00] CORS middleware called for /api/stats/visit
+[2025-05-01 18:53:00] Handling OPTIONS request
+[2025-05-01 18:53:00] CORS middleware called for /api/stats/visit
+[2025-05-01 18:53:04] CORS middleware called for /api/user/getuser
+[2025-05-01 18:53:05] CORS middleware called for /api/stats/visit
+[2025-05-01 18:53:07] CORS middleware called for /api/user/getuser
+[2025-05-01 18:53:07] Handling OPTIONS request
+[2025-05-01 18:53:07] CORS middleware called for /api/user/getuser
+[2025-05-01 18:53:08] CORS middleware called for /api/stats/visit
+[2025-05-01 18:53:08] Handling OPTIONS request
+[2025-05-01 18:53:08] CORS middleware called for /api/stats/visit
+[2025-05-01 18:53:58] CORS middleware called for /api/user/getuser
+[2025-05-01 18:53:58] CORS middleware called for /api/user/getuser
+[2025-05-01 18:53:58] CORS middleware called for /api/stats/visit
+[2025-05-01 18:53:58] Handling OPTIONS request
+[2025-05-01 18:53:58] CORS middleware called for /api/stats/visit
+[2025-05-01 18:53:59] CORS middleware called for /api/stats/visit
+[2025-05-01 18:54:00] CORS middleware called for /api/user/getuser
+[2025-05-01 18:54:59] CORS middleware called for /api/stats/visit
+[2025-05-01 18:54:59] Handling OPTIONS request
+[2025-05-01 18:54:59] CORS middleware called for /api/stats/visit
+[2025-05-01 18:55:01] CORS middleware called for /api/stats/visit
