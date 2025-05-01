@@ -55,6 +55,8 @@ class UserController {
      * @apiError {String} error_code Error code (USER_NOT_FOUND, INVALID_TOKEN, etc.)
      */
     public function getUserData() {
+
+        error_log('$_COOKIE: ' . print_r($_COOKIE, true));
         try {          
             // Получаем и проверяем токен
             //$headers = getallheaders();
