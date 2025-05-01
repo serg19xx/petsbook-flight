@@ -135,7 +135,14 @@ class AuthController extends BaseController {
                     'samesite' => 'Lax'      // или 'Strict'
                 ]);    
             }        
-
+error_log("LOGIN COOKIE:".'auth_token # '. $token." # ".print_r( [
+                    'expires' => time() + 7*24*60*60,
+                    'path' => '/',
+                    'domain' => '.petsbook.ca', // для всех поддоменов
+                    'secure' => true,           // только по https!
+                    'httponly' => true,         // не доступно из JS
+                    'samesite' => 'Lax'      // или 'Strict'
+                ],true));
             return Flight::json([
                 'success' => true,
                 'message' => $result['message'],
