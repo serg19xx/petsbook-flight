@@ -55,6 +55,7 @@ class UserController {
      * @apiError {String} error_code Error code (USER_NOT_FOUND, INVALID_TOKEN, etc.)
      */
     public function getUserData() {
+        error_log('THIS IS THE FILE I AM EDITING');
 
         error_log('$_COOKIE: ' . print_r($_COOKIE, true)); 
         try {          
