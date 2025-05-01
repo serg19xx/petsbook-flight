@@ -125,6 +125,17 @@ class AuthController extends BaseController {
                 'role' => $result['role']
             ]);
 
+            if($token){
+                setcookie('auth_token', $token, [
+                    'expires' => time() + 7*24*60*60,
+                    'path' => '/',
+                    'domain' => '.petsbook.ca', // для всех поддоменов
+                    'secure' => true,           // только по https!
+                    'httponly' => true,         // не доступно из JS
+                    'samesite' => 'Strict'      // или 'Lax'
+                ]);    
+            }        
+
             return Flight::json([
                 'success' => true,
                 'message' => $result['message'],
@@ -294,6 +305,12 @@ class AuthController extends BaseController {
 
     public function logout() {
         // Implementation of logout logic will be added here
+        setcookie('auth_token', '', [
+            'expires' => time() - 3600,
+            'path' => '/',
+            'domain' => '.petsbook.ca'
+        ]);
+        
         return Flight::json([
             'status' => 200,
             'error_code' => ResponseCodes::LOGIN_SUCCESS,
