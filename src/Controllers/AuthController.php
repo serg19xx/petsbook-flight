@@ -132,7 +132,7 @@ class AuthController extends BaseController {
                     'domain' => '.petsbook.ca', // для всех поддоменов
                     'secure' => true,           // только по https!
                     'httponly' => true,         // не доступно из JS
-                    'samesite' => 'Strict'      // или 'Lax'
+                    'samesite' => 'Lax'      // или 'Strict'
                 ]);    
             }        
 
