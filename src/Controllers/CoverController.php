@@ -19,8 +19,10 @@ class CoverController {
     }
 
     public function upload() {
-        $headers = getallheaders();
-        $token = str_replace('Bearer ', '', $headers['Authorization'] ?? '');
+        //$headers = getallheaders();
+        //$token = str_replace('Bearer ', '', $headers['Authorization'] ?? '');
+        
+        $token = $_COOKIE['auth_token'] ?? ($_SERVER['HTTP_AUTHORIZATION'] ?? null);
         
         try {
             $decoded = JWT::decode($token, new Key($_ENV['JWT_SECRET'], 'HS256'));

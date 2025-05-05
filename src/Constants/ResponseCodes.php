@@ -7,7 +7,8 @@ namespace App\Constants;
  */
 class ResponseCodes {
     // Success codes
-    const LOGIN_SUCCESS = 'LOGIN_SUCCESS';                   // Успешная авторизация
+    const LOGIN_SUCCESS = 'LOGIN_SUCCESS';    
+    const LOGOUT_SUCCESS = 'LOGOUT_SUCCESS';               // Успешная авторизация
     const REGISTRATION_SUCCESS = 'REGISTRATION_SUCCESS';     // Успешная регистрация
     const USER_DATA_SUCCESS = 'USER_DATA_SUCCESS';          // Успешное получение данных пользователя
     const PASSWORD_RESET_SUCCESS = 'PASSWORD_RESET_SUCCESS'; // Успешный сброс пароля
