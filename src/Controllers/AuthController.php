@@ -150,7 +150,7 @@ class AuthController extends BaseController {
                 setcookie('auth_token', $token, [
                     'expires' => time() + 7*24*60*60,
                     'path' => '/',
-                    //'domain' => 'aaaaa.petsbook.ca', // для всех поддоменов
+                    //'domain' => '.petsbook.ca', // для всех поддоменов
                     'secure' => true,           // только по https!
                     'httponly' => true,         // не доступно из JS
                     'samesite' => 'Lax'      // или 'Strict'
