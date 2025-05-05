@@ -216,20 +216,15 @@ error_log("GET USER_DATA - COOKIE:".print_r($_COOKIE, true));
      */
     public function updateUser() {
         try {
-            // Получаем и проверяем токен
-            $headers = getallheaders();
-            $authHeader = isset($headers['Authorization']) ? $headers['Authorization'] : '';
-            
-            if (empty($authHeader) || !preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
+            $token = $_COOKIE['auth_token'] ?? null;
+            if (!$token) {
                 return Flight::json([
                     'status' => 401,
                     'error_code' => 'TOKEN_NOT_PROVIDED',
                     'message' => 'Authorization token is required',
                     'data' => null
                 ], 401);
-            }
-
-            $token = $matches[1];
+            }   
             
             if (!isset($_ENV['JWT_SECRET'])) {
                 return Flight::json([

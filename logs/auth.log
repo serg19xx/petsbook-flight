@@ -8142,3 +8142,10 @@
 [2025-04-30 15:31:06][INFO] Token marked as used
 [2025-04-30 15:31:06][INFO] Old unused tokens deleted
 [2025-04-30 15:31:06][INFO] Transaction committed successfully
+[2025-05-02 15:22:40] Registration result: Array
+(
+    [success] => 0
+    [id] => 
+    [message] => Email already exists
+)
+
