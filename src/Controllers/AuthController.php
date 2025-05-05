@@ -125,34 +125,47 @@ class AuthController extends BaseController {
                 'role' => $result['role']
             ]);
 
+            $id = $result['id'];
+            $role = $result['role'];
+
+            // Initialize variables for file checks
+            $fileName = $role . '-' . $id;
+            $possibleExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+            $avatarExists = false;
+            $coverExists = false;
+
+       // Check avatar
+            foreach ($possibleExtensions as $ext) {
+                $avatarPath = '/profile-images/avatars/' . $fileName . '.' . $ext;
+                $localPath = $_SERVER['DOCUMENT_ROOT'] . $avatarPath;
+                
+                if (file_exists($localPath)) {
+                    $avatar = 'http://' . $_SERVER['HTTP_HOST'] . $avatarPath;
+                    $avatarExists = true;
+                    break;
+                }
+            }
+
             if($token){
                 setcookie('auth_token', $token, [
                     'expires' => time() + 7*24*60*60,
                     'path' => '/',
-                    'domain' => '.petsbook.ca', // для всех поддоменов
+                    //'domain' => '.petsbook.ca', // для всех поддоменов
                     'secure' => true,           // только по https!
                     'httponly' => true,         // не доступно из JS
                     'samesite' => 'Lax'      // или 'Strict'
                 ]);    
             }        
-error_log("LOGIN COOKIE:".'auth_token # '. $token." # ".print_r( [
-                    'expires' => time() + 7*24*60*60,
-                    'path' => '/',
-                    'domain' => '.petsbook.ca', // для всех поддоменов
-                    'secure' => true,           // только по https!
-                    'httponly' => true,         // не доступно из JS
-                    'samesite' => 'Lax'      // или 'Strict'
-                ],true));
+
             return Flight::json([
                 'success' => true,
                 'message' => $result['message'],
-                'data' => [
-                    'token' => $token,
-                    'user' => [
-                        'id' => $result['id'],
-                        'email' => $email,
-                        'role' => $result['role']
-                    ]
+                'user' => [
+                    'id' => $result['id'],
+                    'email' => $email,
+                    'name' => $result['full_name'],
+                    'role' => $result['role'],
+                    'avatar' => $avatarExists ? $avatar : '',                 
                 ]
             ], 200);
 
@@ -315,12 +328,15 @@ error_log("LOGIN COOKIE:".'auth_token # '. $token." # ".print_r( [
         setcookie('auth_token', '', [
             'expires' => time() - 3600,
             'path' => '/',
-            'domain' => '.petsbook.ca'
+            //'domain' => '.petsbook.ca'
+            'secure' => false, // для локалки, для продакшена — true
+            'httponly' => true,
+            'samesite' => 'Lax'
         ]);
         
         return Flight::json([
             'status' => 200,
-            'error_code' => ResponseCodes::LOGIN_SUCCESS,
+            'error_code' => ResponseCodes::LOGOUT_SUCCESS,
             'message' => '',
             'data' => null
         ], 200);
