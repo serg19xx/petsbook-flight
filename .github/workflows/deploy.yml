@@ -38,4 +38,4 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: /  # путь к директории на вашем хостинге
+          server-dir: /public_html/  # путь к директории на вашем хостинге

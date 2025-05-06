@@ -20002,3 +20002,6 @@
 [2025-05-05 14:46:59] Handling OPTIONS request
 [2025-05-05 14:46:59] CORS middleware called for /api/stats/visit
 [2025-05-05 14:47:00] CORS middleware called for /api/user/getuser
+[2025-05-05 17:35:52] CORS middleware called for /api/stats/visit
+[2025-05-05 17:35:52] Handling OPTIONS request
+[2025-05-05 17:35:52] CORS middleware called for /api/stats/visit
