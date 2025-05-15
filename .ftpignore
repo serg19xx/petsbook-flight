@@ -1,2 +1,2 @@
-public/profile-images/*
-!public/profile-images/.gitkeep
+public/profile-images/* 
+!public/profile-images/.gitkeep 
