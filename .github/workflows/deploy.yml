@@ -39,3 +39,10 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           server-dir: /public_html/  # путь к директории на вашем хостинге
+          exclude: |
+            **/public/profile-images/**
+            **/public/profile-images/**
+            **/public/profile-images/avatars/**
+            **/public/profile-images/covers/**
+            **/public/profile-images/defaults/**
+            **/logs/**
