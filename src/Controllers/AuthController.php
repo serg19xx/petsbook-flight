@@ -195,6 +195,7 @@ class AuthController extends BaseController {
      * @apiError {String} error_code Error code (EMAIL_ALREADY_EXISTS, INVALID_ROLE, etc.)
      */
     public function register() {
+        $logFile = __DIR__ . '/../../logs/auth.log';
         try {
             $requestBody = Flight::request()->getBody();
             $data = json_decode($requestBody, true);
@@ -244,7 +245,7 @@ class AuthController extends BaseController {
             $result = $stmt->fetch();
             
             // Создаем свой лог-файл
-            $logFile = __DIR__ . '/../../logs/auth.log';
+           
             $timestamp = date('Y-m-d H:i:s');
             $logMessage = "[$timestamp] Registration result: " . print_r($result, true) . PHP_EOL;
             
@@ -311,6 +312,7 @@ class AuthController extends BaseController {
             }
 
         } catch (\Exception $e) {
+            $timestamp = date('Y-m-d H:i:s');
             $errorMessage = "[$timestamp] Registration error: " . $e->getMessage() . PHP_EOL;
             file_put_contents($logFile, $errorMessage, FILE_APPEND);
             
@@ -354,19 +356,21 @@ class AuthController extends BaseController {
      * @apiSuccess {String} error_code Response code
      */
     public function passwordReset() {
+        //$this->logMessage("=== PASSWORD_RESET ===");
+
         try {
-            $this->logMessage("=== Starting Password Reset Process ===");
+            //$this->logMessage("=== Starting Password Reset Process ===");
             
             // Добавляем логирование Origin
             $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-            $this->logMessage("Origin: " . $origin);
-            $this->logMessage("All headers: " . print_r(getallheaders(), true));
+            //$this->logMessage("Origin: " . $origin);
+            //$this->logMessage("All headers: " . print_r(getallheaders(), true));
             
             $requestBody = Flight::request()->getBody();
             $data = json_decode($requestBody, true);
             
-            $this->logMessage("Request body: " . $requestBody);
-            $this->logMessage("Decoded data: " . print_r($data, true));
+            //$this->logMessage("Request body: " . $requestBody);
+            //$this->logMessage("Decoded data: " . print_r($data, true));
 
             if (!isset($data['email'])) {
                 $this->logMessage("Email not provided in request", 'ERROR');
@@ -379,7 +383,7 @@ class AuthController extends BaseController {
             }
 
             $email = trim($data['email']);
-            $this->logMessage("Processing password reset for email: " . $email);
+            //$this->logMessage("Processing password reset for email: " . $email);
 
             // Check if user exists
             $stmt = $this->db->prepare("
@@ -392,7 +396,7 @@ class AuthController extends BaseController {
             $user = $stmt->fetch();
 
             if (!$user) {
-                $this->logMessage("User not found for email: " . $email);
+                //$this->logMessage("User not found for email: " . $email);
                 return Flight::json([
                     'status' => 200,
                     'error_code' => ResponseCodes::PASSWORD_RESET_SUCCESS,
@@ -401,11 +405,11 @@ class AuthController extends BaseController {
                 ], 200);
             }
 
-            $this->logMessage("User found: " . print_r($user, true));
+            //$this->logMessage("User found: " . print_r($user, true));
 
             // Generate password reset token
             $token = bin2hex(random_bytes(32));
-            $this->logMessage("Generated token: " . $token);
+            //$this->logMessage("Generated token: " . $token);
 
             // Save token in database with 24 hour expiration
             $stmt = $this->db->prepare("
@@ -413,15 +417,15 @@ class AuthController extends BaseController {
                 VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 24 HOUR), FALSE)
             ");
             $stmt->execute([$user['id'], $token]);
-            $this->logMessage("Token saved to database for user ID: " . $user['id']);
+            //$this->logMessage("Token saved to database for user ID: " . $user['id']);
 
             // Send password reset email
-            $this->logMessage("Attempting to send password reset email");
+            //$this->logMessage("Attempting to send password reset email");
             try {
                 $this->sendPasswordResetEmail($user['email'], $user['email'], $token);
-                $this->logMessage("Password reset email sent successfully");
+                //$this->logMessage("Password reset email sent successfully");
             } catch (\Exception $e) {
-                $this->logMessage("Failed to send password reset email: " . $e->getMessage(), 'ERROR');
+                //$this->logMessage("Failed to send password reset email: " . $e->getMessage(), 'ERROR');
                 throw $e;
             }
 
@@ -433,8 +437,8 @@ class AuthController extends BaseController {
             ], 200);
 
         } catch (\Exception $e) {
-            $this->logMessage("Password reset error: " . $e->getMessage(), 'ERROR');
-            $this->logMessage("Stack trace: " . $e->getTraceAsString(), 'ERROR');
+            //$this->logMessage("Password reset error: " . $e->getMessage(), 'ERROR');
+            //$this->logMessage("Stack trace: " . $e->getTraceAsString(), 'ERROR');
             return Flight::json([
                 'status' => 500,
                 'error_code' => ResponseCodes::SYSTEM_ERROR,
@@ -621,8 +625,8 @@ class AuthController extends BaseController {
                 }
             }
 
-            $this->logMessage("=== Starting Email Sending Process ===");
-            $this->logMessage("Recipient: $email, Name: $name");
+            //$this->logMessage("=== Starting Email Sending Process ===");
+            //$this->logMessage("Recipient: $email, Name: $name");
             
             $mail = new PHPMailer(true);
             
@@ -642,33 +646,33 @@ class AuthController extends BaseController {
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             
             // Log SMTP configuration
-            $this->logMessage("SMTP Configuration:");
-            $this->logMessage("Host: " . $mail->Host);
-            $this->logMessage("Port: " . $mail->Port);
-            $this->logMessage("Username: " . $mail->Username);
-            $this->logMessage("SMTPSecure: " . $mail->SMTPSecure);
+            //$this->logMessage("SMTP Configuration:");
+            //$this->logMessage("Host: " . $mail->Host);
+            //$this->logMessage("Port: " . $mail->Port);
+            //$this->logMessage("Username: " . $mail->Username);
+            //$this->logMessage("SMTPSecure: " . $mail->SMTPSecure);
             
             // Test SMTP connection
-            $this->logMessage("Testing SMTP connection...");
+            //$this->logMessage("Testing SMTP connection...");
             try {
                 if ($mail->smtpConnect()) {
-                    $this->logMessage("SMTP connection test successful");
+                    //$this->logMessage("SMTP connection test successful");
                     $mail->smtpClose();
                 }
             } catch (\Exception $e) {
-                $this->logMessage("SMTP connection test failed: " . $e->getMessage(), 'ERROR');
+                //$this->logMessage("SMTP connection test failed: " . $e->getMessage(), 'ERROR');
                 throw $e;
             }
 
             // Recipients
             $mail->setFrom($_ENV['MAIL_FROM_ADDRESS'], $_ENV['MAIL_FROM_NAME']);
             $mail->addAddress($email, $name);
-            $this->logMessage("From: " . $_ENV['MAIL_FROM_ADDRESS']);
-            $this->logMessage("To: " . $email);
+            //$this->logMessage("From: " . $_ENV['MAIL_FROM_ADDRESS']);
+            //$this->logMessage("To: " . $email);
 
             // Content
             $frontendUrl = "http://localhost:5173/verify-email/" . $token;
-            $this->logMessage("Verification URL: " . $frontendUrl);
+            //$this->logMessage("Verification URL: " . $frontendUrl);
             
             $mail->isHTML(true);
             $mail->CharSet = 'UTF-8';
@@ -698,24 +702,24 @@ class AuthController extends BaseController {
                 "Ссылка действительна в течение 24 часов.\n\n" .
                 "Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.";
 
-            $this->logMessage("Attempting to send email...");
+            //$this->logMessage("Attempting to send email...");
             
             if (!$mail->send()) {
-                $this->logMessage("Mailer Error: " . $mail->ErrorInfo, 'ERROR');
+                //$this->logMessage("Mailer Error: " . $mail->ErrorInfo, 'ERROR');
                 throw new \Exception("Failed to send email: " . $mail->ErrorInfo);
             }
             
-            $this->logMessage("Email sent successfully to: " . $email);
+            //$this->logMessage("Email sent successfully to: " . $email);
             return true;
 
         } catch (\Exception $e) {
-            $this->logMessage("=== Email Sending Error ===", 'ERROR');
-            $this->logMessage("Error message: " . $e->getMessage(), 'ERROR');
-            $this->logMessage("Stack trace: " . $e->getTraceAsString(), 'ERROR');
+            //$this->logMessage("=== Email Sending Error ===", 'ERROR');
+            //$this->logMessage("Error message: " . $e->getMessage(), 'ERROR');
+           // $this->logMessage("Stack trace: " . $e->getTraceAsString(), 'ERROR');
             if (isset($mail)) {
                 $this->logMessage("Mailer Error Details: " . $mail->ErrorInfo, 'ERROR');
             }
-            $this->logMessage("=== End Email Sending Error ===", 'ERROR');
+            //$this->logMessage("=== End Email Sending Error ===", 'ERROR');
             return false;
         }
     }
@@ -791,8 +795,8 @@ class AuthController extends BaseController {
                 }
             }
 
-            $this->logMessage("=== Starting Password Reset Email Sending Process ===");
-            $this->logMessage("Recipient: $email, Name: $name");
+            //$this->logMessage("=== Starting Password Reset Email Sending Process ===");
+            //$this->logMessage("Recipient: $email, Name: $name");
             
             $mail = new PHPMailer(true);
             
@@ -826,33 +830,33 @@ class AuthController extends BaseController {
             $mail->CharSet = 'UTF-8';
             
             // Log SMTP configuration
-            $this->logMessage("SMTP Configuration:");
-            $this->logMessage("Host: " . $mail->Host);
-            $this->logMessage("Port: " . $mail->Port);
-            $this->logMessage("Username: " . $mail->Username);
-            $this->logMessage("SMTPSecure: " . $mail->SMTPSecure);
+            //$this->logMessage("SMTP Configuration:");
+            //$this->logMessage("Host: " . $mail->Host);
+            //$this->logMessage("Port: " . $mail->Port);
+            //$this->logMessage("Username: " . $mail->Username);
+            //$this->logMessage("SMTPSecure: " . $mail->SMTPSecure);
             
             // Test SMTP connection
-            $this->logMessage("Testing SMTP connection...");
+            //$this->logMessage("Testing SMTP connection...");
             try {
                 if ($mail->smtpConnect()) {
-                    $this->logMessage("SMTP connection test successful");
+                    ///$this->logMessage("SMTP connection test successful");
                     $mail->smtpClose();
                 }
             } catch (\Exception $e) {
-                $this->logMessage("SMTP connection test failed: " . $e->getMessage(), 'ERROR');
+                //$this->logMessage("SMTP connection test failed: " . $e->getMessage(), 'ERROR');
                 throw $e;
             }
 
             // Recipients
             $mail->setFrom($_ENV['MAIL_FROM_ADDRESS'], $_ENV['MAIL_FROM_NAME']);
             $mail->addAddress($email, $name);
-            $this->logMessage("From: " . $_ENV['MAIL_FROM_ADDRESS']);
-            $this->logMessage("To: " . $email);
+            //$this->logMessage("From: " . $_ENV['MAIL_FROM_ADDRESS']);
+            //$this->logMessage("To: " . $email);
             
             // Формируем URL с динамическим портом
             $resetUrl = $_ENV['APP_URL']."/reset-password/{$token}";
-            $this->logMessage("Reset URL: " . $resetUrl);
+            //$this->logMessage("Reset URL: " . $resetUrl);
             
             $mail->isHTML(true);
             $mail->Subject = 'Password Reset';
@@ -881,41 +885,42 @@ class AuthController extends BaseController {
                 "This link is valid for 24 hours.\n\n" .
                 "If you did not request a password reset, please ignore this email.";
 
-            $this->logMessage("Attempting to send email...");
+            //$this->logMessage("Attempting to send email...");
             
             if (!$mail->send()) {
-                $this->logMessage("Mailer Error: " . $mail->ErrorInfo, 'ERROR');
+                //$this->logMessage("Mailer Error: " . $mail->ErrorInfo, 'ERROR');
                 throw new \Exception("Failed to send email: " . $mail->ErrorInfo);
             }
             
-            $this->logMessage("Email sent successfully to: " . $email);
+            //$this->logMessage("Email sent successfully to: " . $email);
             return true;
 
         } catch (\Exception $e) {
-            $this->logMessage("=== Email Sending Error ===", 'ERROR');
-            $this->logMessage("Error message: " . $e->getMessage(), 'ERROR');
-            $this->logMessage("Stack trace: " . $e->getTraceAsString(), 'ERROR');
+            //$this->logMessage("=== Email Sending Error ===", 'ERROR');
+            //$this->logMessage("Error message: " . $e->getMessage(), 'ERROR');
+            //$this->logMessage("Stack trace: " . $e->getTraceAsString(), 'ERROR');
             if (isset($mail)) {
                 $this->logMessage("Mailer Error Details: " . $mail->ErrorInfo, 'ERROR');
             }
-            $this->logMessage("=== End Email Sending Error ===", 'ERROR');
+            //$this->logMessage("=== End Email Sending Error ===", 'ERROR');
             throw $e;
         }
     }
 
     // Новый метод для установки нового пароля
     public function setNewPassword() {
+        //$this->logMessage("=== SET_NEW_PASSWORD ===");
         try {
-            $this->logMessage("=== Starting Set New Password Process ===");
+            //$this->logMessage("=== Starting Set New Password Process ===");
             
             $requestBody = Flight::request()->getBody();
             $data = json_decode($requestBody, true);
             
-            $this->logMessage("Request body: " . $requestBody);
-            $this->logMessage("Decoded data: " . print_r($data, true));
+            //$this->logMessage("Request body: " . $requestBody);
+            //$this->logMessage("Decoded data: " . print_r($data, true));
 
             if (!isset($data['token']) || !isset($data['password'])) {
-                $this->logMessage("Token or password not provided", 'ERROR');
+                //$this->logMessage("Token or password not provided", 'ERROR');
                 return Flight::json([
                     'success' => false,
                     'message' => 'Token and password are required'
@@ -925,7 +930,7 @@ class AuthController extends BaseController {
             $token = trim($data['token']);
             $password = trim($data['password']);
             
-            $this->logMessage("Processing token: " . $token);
+            //$this->logMessage("Processing token: " . $token);
 
             // Проверяем токен
             $stmt = $this->db->prepare("
@@ -941,7 +946,7 @@ class AuthController extends BaseController {
             $this->logMessage("Token check result: " . print_r($result, true));
 
             if (!$result) {
-                $this->logMessage("Token not found", 'ERROR');
+                //$this->logMessage("Token not found", 'ERROR');
                 return Flight::json([
                     'success' => false,
                     'message' => 'Invalid or expired password reset link'
@@ -949,7 +954,7 @@ class AuthController extends BaseController {
             }
 
             if ($result['used']) {
-                $this->logMessage("Token already used", 'ERROR');
+                //$this->logMessage("Token already used", 'ERROR');
                 return Flight::json([
                     'success' => false,
                     'message' => 'This password reset link has already been used'
@@ -957,7 +962,7 @@ class AuthController extends BaseController {
             }
 
             if (strtotime($result['expires_at']) < time()) {
-                $this->logMessage("Token expired at: " . $result['expires_at'], 'ERROR');
+                //$this->logMessage("Token expired at: " . $result['expires_at'], 'ERROR');
                 return Flight::json([
                     'success' => false,
                     'message' => 'Password reset link has expired'
@@ -969,7 +974,7 @@ class AuthController extends BaseController {
 
             // Начинаем транзакцию
             $this->db->beginTransaction();
-            $this->logMessage("Starting database transaction");
+            //$this->logMessage("Starting database transaction");
 
             try {
                 // Обновляем пароль
@@ -979,7 +984,7 @@ class AuthController extends BaseController {
                     WHERE id = ?
                 ");
                 $stmt->execute([$hashedPassword, $result['login_id']]);
-                $this->logMessage("Password updated for user ID: " . $result['login_id']);
+                //$this->logMessage("Password updated for user ID: " . $result['login_id']);
 
                 // Помечаем токен как использованный
                 $stmt = $this->db->prepare("
@@ -988,7 +993,7 @@ class AuthController extends BaseController {
                     WHERE token = ?
                 ");
                 $stmt->execute([$token]);
-                $this->logMessage("Token marked as used");
+                //$this->logMessage("Token marked as used");
 
                 // Удаляем все старые неиспользованные токены для этого пользователя
                 $stmt = $this->db->prepare("
@@ -997,10 +1002,10 @@ class AuthController extends BaseController {
                     AND used = FALSE
                 ");
                 $stmt->execute([$result['login_id']]);
-                $this->logMessage("Old unused tokens deleted");
+                //$this->logMessage("Old unused tokens deleted");
 
                 $this->db->commit();
-                $this->logMessage("Transaction committed successfully");
+                //$this->logMessage("Transaction committed successfully");
                 
                 return Flight::json([
                     'success' => true,
@@ -1014,8 +1019,8 @@ class AuthController extends BaseController {
             }
 
         } catch (\Exception $e) {
-            $this->logMessage("Set new password error: " . $e->getMessage(), 'ERROR');
-            $this->logMessage("Stack trace: " . $e->getTraceAsString(), 'ERROR');
+            //$this->logMessage("Set new password error: " . $e->getMessage(), 'ERROR');
+            //$this->logMessage("Stack trace: " . $e->getTraceAsString(), 'ERROR');
             return Flight::json([
                 'success' => false,
                 'message' => 'An error occurred while changing the password'
