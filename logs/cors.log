@@ -21170,3 +21170,130 @@
 [2025-05-15 20:27:37] CORS middleware called for /api/stats/visit
 [2025-05-15 20:27:37] CORS middleware called for /api/stats/visit
 [2025-05-15 20:27:37] CORS middleware called for /api/stats/visit
+[2025-05-16 01:49:37] CORS middleware called for /api/auth/register
+[2025-05-16 01:49:37] Handling OPTIONS request
+[2025-05-16 01:49:37] CORS middleware called for /api/auth/register
+[2025-05-16 14:27:17] CORS middleware called for /api/stats/visit
+[2025-05-16 14:27:17] Handling OPTIONS request
+[2025-05-16 14:27:17] CORS middleware called for /api/stats/visit
+[2025-05-16 14:27:49] CORS middleware called for /api/auth/register
+[2025-05-16 14:27:49] Handling OPTIONS request
+[2025-05-16 14:27:49] CORS middleware called for /api/auth/register
+[2025-05-16 14:32:30] CORS middleware called for /api/auth/register
+[2025-05-16 14:34:40] CORS middleware called for /api/auth/register
+[2025-05-16 14:34:54] CORS middleware called for /api/auth/register
+[2025-05-16 14:36:30] CORS middleware called for /api/auth/register
+[2025-05-16 14:37:33] CORS middleware called for /api/auth/register
+[2025-05-16 14:37:46] CORS middleware called for /api/auth/register
+[2025-05-16 14:43:22] CORS middleware called for /api/auth/register
+[2025-05-16 14:43:22] Handling OPTIONS request
+[2025-05-16 14:43:22] CORS middleware called for /api/auth/register
+[2025-05-16 14:43:38] CORS middleware called for /api/auth/register
+[2025-05-16 14:43:38] Handling OPTIONS request
+[2025-05-16 14:43:38] CORS middleware called for /api/auth/register
+[2025-05-16 14:44:55] CORS middleware called for /api/auth/register
+[2025-05-16 14:44:55] Handling OPTIONS request
+[2025-05-16 14:44:55] CORS middleware called for /api/auth/register
+[2025-05-16 14:48:44] CORS middleware called for /api/auth/register
+[2025-05-16 14:48:44] Handling OPTIONS request
+[2025-05-16 14:48:44] CORS middleware called for /api/auth/register
+[2025-05-16 14:49:19] CORS middleware called for /api/auth/register
+[2025-05-16 14:49:19] Handling OPTIONS request
+[2025-05-16 14:49:19] CORS middleware called for /api/auth/register
+[2025-05-16 14:49:34] CORS middleware called for /api/auth/register
+[2025-05-16 14:49:34] Handling OPTIONS request
+[2025-05-16 14:49:34] CORS middleware called for /api/auth/register
+[2025-05-16 14:49:58] CORS middleware called for /api/stats/visit
+[2025-05-16 14:49:58] Handling OPTIONS request
+[2025-05-16 14:49:58] CORS middleware called for /api/stats/visit
+[2025-05-16 14:49:59] CORS middleware called for /api/auth/verify-email/460313b2eead6b9e01bd01773d807304f9de2c568a5fee8ce3536f1e5c746223
+[2025-05-16 14:50:21] CORS middleware called for /api/stats/visit
+[2025-05-16 14:50:21] CORS middleware called for /api/auth/verify-email/460313b2eead6b9e01bd01773d807304f9de2c568a5fee8ce3536f1e5c746223
+[2025-05-16 14:50:21] Handling OPTIONS request
+[2025-05-16 14:50:21] CORS middleware called for /api/stats/visit
+[2025-05-16 14:54:14] CORS middleware called for /api/auth/register
+[2025-05-16 14:54:14] Handling OPTIONS request
+[2025-05-16 14:54:14] CORS middleware called for /api/auth/register
+[2025-05-16 14:55:17] CORS middleware called for /api/stats/visit
+[2025-05-16 14:55:17] Handling OPTIONS request
+[2025-05-16 14:55:17] CORS middleware called for /api/auth/verify-email/6ddac807dcd1298286f4d1586cdfc5d90ffa0f9d2cff866892856a475210db86
+[2025-05-16 14:55:17] CORS middleware called for /api/stats/visit
+[2025-05-16 15:06:31] CORS middleware called for /api/stats/visit
+[2025-05-16 15:06:31] Handling OPTIONS request
+[2025-05-16 15:06:31] CORS middleware called for /api/stats/visit
+[2025-05-16 15:06:31] CORS middleware called for /api/stats/visit
+[2025-05-16 15:06:31] Handling OPTIONS request
+[2025-05-16 15:06:31] CORS middleware called for /api/stats/visit
+[2025-05-16 15:06:32] CORS middleware called for /api/stats/visit
+[2025-05-16 15:06:32] CORS middleware called for /api/stats/visit
+[2025-05-16 15:06:32] CORS middleware called for /api/auth/verify-email/6ddac807dcd1298286f4d1586cdfc5d90ffa0f9d2cff866892856a475210db86
+[2025-05-16 15:06:34] CORS middleware called for /api/stats/visit
+[2025-05-16 15:06:35] CORS middleware called for /api/stats/visit
+[2025-05-16 15:06:35] CORS middleware called for /api/stats/visit
+[2025-05-16 15:06:35] CORS middleware called for /api/stats/visit
+[2025-05-16 15:06:35] CORS middleware called for /api/auth/verify-email/460313b2eead6b9e01bd01773d807304f9de2c568a5fee8ce3536f1e5c746223
+[2025-05-16 15:06:35] CORS middleware called for /api/stats/visit
+[2025-05-16 15:06:36] CORS middleware called for /api/stats/visit
+[2025-05-16 15:06:36] CORS middleware called for /api/stats/visit
+[2025-05-16 15:07:31] CORS middleware called for /api/stats/visit
+[2025-05-16 15:07:31] Handling OPTIONS request
+[2025-05-16 15:07:31] CORS middleware called for /api/stats/visit
+[2025-05-16 15:07:34] CORS middleware called for /api/stats/visit
+[2025-05-16 15:07:34] Handling OPTIONS request
+[2025-05-16 15:07:34] CORS middleware called for /api/stats/visit
+[2025-05-16 15:07:34] CORS middleware called for /api/auth/verify-email/6ddac807dcd1298286f4d1586cdfc5d90ffa0f9d2cff866892856a475210db86
+[2025-05-16 15:07:52] CORS middleware called for /api/stats/visit
+[2025-05-16 15:07:52] Handling OPTIONS request
+[2025-05-16 15:07:52] CORS middleware called for /api/stats/visit
+[2025-05-16 15:07:52] CORS middleware called for /api/stats/visit
+[2025-05-16 15:07:52] CORS middleware called for /api/stats/visit
+[2025-05-16 15:07:53] CORS middleware called for /api/stats/visit
+[2025-05-16 15:07:53] CORS middleware called for /api/stats/visit
+[2025-05-16 15:07:53] CORS middleware called for /api/stats/visit
+[2025-05-16 15:07:53] CORS middleware called for /api/stats/visit
+[2025-05-16 15:07:53] CORS middleware called for /api/stats/visit
+[2025-05-16 15:07:53] CORS middleware called for /api/auth/verify-email/460313b2eead6b9e01bd01773d807304f9de2c568a5fee8ce3536f1e5c746223
+[2025-05-16 15:12:42] CORS middleware called for /verify-email/6ddac807dcd1298286f4d1586cdfc5d90ffa0f9d2cff866892856a475210db86
+[2025-05-16 15:12:43] CORS middleware called for /favicon.ico
+[2025-05-16 15:13:22] CORS middleware called for /auth/verify-email/6ddac807dcd1298286f4d1586cdfc5d90ffa0f9d2cff866892856a475210db86
+[2025-05-16 15:13:23] CORS middleware called for /favicon.ico
+[2025-05-16 15:14:11] CORS middleware called for /api/auth/verify-email/6ddac807dcd1298286f4d1586cdfc5d90ffa0f9d2cff866892856a475210db86
+[2025-05-16 15:14:11] CORS middleware called for /favicon.ico
+[2025-05-16 15:16:25] CORS middleware called for /api/stats/visit
+[2025-05-16 15:16:25] Handling OPTIONS request
+[2025-05-16 15:16:25] CORS middleware called for /api/stats/visit
+[2025-05-16 15:16:53] CORS middleware called for /api/auth/register
+[2025-05-16 15:16:53] Handling OPTIONS request
+[2025-05-16 15:16:53] CORS middleware called for /api/auth/register
+[2025-05-16 15:17:41] CORS middleware called for /api/stats/visit
+[2025-05-16 15:17:41] CORS middleware called for /api/auth/verify-email/86b7f743b605e51b6b95d461a86f7f0758626b1d836a79555d13b13602a44fbe
+[2025-05-16 15:17:41] Handling OPTIONS request
+[2025-05-16 15:17:41] CORS middleware called for /api/stats/visit
+[2025-05-16 15:20:40] CORS middleware called for /api/auth/verify-email/86b7f743b605e51b6b95d461a86f7f0758626b1d836a79555d13b13602a44fbe
+[2025-05-16 15:20:46] CORS middleware called for /api/stats/visit
+[2025-05-16 15:20:46] Handling OPTIONS request
+[2025-05-16 15:20:46] CORS middleware called for /api/auth/verify-email/86b7f743b605e51b6b95d461a86f7f0758626b1d836a79555d13b13602a44fbe
+[2025-05-16 15:20:46] CORS middleware called for /api/stats/visit
+[2025-05-16 15:22:24] CORS middleware called for /api/auth/register
+[2025-05-16 15:22:24] Handling OPTIONS request
+[2025-05-16 15:22:24] CORS middleware called for /api/auth/register
+[2025-05-16 15:22:39] CORS middleware called for /api/auth/verify-email/21ada65cec797212dfe57ddc39df908d50f55409530494a313d379415dbd02c9
+[2025-05-16 15:22:39] CORS middleware called for /api/stats/visit
+[2025-05-16 15:22:39] Handling OPTIONS request
+[2025-05-16 15:22:39] CORS middleware called for /api/stats/visit
+[2025-05-16 15:24:08] CORS middleware called for /api/auth/verify-email/21ada65cec797212dfe57ddc39df908d50f55409530494a313d379415dbd02c9
+[2025-05-16 15:24:36] CORS middleware called for /api/auth/register
+[2025-05-16 15:24:36] Handling OPTIONS request
+[2025-05-16 15:24:36] CORS middleware called for /api/auth/register
+[2025-05-16 15:24:46] CORS middleware called for /api/stats/visit
+[2025-05-16 15:24:46] Handling OPTIONS request
+[2025-05-16 15:24:46] CORS middleware called for /api/auth/verify-email/8f2b6614d677b4366a1d40d7d5282432ae50b4a81ca36e09a0602bfa10a8922a
+[2025-05-16 15:24:46] CORS middleware called for /api/stats/visit
+[2025-05-16 15:25:11] CORS middleware called for /api/auth/verify-email/8f2b6614d677b4366a1d40d7d5282432ae50b4a81ca36e09a0602bfa10a8922a
+[2025-05-16 15:25:50] CORS middleware called for /api/auth/register
+[2025-05-16 15:25:50] Handling OPTIONS request
+[2025-05-16 15:25:50] CORS middleware called for /api/auth/register
+[2025-05-16 15:26:01] CORS middleware called for /api/stats/visit
+[2025-05-16 15:26:01] Handling OPTIONS request
+[2025-05-16 15:26:01] CORS middleware called for /api/stats/visit
+[2025-05-16 15:26:01] CORS middleware called for /api/auth/verify-email/981b6332939dfa723c028a1566a646111985286967b5770971ed31cc742b6f87

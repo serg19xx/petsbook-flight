@@ -1,8 +1,17 @@
-[2025-05-15 19:42:32][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
+[2025-05-16 14:32:30][INFO] === REGISER ===
+BEFORE[2025-05-16 14:32:31] Registration error: SQLSTATE[45000]: <<Unknown error>>: 1062 Email already exists
+[2025-05-16 14:34:41][INFO] === REGISER ===
+BEFORE[2025-05-16 14:34:41] Registration error: SQLSTATE[45000]: <<Unknown error>>: 1062 Email already exists
+[2025-05-16 14:34:54][INFO] === REGISER ===
+BEFORE[2025-05-16 14:34:54] Registration error: Undefined array key "id"
+[2025-05-16 14:36:30][INFO] === REGISER ===
+BEFORE[2025-05-16 14:36:30] Registration error: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'petsbook_new.user_profile' doesn't exist
+[2025-05-16 14:37:33][INFO] === REGISER ===
+BEFORE[2025-05-16 14:37:34][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
 
-[2025-05-15 19:42:32][1] CLIENT -> SERVER: EHLO localhost
+[2025-05-16 14:37:34][1] CLIENT -> SERVER: EHLO localhost
 
-[2025-05-15 19:42:32][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+[2025-05-16 14:37:34][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
 250-SIZE 5242880
 250-PIPELINING
 250-ENHANCEDSTATUSCODES
@@ -11,13 +20,13 @@
 250-AUTH PLAIN LOGIN CRAM-MD5
 250 STARTTLS
 
-[2025-05-15 19:42:32][1] CLIENT -> SERVER: STARTTLS
+[2025-05-16 14:37:34][1] CLIENT -> SERVER: STARTTLS
 
-[2025-05-15 19:42:32][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
+[2025-05-16 14:37:34][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
 
-[2025-05-15 19:42:32][1] CLIENT -> SERVER: EHLO localhost
+[2025-05-16 14:37:34][1] CLIENT -> SERVER: EHLO localhost
 
-[2025-05-15 19:42:32][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+[2025-05-16 14:37:34][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
 250-SIZE 5242880
 250-PIPELINING
 250-ENHANCEDSTATUSCODES
@@ -25,22 +34,22 @@
 250-DSN
 250 AUTH PLAIN LOGIN CRAM-MD5
 
-[2025-05-15 19:42:32][1] CLIENT -> SERVER: AUTH CRAM-MD5
+[2025-05-16 14:37:34][1] CLIENT -> SERVER: AUTH CRAM-MD5
 
-[2025-05-15 19:42:32][2] SERVER -> CLIENT: 334 PDIwMTI2Mzk3NTcuMTc0NzMzODE1MkBzbXRwLm1haWx0cmFwLmlvPg==
+[2025-05-16 14:37:34][2] SERVER -> CLIENT: 334 PDg4NjI3MjkzOC4xNzQ3NDA2MjU0QHNtdHAubWFpbHRyYXAuaW8+
 
-[2025-05-15 19:42:32][1] CLIENT -> SERVER: [credentials hidden]
-[2025-05-15 19:42:32][2] SERVER -> CLIENT: 235 2.0.0 OK
+[2025-05-16 14:37:34][1] CLIENT -> SERVER: [credentials hidden]
+[2025-05-16 14:37:34][2] SERVER -> CLIENT: 235 2.0.0 OK
 
-[2025-05-15 19:42:32][1] CLIENT -> SERVER: QUIT
+[2025-05-16 14:37:34][1] CLIENT -> SERVER: QUIT
 
-[2025-05-15 19:42:32][2] SERVER -> CLIENT: 221 2.0.0 Bye
+[2025-05-16 14:37:34][2] SERVER -> CLIENT: 221 2.0.0 Bye
 
-[2025-05-15 19:42:32][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
+[2025-05-16 14:37:34][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
 
-[2025-05-15 19:42:32][1] CLIENT -> SERVER: EHLO localhost
+[2025-05-16 14:37:34][1] CLIENT -> SERVER: EHLO localhost
 
-[2025-05-15 19:42:32][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+[2025-05-16 14:37:34][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
 250-SIZE 5242880
 250-PIPELINING
 250-ENHANCEDSTATUSCODES
@@ -49,13 +58,13 @@
 250-AUTH PLAIN LOGIN CRAM-MD5
 250 STARTTLS
 
-[2025-05-15 19:42:32][1] CLIENT -> SERVER: STARTTLS
+[2025-05-16 14:37:34][1] CLIENT -> SERVER: STARTTLS
 
-[2025-05-15 19:42:32][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
+[2025-05-16 14:37:34][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: EHLO localhost
+[2025-05-16 14:37:34][1] CLIENT -> SERVER: EHLO localhost
 
-[2025-05-15 19:42:33][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+[2025-05-16 14:37:34][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
 250-SIZE 5242880
 250-PIPELINING
 250-ENHANCEDSTATUSCODES
@@ -63,157 +72,143 @@
 250-DSN
 250 AUTH PLAIN LOGIN CRAM-MD5
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: AUTH CRAM-MD5
+[2025-05-16 14:37:34][1] CLIENT -> SERVER: AUTH CRAM-MD5
 
-[2025-05-15 19:42:33][2] SERVER -> CLIENT: 334 PDk2NjExMDU1LjE3NDczMzgxNTNAc210cC5tYWlsdHJhcC5pbz4=
+[2025-05-16 14:37:35][2] SERVER -> CLIENT: 334 PDU5OTQ3ODkzMS4xNzQ3NDA2MjU1QHNtdHAubWFpbHRyYXAuaW8+
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: [credentials hidden]
-[2025-05-15 19:42:33][2] SERVER -> CLIENT: 235 2.0.0 OK
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: [credentials hidden]
+[2025-05-16 14:37:35][2] SERVER -> CLIENT: 235 2.0.0 OK
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: MAIL FROM:<noreply@petsbook.com>
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: MAIL FROM:<noreply@petsbook.com>
 
-[2025-05-15 19:42:33][2] SERVER -> CLIENT: 250 2.1.0 Ok
+[2025-05-16 14:37:35][2] SERVER -> CLIENT: 250 2.1.0 Ok
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: RCPT TO:<serg.kostyuk@gmail.com>
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: RCPT TO:<sergiykyyostyukiiuuu99u@yahoo.ca>
 
-[2025-05-15 19:42:33][2] SERVER -> CLIENT: 250 2.1.0 Ok
+[2025-05-16 14:37:35][2] SERVER -> CLIENT: 250 2.1.0 Ok
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: DATA
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: DATA
 
-[2025-05-15 19:42:33][2] SERVER -> CLIENT: 354 Go ahead
+[2025-05-16 14:37:35][2] SERVER -> CLIENT: 354 Go ahead
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: Date: Thu, 15 May 2025 19:42:32 +0000
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: Date: Fri, 16 May 2025 14:37:34 +0000
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: To: "serg.kostyuk@gmail.com" <serg.kostyuk@gmail.com>
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: To: TEST <sergiykyyostyukiiuuu99u@yahoo.ca>
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: From: PetsBook <noreply@petsbook.com>
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: From: PetsBook <noreply@petsbook.com>
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: Subject: Password Reset
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: Subject: =?UTF-8?B?0J/QvtC00YLQstC10YDQttC00LXQvdC40LUgZW1haWwg0LDQtNGA0LXRgdCw?=
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: Message-ID: <iWFIeS36JbIGQPFfWHDof0TsakD2Bts565aLUvlhnM@localhost>
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: Message-ID: <HmX8ufWQbgxjyJFsc79gN0ybCOdree0SSCJQOQqLc@localhost>
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: X-Mailer: PHPMailer 6.9.3 (https://github.com/PHPMailer/PHPMailer)
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: X-Mailer: PHPMailer 6.9.3 (https://github.com/PHPMailer/PHPMailer)
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: MIME-Version: 1.0
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: MIME-Version: 1.0
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: Content-Type: multipart/alternative;
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: Content-Type: multipart/alternative;
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER:  boundary="b1=_iWFIeS36JbIGQPFfWHDof0TsakD2Bts565aLUvlhnM"
+[2025-05-16 14:37:35][1] CLIENT -> SERVER:  boundary="b1=_HmX8ufWQbgxjyJFsc79gN0ybCOdree0SSCJQOQqLc"
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: 
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: 
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: --b1=_iWFIeS36JbIGQPFfWHDof0TsakD2Bts565aLUvlhnM
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: --b1=_HmX8ufWQbgxjyJFsc79gN0ybCOdree0SSCJQOQqLc
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: Content-Type: text/plain; charset=us-ascii
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: Content-Type: text/plain; charset=UTF-8
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: 
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: Hello, serg.kostyuk@gmail.com!
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: 
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: 
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: Здравствуйте, TEST!
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: We received a request to reset your password.
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: 
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: 
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: Для завершения регистрации необходимо подтвердить ваш email адрес.
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: To create a new password, please use this link: http://localhost:5173/reset-password/09e6363728af5ced8b6dd9a5a3915acc5af4afeb302835a47433618416544ae9
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: 
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: 
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: Перейдите по ссылке: http://localhost:5173/verify-email/21795839f999c44ef9e07154afc6ef2dc8ea73dd788c8de893596c5fb15f8e71
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: This link is valid for 24 hours.
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: 
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: 
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: Ссылка действительна в течение 24 часов.
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: If you did not request a password reset, please ignore this email.
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: 
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: 
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: --b1=_iWFIeS36JbIGQPFfWHDof0TsakD2Bts565aLUvlhnM
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: 
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: Content-Type: text/html; charset=us-ascii
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: --b1=_HmX8ufWQbgxjyJFsc79gN0ybCOdree0SSCJQOQqLc
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: 
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: Content-Type: text/html; charset=UTF-8
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: 
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER:                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: 
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER:                     <h2>Hello, serg.kostyuk@gmail.com!</h2>
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: 
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER:                     <p>We received a request to reset your password.</p>
+[2025-05-16 14:37:35][1] CLIENT -> SERVER:                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER:                     <p>To create a new password, please click the button below:</p>
+[2025-05-16 14:37:35][1] CLIENT -> SERVER:                     <h2>Здравствуйте, TEST!</h2>
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER:                     <p style='text-align: center;'>
+[2025-05-16 14:37:35][1] CLIENT -> SERVER:                     <p>Для завершения регистрации необходимо подтвердить ваш email адрес.</p>
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER:                         <a href='http://localhost:5173/reset-password/09e6363728af5ced8b6dd9a5a3915acc5af4afeb302835a47433618416544ae9' 
+[2025-05-16 14:37:35][1] CLIENT -> SERVER:                     <p>Пожалуйста, нажмите на кнопку ниже:</p>
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER:                            style='display: inline-block; padding: 10px 20px; 
+[2025-05-16 14:37:35][1] CLIENT -> SERVER:                     <p style='text-align: center;'>
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER:                                   background-color: #4CAF50; color: white; 
+[2025-05-16 14:37:35][1] CLIENT -> SERVER:                         <a href='http://localhost:5173/verify-email/21795839f999c44ef9e07154afc6ef2dc8ea73dd788c8de893596c5fb15f8e71' 
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER:                                   text-decoration: none; border-radius: 5px;'>
+[2025-05-16 14:37:35][1] CLIENT -> SERVER:                            style='display: inline-block; padding: 10px 20px; 
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER:                             Reset Password
+[2025-05-16 14:37:35][1] CLIENT -> SERVER:                                   background-color: #4CAF50; color: white; 
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER:                         </a>
+[2025-05-16 14:37:35][1] CLIENT -> SERVER:                                   text-decoration: none; border-radius: 5px;'>
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER:                     </p>
+[2025-05-16 14:37:35][1] CLIENT -> SERVER:                             Подтвердить email
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER:                     <p>Or use this link: <a href='http://localhost:5173/reset-password/09e6363728af5ced8b6dd9a5a3915acc5af4afeb302835a47433618416544ae9'>http://localhost:5173/reset-password/09e6363728af5ced8b6dd9a5a3915acc5af4afeb302835a47433618416544ae9</a></p>
+[2025-05-16 14:37:35][1] CLIENT -> SERVER:                         </a>
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER:                     <p>This link is valid for 24 hours.</p>
+[2025-05-16 14:37:35][1] CLIENT -> SERVER:                     </p>
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER:                     <p>If you did not request a password reset, please ignore this email.</p>
+[2025-05-16 14:37:35][1] CLIENT -> SERVER:                     <p>Или перейдите по ссылке: <a href='http://localhost:5173/verify-email/21795839f999c44ef9e07154afc6ef2dc8ea73dd788c8de893596c5fb15f8e71'>http://localhost:5173/verify-email/21795839f999c44ef9e07154afc6ef2dc8ea73dd788c8de893596c5fb15f8e71</a></p>
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER:                 </div>
+[2025-05-16 14:37:35][1] CLIENT -> SERVER:                     <p>Ссылка действительна в течение 24 часов.</p>
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: 
+[2025-05-16 14:37:35][1] CLIENT -> SERVER:                     <p>Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.</p>
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: 
+[2025-05-16 14:37:35][1] CLIENT -> SERVER:                 </div>
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: --b1=_iWFIeS36JbIGQPFfWHDof0TsakD2Bts565aLUvlhnM--
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: 
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: 
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: 
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: .
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: --b1=_HmX8ufWQbgxjyJFsc79gN0ybCOdree0SSCJQOQqLc--
 
-[2025-05-15 19:42:33][2] SERVER -> CLIENT: 250 2.0.0 Ok: queued
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: 
 
-[2025-05-15 19:42:33][1] CLIENT -> SERVER: QUIT
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: .
 
-[2025-05-15 19:42:33][2] SERVER -> CLIENT: 221 2.0.0 Bye
+[2025-05-16 14:37:35][2] SERVER -> CLIENT: 250 2.0.0 Ok: queued
 
-[2025-05-15 19:44:50][INFO] === SET_NEW_PASSWORD ===
-[2025-05-15 19:44:50][INFO] === Starting Set New Password Process ===
-[2025-05-15 19:44:50][INFO] Request body: {"token":"09e6363728af5ced8b6dd9a5a3915acc5af4afeb302835a47433618416544ae9","password":"Passw@12345"}
-[2025-05-15 19:44:50][INFO] Decoded data: Array
-(
-    [token] => 09e6363728af5ced8b6dd9a5a3915acc5af4afeb302835a47433618416544ae9
-    [password] => Passw@12345
-)
+[2025-05-16 14:37:35][1] CLIENT -> SERVER: QUIT
 
-[2025-05-15 19:44:50][INFO] Processing token: 09e6363728af5ced8b6dd9a5a3915acc5af4afeb302835a47433618416544ae9
-[2025-05-15 19:44:50][INFO] Token check result: Array
-(
-    [login_id] => 1
-    [email] => serg.kostyuk@gmail.com
-    [expires_at] => 2025-05-16 15:42:32
-    [used] => 0
-)
+[2025-05-16 14:37:35][2] SERVER -> CLIENT: 221 2.0.0 Bye
 
-[2025-05-15 19:44:50][INFO] Starting database transaction
-[2025-05-15 19:44:50][INFO] Password updated for user ID: 1
-[2025-05-15 19:44:51][INFO] Token marked as used
-[2025-05-15 19:44:51][INFO] Old unused tokens deleted
-[2025-05-15 19:44:51][INFO] Transaction committed successfully
-[2025-05-15 19:47:43][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
+[2025-05-16 14:37:46][INFO] === REGISER ===
+BEFORE[2025-05-16 14:37:47] Registration error: SQLSTATE[45000]: <<Unknown error>>: 1062 Email already exists
+[2025-05-16 14:43:22][INFO] === REGISER ===
+BEFORE[2025-05-16 14:43:22] Registration error: SQLSTATE[45000]: <<Unknown error>>: 1062 Email already exists
+[2025-05-16 14:43:38][INFO] === REGISER ===
+BEFORE[2025-05-16 14:43:39][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: EHLO localhost
+[2025-05-16 14:43:39][1] CLIENT -> SERVER: EHLO localhost
 
-[2025-05-15 19:47:43][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+[2025-05-16 14:43:39][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
 250-SIZE 5242880
 250-PIPELINING
 250-ENHANCEDSTATUSCODES
@@ -222,13 +217,13 @@
 250-AUTH PLAIN LOGIN CRAM-MD5
 250 STARTTLS
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: STARTTLS
+[2025-05-16 14:43:39][1] CLIENT -> SERVER: STARTTLS
 
-[2025-05-15 19:47:43][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
+[2025-05-16 14:43:39][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: EHLO localhost
+[2025-05-16 14:43:39][1] CLIENT -> SERVER: EHLO localhost
 
-[2025-05-15 19:47:43][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+[2025-05-16 14:43:39][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
 250-SIZE 5242880
 250-PIPELINING
 250-ENHANCEDSTATUSCODES
@@ -236,22 +231,22 @@
 250-DSN
 250 AUTH PLAIN LOGIN CRAM-MD5
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: AUTH CRAM-MD5
+[2025-05-16 14:43:39][1] CLIENT -> SERVER: AUTH CRAM-MD5
 
-[2025-05-15 19:47:43][2] SERVER -> CLIENT: 334 PDExMTQwMzQwNzIuMTc0NzMzODQ2M0BzbXRwLm1haWx0cmFwLmlvPg==
+[2025-05-16 14:43:39][2] SERVER -> CLIENT: 334 PDE3MDU5MDg4NDEuMTc0NzQwNjYxOUBzbXRwLm1haWx0cmFwLmlvPg==
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: [credentials hidden]
-[2025-05-15 19:47:43][2] SERVER -> CLIENT: 235 2.0.0 OK
+[2025-05-16 14:43:39][1] CLIENT -> SERVER: [credentials hidden]
+[2025-05-16 14:43:39][2] SERVER -> CLIENT: 235 2.0.0 OK
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: QUIT
+[2025-05-16 14:43:39][1] CLIENT -> SERVER: QUIT
 
-[2025-05-15 19:47:43][2] SERVER -> CLIENT: 221 2.0.0 Bye
+[2025-05-16 14:43:39][2] SERVER -> CLIENT: 221 2.0.0 Bye
 
-[2025-05-15 19:47:43][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
+[2025-05-16 14:43:39][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: EHLO localhost
+[2025-05-16 14:43:39][1] CLIENT -> SERVER: EHLO localhost
 
-[2025-05-15 19:47:43][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+[2025-05-16 14:43:39][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
 250-SIZE 5242880
 250-PIPELINING
 250-ENHANCEDSTATUSCODES
@@ -260,13 +255,13 @@
 250-AUTH PLAIN LOGIN CRAM-MD5
 250 STARTTLS
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: STARTTLS
+[2025-05-16 14:43:39][1] CLIENT -> SERVER: STARTTLS
 
-[2025-05-15 19:47:43][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
+[2025-05-16 14:43:39][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: EHLO localhost
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: EHLO localhost
 
-[2025-05-15 19:47:43][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+[2025-05-16 14:43:40][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
 250-SIZE 5242880
 250-PIPELINING
 250-ENHANCEDSTATUSCODES
@@ -274,166 +269,145 @@
 250-DSN
 250 AUTH PLAIN LOGIN CRAM-MD5
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: AUTH CRAM-MD5
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: AUTH CRAM-MD5
 
-[2025-05-15 19:47:43][2] SERVER -> CLIENT: 334 PDgzMjUzOTkyMC4xNzQ3MzM4NDYzQHNtdHAubWFpbHRyYXAuaW8+
+[2025-05-16 14:43:40][2] SERVER -> CLIENT: 334 PDIzNTE5MjgwOC4xNzQ3NDA2NjIwQHNtdHAubWFpbHRyYXAuaW8+
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: [credentials hidden]
-[2025-05-15 19:47:43][2] SERVER -> CLIENT: 235 2.0.0 OK
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: [credentials hidden]
+[2025-05-16 14:43:40][2] SERVER -> CLIENT: 235 2.0.0 OK
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: MAIL FROM:<noreply@petsbook.com>
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: MAIL FROM:<noreply@petsbook.com>
 
-[2025-05-15 19:47:43][2] SERVER -> CLIENT: 250 2.1.0 Ok
+[2025-05-16 14:43:40][2] SERVER -> CLIENT: 250 2.1.0 Ok
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: RCPT TO:<serg.kostyuk@gmail.com>
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: RCPT TO:<cc777ccc@gggg.bb>
 
-[2025-05-15 19:47:43][2] SERVER -> CLIENT: 250 2.1.0 Ok
+[2025-05-16 14:43:40][2] SERVER -> CLIENT: 250 2.1.0 Ok
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: DATA
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: DATA
 
-[2025-05-15 19:47:43][2] SERVER -> CLIENT: 354 Go ahead
+[2025-05-16 14:43:40][2] SERVER -> CLIENT: 354 Go ahead
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: Date: Thu, 15 May 2025 19:47:43 +0000
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: Date: Fri, 16 May 2025 14:43:39 +0000
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: To: "serg.kostyuk@gmail.com" <serg.kostyuk@gmail.com>
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: To: cccccc <cc777ccc@gggg.bb>
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: From: PetsBook <noreply@petsbook.com>
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: From: PetsBook <noreply@petsbook.com>
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: Subject: Password Reset
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: Subject: =?UTF-8?B?0J/QvtC00YLQstC10YDQttC00LXQvdC40LUgZW1haWwg0LDQtNGA0LXRgdCw?=
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: Message-ID: <opOVzfuoc3Lu7saCE1ZsHNF325wTwNzARgd9wd5IQ@localhost>
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: Message-ID: <zO9m9Bt4bCv1otM7v8AxaRtEjgr94luaD54rgq4IQ@localhost>
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: X-Mailer: PHPMailer 6.9.3 (https://github.com/PHPMailer/PHPMailer)
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: X-Mailer: PHPMailer 6.9.3 (https://github.com/PHPMailer/PHPMailer)
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: MIME-Version: 1.0
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: MIME-Version: 1.0
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: Content-Type: multipart/alternative;
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: Content-Type: multipart/alternative;
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER:  boundary="b1=_opOVzfuoc3Lu7saCE1ZsHNF325wTwNzARgd9wd5IQ"
+[2025-05-16 14:43:40][1] CLIENT -> SERVER:  boundary="b1=_zO9m9Bt4bCv1otM7v8AxaRtEjgr94luaD54rgq4IQ"
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: 
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: 
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: --b1=_opOVzfuoc3Lu7saCE1ZsHNF325wTwNzARgd9wd5IQ
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: --b1=_zO9m9Bt4bCv1otM7v8AxaRtEjgr94luaD54rgq4IQ
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: Content-Type: text/plain; charset=us-ascii
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: Content-Type: text/plain; charset=UTF-8
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: 
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: Hello, serg.kostyuk@gmail.com!
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: 
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: 
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: Здравствуйте, cccccc!
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: We received a request to reset your password.
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: 
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: 
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: Для завершения регистрации необходимо подтвердить ваш email адрес.
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: To create a new password, please use this link: http://localhost:5173/reset-password/a3ba1246cdeb53166113428b5c50672c704db433ceecc1e6c573f598a15e9108
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: 
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: 
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: Перейдите по ссылке: http://localhost:5173/verify-email/8ea16866e4b870af740aa7644427bab3efa796003ff49a8ba360f1febe971fce
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: This link is valid for 24 hours.
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: 
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: 
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: Ссылка действительна в течение 24 часов.
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: If you did not request a password reset, please ignore this email.
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: 
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: 
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: --b1=_opOVzfuoc3Lu7saCE1ZsHNF325wTwNzARgd9wd5IQ
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: 
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: Content-Type: text/html; charset=us-ascii
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: --b1=_zO9m9Bt4bCv1otM7v8AxaRtEjgr94luaD54rgq4IQ
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: 
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: Content-Type: text/html; charset=UTF-8
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: 
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER:                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: 
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER:                     <h2>Hello, serg.kostyuk@gmail.com!</h2>
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: 
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER:                     <p>We received a request to reset your password.</p>
+[2025-05-16 14:43:40][1] CLIENT -> SERVER:                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER:                     <p>To create a new password, please click the button below:</p>
+[2025-05-16 14:43:40][1] CLIENT -> SERVER:                     <h2>Здравствуйте, cccccc!</h2>
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER:                     <p style='text-align: center;'>
+[2025-05-16 14:43:40][1] CLIENT -> SERVER:                     <p>Для завершения регистрации необходимо подтвердить ваш email адрес.</p>
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER:                         <a href='http://localhost:5173/reset-password/a3ba1246cdeb53166113428b5c50672c704db433ceecc1e6c573f598a15e9108' 
+[2025-05-16 14:43:40][1] CLIENT -> SERVER:                     <p>Пожалуйста, нажмите на кнопку ниже:</p>
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER:                            style='display: inline-block; padding: 10px 20px; 
+[2025-05-16 14:43:40][1] CLIENT -> SERVER:                     <p style='text-align: center;'>
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER:                                   background-color: #4CAF50; color: white; 
+[2025-05-16 14:43:40][1] CLIENT -> SERVER:                         <a href='http://localhost:5173/verify-email/8ea16866e4b870af740aa7644427bab3efa796003ff49a8ba360f1febe971fce' 
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER:                                   text-decoration: none; border-radius: 5px;'>
+[2025-05-16 14:43:40][1] CLIENT -> SERVER:                            style='display: inline-block; padding: 10px 20px; 
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER:                             Reset Password
+[2025-05-16 14:43:40][1] CLIENT -> SERVER:                                   background-color: #4CAF50; color: white; 
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER:                         </a>
+[2025-05-16 14:43:40][1] CLIENT -> SERVER:                                   text-decoration: none; border-radius: 5px;'>
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER:                     </p>
+[2025-05-16 14:43:40][1] CLIENT -> SERVER:                             Подтвердить email
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER:                     <p>Or use this link: <a href='http://localhost:5173/reset-password/a3ba1246cdeb53166113428b5c50672c704db433ceecc1e6c573f598a15e9108'>http://localhost:5173/reset-password/a3ba1246cdeb53166113428b5c50672c704db433ceecc1e6c573f598a15e9108</a></p>
+[2025-05-16 14:43:40][1] CLIENT -> SERVER:                         </a>
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER:                     <p>This link is valid for 24 hours.</p>
+[2025-05-16 14:43:40][1] CLIENT -> SERVER:                     </p>
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER:                     <p>If you did not request a password reset, please ignore this email.</p>
+[2025-05-16 14:43:40][1] CLIENT -> SERVER:                     <p>Или перейдите по ссылке: <a href='http://localhost:5173/verify-email/8ea16866e4b870af740aa7644427bab3efa796003ff49a8ba360f1febe971fce'>http://localhost:5173/verify-email/8ea16866e4b870af740aa7644427bab3efa796003ff49a8ba360f1febe971fce</a></p>
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER:                 </div>
+[2025-05-16 14:43:40][1] CLIENT -> SERVER:                     <p>Ссылка действительна в течение 24 часов.</p>
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: 
+[2025-05-16 14:43:40][1] CLIENT -> SERVER:                     <p>Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.</p>
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: 
+[2025-05-16 14:43:40][1] CLIENT -> SERVER:                 </div>
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: --b1=_opOVzfuoc3Lu7saCE1ZsHNF325wTwNzARgd9wd5IQ--
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: 
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: 
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: 
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: .
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: --b1=_zO9m9Bt4bCv1otM7v8AxaRtEjgr94luaD54rgq4IQ--
 
-[2025-05-15 19:47:43][2] SERVER -> CLIENT: 250 2.0.0 Ok: queued
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: 
 
-[2025-05-15 19:47:43][1] CLIENT -> SERVER: QUIT
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: .
 
-[2025-05-15 19:47:43][2] SERVER -> CLIENT: 221 2.0.0 Bye
+[2025-05-16 14:43:40][2] SERVER -> CLIENT: 250 2.0.0 Ok: queued
 
-[2025-05-15 19:48:16][INFO] === SET_NEW_PASSWORD ===
-[2025-05-15 19:48:16][INFO] === Starting Set New Password Process ===
-[2025-05-15 19:48:16][INFO] Request body: {"token":"a3ba1246cdeb53166113428b5c50672c704db433ceecc1e6c573f598a15e9108","password":"Aaaa@12345"}
-[2025-05-15 19:48:16][INFO] Decoded data: Array
-(
-    [token] => a3ba1246cdeb53166113428b5c50672c704db433ceecc1e6c573f598a15e9108
-    [password] => Aaaa@12345
-)
+[2025-05-16 14:43:40][1] CLIENT -> SERVER: QUIT
 
-[2025-05-15 19:48:16][INFO] Processing token: a3ba1246cdeb53166113428b5c50672c704db433ceecc1e6c573f598a15e9108
-[2025-05-15 19:48:17][INFO] Token check result: Array
-(
-    [login_id] => 1
-    [email] => serg.kostyuk@gmail.com
-    [expires_at] => 2025-05-16 15:47:42
-    [used] => 0
-)
+[2025-05-16 14:43:40][2] SERVER -> CLIENT: 221 2.0.0 Bye
 
-[2025-05-15 19:48:17][INFO] Starting database transaction
-[2025-05-15 19:48:17][INFO] Password updated for user ID: 1
-[2025-05-15 19:48:17][INFO] Token marked as used
-[2025-05-15 19:48:17][INFO] Old unused tokens deleted
-[2025-05-15 19:48:17][INFO] Transaction committed successfully
-[2025-05-15 20:18:24] Registration error: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'name' in 'INSERT INTO'
-[2025-05-15 20:18:43] Registration error: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'name' in 'INSERT INTO'
-[2025-05-15 20:24:34] Registration result: Array
-(
-    [success] => 1
-    [id] => 766
-    [message] => User registered successfully
-)
+[2025-05-16 14:44:55][INFO] === REGISER ===
+BEFORE[2025-05-16 14:44:55] Registration error: SQLSTATE[45000]: <<Unknown error>>: 1062 Email already exists
+[2025-05-16 14:48:44][INFO] === REGISER ===
+BEFORE[2025-05-16 14:48:44] Registration error: SQLSTATE[45000]: <<Unknown error>>: 1062 Email already exists
+[2025-05-16 14:49:19][INFO] === REGISER ===
+BEFORE[2025-05-16 14:49:20] Registration error: SQLSTATE[45000]: <<Unknown error>>: 1062 Email already exists
+[2025-05-16 14:49:34][INFO] === REGISER ===
+BEFORE[2025-05-16 14:49:35][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
 
-[2025-05-15 20:24:35][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
+[2025-05-16 14:49:35][1] CLIENT -> SERVER: EHLO localhost
 
-[2025-05-15 20:24:35][1] CLIENT -> SERVER: EHLO localhost
-
-[2025-05-15 20:24:35][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+[2025-05-16 14:49:35][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
 250-SIZE 5242880
 250-PIPELINING
 250-ENHANCEDSTATUSCODES
@@ -442,13 +416,13 @@
 250-AUTH PLAIN LOGIN CRAM-MD5
 250 STARTTLS
 
-[2025-05-15 20:24:35][1] CLIENT -> SERVER: STARTTLS
+[2025-05-16 14:49:35][1] CLIENT -> SERVER: STARTTLS
 
-[2025-05-15 20:24:35][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
+[2025-05-16 14:49:35][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
 
-[2025-05-15 20:24:35][1] CLIENT -> SERVER: EHLO localhost
+[2025-05-16 14:49:35][1] CLIENT -> SERVER: EHLO localhost
 
-[2025-05-15 20:24:35][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+[2025-05-16 14:49:35][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
 250-SIZE 5242880
 250-PIPELINING
 250-ENHANCEDSTATUSCODES
@@ -456,22 +430,22 @@
 250-DSN
 250 AUTH PLAIN LOGIN CRAM-MD5
 
-[2025-05-15 20:24:35][1] CLIENT -> SERVER: AUTH CRAM-MD5
+[2025-05-16 14:49:35][1] CLIENT -> SERVER: AUTH CRAM-MD5
 
-[2025-05-15 20:24:35][2] SERVER -> CLIENT: 334 PDczNzE5MzM0Ny4xNzQ3MzQwNjc1QHNtdHAubWFpbHRyYXAuaW8+
+[2025-05-16 14:49:35][2] SERVER -> CLIENT: 334 PDE1MjY4MzE4MTEuMTc0NzQwNjk3NUBzbXRwLm1haWx0cmFwLmlvPg==
 
-[2025-05-15 20:24:35][1] CLIENT -> SERVER: [credentials hidden]
-[2025-05-15 20:24:35][2] SERVER -> CLIENT: 235 2.0.0 OK
+[2025-05-16 14:49:35][1] CLIENT -> SERVER: [credentials hidden]
+[2025-05-16 14:49:35][2] SERVER -> CLIENT: 235 2.0.0 OK
 
-[2025-05-15 20:24:35][1] CLIENT -> SERVER: QUIT
+[2025-05-16 14:49:35][1] CLIENT -> SERVER: QUIT
 
-[2025-05-15 20:24:35][2] SERVER -> CLIENT: 221 2.0.0 Bye
+[2025-05-16 14:49:35][2] SERVER -> CLIENT: 221 2.0.0 Bye
 
-[2025-05-15 20:24:35][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
+[2025-05-16 14:49:35][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
 
-[2025-05-15 20:24:35][1] CLIENT -> SERVER: EHLO localhost
+[2025-05-16 14:49:35][1] CLIENT -> SERVER: EHLO localhost
 
-[2025-05-15 20:24:35][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+[2025-05-16 14:49:35][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
 250-SIZE 5242880
 250-PIPELINING
 250-ENHANCEDSTATUSCODES
@@ -480,13 +454,13 @@
 250-AUTH PLAIN LOGIN CRAM-MD5
 250 STARTTLS
 
-[2025-05-15 20:24:35][1] CLIENT -> SERVER: STARTTLS
+[2025-05-16 14:49:35][1] CLIENT -> SERVER: STARTTLS
 
-[2025-05-15 20:24:35][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
+[2025-05-16 14:49:35][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
 
-[2025-05-15 20:24:35][1] CLIENT -> SERVER: EHLO localhost
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: EHLO localhost
 
-[2025-05-15 20:24:35][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+[2025-05-16 14:49:36][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
 250-SIZE 5242880
 250-PIPELINING
 250-ENHANCEDSTATUSCODES
@@ -494,130 +468,1095 @@
 250-DSN
 250 AUTH PLAIN LOGIN CRAM-MD5
 
-[2025-05-15 20:24:35][1] CLIENT -> SERVER: AUTH CRAM-MD5
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: AUTH CRAM-MD5
 
-[2025-05-15 20:24:35][2] SERVER -> CLIENT: 334 PDE5ODUzMjk4ODcuMTc0NzM0MDY3NkBzbXRwLm1haWx0cmFwLmlvPg==
+[2025-05-16 14:49:36][2] SERVER -> CLIENT: 334 PDUxMDcxODY1Ny4xNzQ3NDA2OTc2QHNtdHAubWFpbHRyYXAuaW8+
 
-[2025-05-15 20:24:35][1] CLIENT -> SERVER: [credentials hidden]
-[2025-05-15 20:24:36][2] SERVER -> CLIENT: 235 2.0.0 OK
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: [credentials hidden]
+[2025-05-16 14:49:36][2] SERVER -> CLIENT: 235 2.0.0 OK
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: MAIL FROM:<noreply@petsbook.com>
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: MAIL FROM:<noreply@petsbook.com>
 
-[2025-05-15 20:24:36][2] SERVER -> CLIENT: 250 2.1.0 Ok
+[2025-05-16 14:49:36][2] SERVER -> CLIENT: 250 2.1.0 Ok
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: RCPT TO:<petr@gmail.com>
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: RCPT TO:<serg.uuukostyuk@gmail.com>
 
-[2025-05-15 20:24:36][2] SERVER -> CLIENT: 250 2.1.0 Ok
+[2025-05-16 14:49:36][2] SERVER -> CLIENT: 250 2.1.0 Ok
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: DATA
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: DATA
 
-[2025-05-15 20:24:36][2] SERVER -> CLIENT: 354 Go ahead
+[2025-05-16 14:49:36][2] SERVER -> CLIENT: 354 Go ahead
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: Date: Thu, 15 May 2025 20:24:35 +0000
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: Date: Fri, 16 May 2025 14:49:35 +0000
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: To: Petr Petrov <petr@gmail.com>
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: To: adgdf <serg.uuukostyuk@gmail.com>
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: From: PetsBook <noreply@petsbook.com>
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: From: PetsBook <noreply@petsbook.com>
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: Subject: =?UTF-8?B?0J/QvtC00YLQstC10YDQttC00LXQvdC40LUgZW1haWwg0LDQtNGA0LXRgdCw?=
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: Subject: =?UTF-8?B?0J/QvtC00YLQstC10YDQttC00LXQvdC40LUgZW1haWwg0LDQtNGA0LXRgdCw?=
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: Message-ID: <HpZE39A9h8dV4lJZfkM8M7fariblnCVUa04adxyt58@localhost>
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: Message-ID: <TXwmiRiaCIVc8IRB8RTH8HzEnVUpaRxndQUX3Vhrc@localhost>
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: X-Mailer: PHPMailer 6.9.3 (https://github.com/PHPMailer/PHPMailer)
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: X-Mailer: PHPMailer 6.9.3 (https://github.com/PHPMailer/PHPMailer)
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: MIME-Version: 1.0
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: MIME-Version: 1.0
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: Content-Type: multipart/alternative;
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: Content-Type: multipart/alternative;
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER:  boundary="b1=_HpZE39A9h8dV4lJZfkM8M7fariblnCVUa04adxyt58"
+[2025-05-16 14:49:36][1] CLIENT -> SERVER:  boundary="b1=_TXwmiRiaCIVc8IRB8RTH8HzEnVUpaRxndQUX3Vhrc"
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: 
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: 
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: --b1=_HpZE39A9h8dV4lJZfkM8M7fariblnCVUa04adxyt58
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: --b1=_TXwmiRiaCIVc8IRB8RTH8HzEnVUpaRxndQUX3Vhrc
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: Content-Type: text/plain; charset=UTF-8
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: Content-Type: text/plain; charset=UTF-8
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: 
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: 
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: Здравствуйте, Petr Petrov!
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: Здравствуйте, adgdf!
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: 
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: 
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: Для завершения регистрации необходимо подтвердить ваш email адрес.
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: Для завершения регистрации необходимо подтвердить ваш email адрес.
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: 
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: 
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: Перейдите по ссылке: http://localhost:5173/verify-email/5ee84fb8f2bc3ff91416680719e4328ba16cb182dfc5cc5ee83944ab92b380a4
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: Перейдите по ссылке: http://localhost:5173/verify-email/460313b2eead6b9e01bd01773d807304f9de2c568a5fee8ce3536f1e5c746223
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: 
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: 
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: Ссылка действительна в течение 24 часов.
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: Ссылка действительна в течение 24 часов.
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: 
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: 
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: 
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: 
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: --b1=_HpZE39A9h8dV4lJZfkM8M7fariblnCVUa04adxyt58
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: --b1=_TXwmiRiaCIVc8IRB8RTH8HzEnVUpaRxndQUX3Vhrc
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: Content-Type: text/html; charset=UTF-8
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: Content-Type: text/html; charset=UTF-8
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: 
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: 
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: 
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: 
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER:                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+[2025-05-16 14:49:36][1] CLIENT -> SERVER:                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER:                     <h2>Здравствуйте, Petr Petrov!</h2>
+[2025-05-16 14:49:36][1] CLIENT -> SERVER:                     <h2>Здравствуйте, adgdf!</h2>
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER:                     <p>Для завершения регистрации необходимо подтвердить ваш email адрес.</p>
+[2025-05-16 14:49:36][1] CLIENT -> SERVER:                     <p>Для завершения регистрации необходимо подтвердить ваш email адрес.</p>
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER:                     <p>Пожалуйста, нажмите на кнопку ниже:</p>
+[2025-05-16 14:49:36][1] CLIENT -> SERVER:                     <p>Пожалуйста, нажмите на кнопку ниже:</p>
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER:                     <p style='text-align: center;'>
+[2025-05-16 14:49:36][1] CLIENT -> SERVER:                     <p style='text-align: center;'>
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER:                         <a href='http://localhost:5173/verify-email/5ee84fb8f2bc3ff91416680719e4328ba16cb182dfc5cc5ee83944ab92b380a4' 
+[2025-05-16 14:49:36][1] CLIENT -> SERVER:                         <a href='http://localhost:5173/verify-email/460313b2eead6b9e01bd01773d807304f9de2c568a5fee8ce3536f1e5c746223' 
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER:                            style='display: inline-block; padding: 10px 20px; 
+[2025-05-16 14:49:36][1] CLIENT -> SERVER:                            style='display: inline-block; padding: 10px 20px; 
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER:                                   background-color: #4CAF50; color: white; 
+[2025-05-16 14:49:36][1] CLIENT -> SERVER:                                   background-color: #4CAF50; color: white; 
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER:                                   text-decoration: none; border-radius: 5px;'>
+[2025-05-16 14:49:36][1] CLIENT -> SERVER:                                   text-decoration: none; border-radius: 5px;'>
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER:                             Подтвердить email
+[2025-05-16 14:49:36][1] CLIENT -> SERVER:                             Подтвердить email
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER:                         </a>
+[2025-05-16 14:49:36][1] CLIENT -> SERVER:                         </a>
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER:                     </p>
+[2025-05-16 14:49:36][1] CLIENT -> SERVER:                     </p>
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER:                     <p>Или перейдите по ссылке: <a href='http://localhost:5173/verify-email/5ee84fb8f2bc3ff91416680719e4328ba16cb182dfc5cc5ee83944ab92b380a4'>http://localhost:5173/verify-email/5ee84fb8f2bc3ff91416680719e4328ba16cb182dfc5cc5ee83944ab92b380a4</a></p>
+[2025-05-16 14:49:36][1] CLIENT -> SERVER:                     <p>Или перейдите по ссылке: <a href='http://localhost:5173/verify-email/460313b2eead6b9e01bd01773d807304f9de2c568a5fee8ce3536f1e5c746223'>http://localhost:5173/verify-email/460313b2eead6b9e01bd01773d807304f9de2c568a5fee8ce3536f1e5c746223</a></p>
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER:                     <p>Ссылка действительна в течение 24 часов.</p>
+[2025-05-16 14:49:36][1] CLIENT -> SERVER:                     <p>Ссылка действительна в течение 24 часов.</p>
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER:                     <p>Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.</p>
+[2025-05-16 14:49:36][1] CLIENT -> SERVER:                     <p>Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.</p>
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER:                 </div>
+[2025-05-16 14:49:36][1] CLIENT -> SERVER:                 </div>
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: 
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: 
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: 
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: 
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: --b1=_HpZE39A9h8dV4lJZfkM8M7fariblnCVUa04adxyt58--
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: --b1=_TXwmiRiaCIVc8IRB8RTH8HzEnVUpaRxndQUX3Vhrc--
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: 
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: 
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: .
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: .
 
-[2025-05-15 20:24:36][2] SERVER -> CLIENT: 250 2.0.0 Ok: queued
+[2025-05-16 14:49:36][2] SERVER -> CLIENT: 250 2.0.0 Ok: queued
 
-[2025-05-15 20:24:36][1] CLIENT -> SERVER: QUIT
+[2025-05-16 14:49:36][1] CLIENT -> SERVER: QUIT
 
-[2025-05-15 20:24:36][2] SERVER -> CLIENT: 221 2.0.0 Bye
+[2025-05-16 14:49:36][2] SERVER -> CLIENT: 221 2.0.0 Bye
+
+[2025-05-16 14:54:15][INFO] === REGISER ===
+BEFORE[2025-05-16 14:54:15][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
+
+[2025-05-16 14:54:15][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-05-16 14:54:15][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250-AUTH PLAIN LOGIN CRAM-MD5
+250 STARTTLS
+
+[2025-05-16 14:54:15][1] CLIENT -> SERVER: STARTTLS
+
+[2025-05-16 14:54:15][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
+
+[2025-05-16 14:54:15][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-05-16 14:54:16][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250 AUTH PLAIN LOGIN CRAM-MD5
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: AUTH CRAM-MD5
+
+[2025-05-16 14:54:16][2] SERVER -> CLIENT: 334 PDE4Mzg5Mjc0Ni4xNzQ3NDA3MjU2QHNtdHAubWFpbHRyYXAuaW8+
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: [credentials hidden]
+[2025-05-16 14:54:16][2] SERVER -> CLIENT: 235 2.0.0 OK
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: QUIT
+
+[2025-05-16 14:54:16][2] SERVER -> CLIENT: 221 2.0.0 Bye
+
+[2025-05-16 14:54:16][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-05-16 14:54:16][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250-AUTH PLAIN LOGIN CRAM-MD5
+250 STARTTLS
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: STARTTLS
+
+[2025-05-16 14:54:16][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-05-16 14:54:16][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250 AUTH PLAIN LOGIN CRAM-MD5
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: AUTH CRAM-MD5
+
+[2025-05-16 14:54:16][2] SERVER -> CLIENT: 334 PDEzMzc0NTcwNy4xNzQ3NDA3MjU2QHNtdHAubWFpbHRyYXAuaW8+
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: [credentials hidden]
+[2025-05-16 14:54:16][2] SERVER -> CLIENT: 235 2.0.0 OK
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: MAIL FROM:<noreply@petsbook.com>
+
+[2025-05-16 14:54:16][2] SERVER -> CLIENT: 250 2.1.0 Ok
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: RCPT TO:<serjjjg.kostyuk@gmail.com>
+
+[2025-05-16 14:54:16][2] SERVER -> CLIENT: 250 2.1.0 Ok
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: DATA
+
+[2025-05-16 14:54:16][2] SERVER -> CLIENT: 354 Go ahead
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: Date: Fri, 16 May 2025 14:54:16 +0000
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: To: dfgsdg <serjjjg.kostyuk@gmail.com>
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: From: PetsBook <noreply@petsbook.com>
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: Subject: =?UTF-8?B?0J/QvtC00YLQstC10YDQttC00LXQvdC40LUgZW1haWwg0LDQtNGA0LXRgdCw?=
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: Message-ID: <WB3JPIZHDZrfs4GRc4QiMiTsUSo8P6FumMmfx5RQJ4@localhost>
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: X-Mailer: PHPMailer 6.9.3 (https://github.com/PHPMailer/PHPMailer)
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: MIME-Version: 1.0
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: Content-Type: multipart/alternative;
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER:  boundary="b1=_WB3JPIZHDZrfs4GRc4QiMiTsUSo8P6FumMmfx5RQJ4"
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: 
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: --b1=_WB3JPIZHDZrfs4GRc4QiMiTsUSo8P6FumMmfx5RQJ4
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: Content-Type: text/plain; charset=UTF-8
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: 
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: Здравствуйте, dfgsdg!
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: 
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: Для завершения регистрации необходимо подтвердить ваш email адрес.
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: 
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: Перейдите по ссылке: http://localhost:5173/verify-email/6ddac807dcd1298286f4d1586cdfc5d90ffa0f9d2cff866892856a475210db86
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: 
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: Ссылка действительна в течение 24 часов.
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: 
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: 
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: --b1=_WB3JPIZHDZrfs4GRc4QiMiTsUSo8P6FumMmfx5RQJ4
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: Content-Type: text/html; charset=UTF-8
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: 
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: 
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER:                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER:                     <h2>Здравствуйте, dfgsdg!</h2>
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER:                     <p>Для завершения регистрации необходимо подтвердить ваш email адрес.</p>
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER:                     <p>Пожалуйста, нажмите на кнопку ниже:</p>
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER:                     <p style='text-align: center;'>
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER:                         <a href='http://localhost:5173/verify-email/6ddac807dcd1298286f4d1586cdfc5d90ffa0f9d2cff866892856a475210db86' 
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER:                            style='display: inline-block; padding: 10px 20px; 
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER:                                   background-color: #4CAF50; color: white; 
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER:                                   text-decoration: none; border-radius: 5px;'>
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER:                             Подтвердить email
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER:                         </a>
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER:                     </p>
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER:                     <p>Или перейдите по ссылке: <a href='http://localhost:5173/verify-email/6ddac807dcd1298286f4d1586cdfc5d90ffa0f9d2cff866892856a475210db86'>http://localhost:5173/verify-email/6ddac807dcd1298286f4d1586cdfc5d90ffa0f9d2cff866892856a475210db86</a></p>
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER:                     <p>Ссылка действительна в течение 24 часов.</p>
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER:                     <p>Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.</p>
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER:                 </div>
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: 
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: 
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: --b1=_WB3JPIZHDZrfs4GRc4QiMiTsUSo8P6FumMmfx5RQJ4--
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: 
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: .
+
+[2025-05-16 14:54:16][2] SERVER -> CLIENT: 250 2.0.0 Ok: queued
+
+[2025-05-16 14:54:16][1] CLIENT -> SERVER: QUIT
+
+[2025-05-16 14:54:16][2] SERVER -> CLIENT: 221 2.0.0 Bye
+
+[2025-05-16 15:16:54][INFO] === REGISER ===
+BEFORE[2025-05-16 15:16:54][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
+
+[2025-05-16 15:16:54][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-05-16 15:16:54][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250-AUTH PLAIN LOGIN CRAM-MD5
+250 STARTTLS
+
+[2025-05-16 15:16:54][1] CLIENT -> SERVER: STARTTLS
+
+[2025-05-16 15:16:54][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-05-16 15:16:55][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250 AUTH PLAIN LOGIN CRAM-MD5
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: AUTH CRAM-MD5
+
+[2025-05-16 15:16:55][2] SERVER -> CLIENT: 334 PDIxMTI1NzUwOTYuMTc0NzQwODYxNUBzbXRwLm1haWx0cmFwLmlvPg==
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: [credentials hidden]
+[2025-05-16 15:16:55][2] SERVER -> CLIENT: 235 2.0.0 OK
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: QUIT
+
+[2025-05-16 15:16:55][2] SERVER -> CLIENT: 221 2.0.0 Bye
+
+[2025-05-16 15:16:55][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-05-16 15:16:55][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250-AUTH PLAIN LOGIN CRAM-MD5
+250 STARTTLS
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: STARTTLS
+
+[2025-05-16 15:16:55][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-05-16 15:16:55][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250 AUTH PLAIN LOGIN CRAM-MD5
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: AUTH CRAM-MD5
+
+[2025-05-16 15:16:55][2] SERVER -> CLIENT: 334 PDcwNTQyMzMxLjE3NDc0MDg2MTVAc210cC5tYWlsdHJhcC5pbz4=
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: [credentials hidden]
+[2025-05-16 15:16:55][2] SERVER -> CLIENT: 235 2.0.0 OK
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: MAIL FROM:<noreply@petsbook.com>
+
+[2025-05-16 15:16:55][2] SERVER -> CLIENT: 250 2.1.0 Ok
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: RCPT TO:<bvcvbc@dfgdfgd.uio>
+
+[2025-05-16 15:16:55][2] SERVER -> CLIENT: 250 2.1.0 Ok
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: DATA
+
+[2025-05-16 15:16:55][2] SERVER -> CLIENT: 354 Go ahead
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: Date: Fri, 16 May 2025 15:16:55 +0000
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: To: xcvb <bvcvbc@dfgdfgd.uio>
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: From: PetsBook <noreply@petsbook.com>
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: Subject: =?UTF-8?B?0J/QvtC00YLQstC10YDQttC00LXQvdC40LUgZW1haWwg0LDQtNGA0LXRgdCw?=
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: Message-ID: <uvPNx7DOZ1wDmTfcxf9JmoEdeu5OL34dZ2beNDdE@localhost>
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: X-Mailer: PHPMailer 6.9.3 (https://github.com/PHPMailer/PHPMailer)
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: MIME-Version: 1.0
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: Content-Type: multipart/alternative;
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER:  boundary="b1=_uvPNx7DOZ1wDmTfcxf9JmoEdeu5OL34dZ2beNDdE"
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: --b1=_uvPNx7DOZ1wDmTfcxf9JmoEdeu5OL34dZ2beNDdE
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: Content-Type: text/plain; charset=UTF-8
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: Здравствуйте, xcvb!
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: Для завершения регистрации необходимо подтвердить ваш email адрес.
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: Перейдите по ссылке: http://localhost:5173/verify-email/86b7f743b605e51b6b95d461a86f7f0758626b1d836a79555d13b13602a44fbe
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: Ссылка действительна в течение 24 часов.
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: --b1=_uvPNx7DOZ1wDmTfcxf9JmoEdeu5OL34dZ2beNDdE
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: Content-Type: text/html; charset=UTF-8
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER:                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER:                     <h2>Здравствуйте, xcvb!</h2>
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER:                     <p>Для завершения регистрации необходимо подтвердить ваш email адрес.</p>
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER:                     <p>Пожалуйста, нажмите на кнопку ниже:</p>
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER:                     <p style='text-align: center;'>
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER:                         <a href='http://localhost:5173/verify-email/86b7f743b605e51b6b95d461a86f7f0758626b1d836a79555d13b13602a44fbe' 
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER:                            style='display: inline-block; padding: 10px 20px; 
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER:                                   background-color: #4CAF50; color: white; 
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER:                                   text-decoration: none; border-radius: 5px;'>
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER:                             Подтвердить email
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER:                         </a>
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER:                     </p>
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER:                     <p>Или перейдите по ссылке: <a href='http://localhost:5173/verify-email/86b7f743b605e51b6b95d461a86f7f0758626b1d836a79555d13b13602a44fbe'>http://localhost:5173/verify-email/86b7f743b605e51b6b95d461a86f7f0758626b1d836a79555d13b13602a44fbe</a></p>
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER:                     <p>Ссылка действительна в течение 24 часов.</p>
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER:                     <p>Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.</p>
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER:                 </div>
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: --b1=_uvPNx7DOZ1wDmTfcxf9JmoEdeu5OL34dZ2beNDdE--
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: .
+
+[2025-05-16 15:16:55][2] SERVER -> CLIENT: 250 2.0.0 Ok: queued
+
+[2025-05-16 15:16:55][1] CLIENT -> SERVER: QUIT
+
+[2025-05-16 15:16:55][2] SERVER -> CLIENT: 221 2.0.0 Bye
+
+[2025-05-16 15:22:24][INFO] === REGISER ===
+BEFORE[2025-05-16 15:22:25][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
+
+[2025-05-16 15:22:25][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-05-16 15:22:25][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250-AUTH PLAIN LOGIN CRAM-MD5
+250 STARTTLS
+
+[2025-05-16 15:22:25][1] CLIENT -> SERVER: STARTTLS
+
+[2025-05-16 15:22:25][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
+
+[2025-05-16 15:22:25][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-05-16 15:22:25][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250 AUTH PLAIN LOGIN CRAM-MD5
+
+[2025-05-16 15:22:25][1] CLIENT -> SERVER: AUTH CRAM-MD5
+
+[2025-05-16 15:22:25][2] SERVER -> CLIENT: 334 PDk5MDEwNTQzOS4xNzQ3NDA4OTQ1QHNtdHAubWFpbHRyYXAuaW8+
+
+[2025-05-16 15:22:25][1] CLIENT -> SERVER: [credentials hidden]
+[2025-05-16 15:22:25][2] SERVER -> CLIENT: 235 2.0.0 OK
+
+[2025-05-16 15:22:25][1] CLIENT -> SERVER: QUIT
+
+[2025-05-16 15:22:25][2] SERVER -> CLIENT: 221 2.0.0 Bye
+
+[2025-05-16 15:22:25][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
+
+[2025-05-16 15:22:25][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-05-16 15:22:25][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250-AUTH PLAIN LOGIN CRAM-MD5
+250 STARTTLS
+
+[2025-05-16 15:22:25][1] CLIENT -> SERVER: STARTTLS
+
+[2025-05-16 15:22:25][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
+
+[2025-05-16 15:22:25][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-05-16 15:22:26][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250 AUTH PLAIN LOGIN CRAM-MD5
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: AUTH CRAM-MD5
+
+[2025-05-16 15:22:26][2] SERVER -> CLIENT: 334 PDEwMjQ1ODU2NzguMTc0NzQwODk0NkBzbXRwLm1haWx0cmFwLmlvPg==
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: [credentials hidden]
+[2025-05-16 15:22:26][2] SERVER -> CLIENT: 235 2.0.0 OK
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: MAIL FROM:<noreply@petsbook.com>
+
+[2025-05-16 15:22:26][2] SERVER -> CLIENT: 250 2.1.0 Ok
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: RCPT TO:<bbbb@wwww.ffff>
+
+[2025-05-16 15:22:26][2] SERVER -> CLIENT: 250 2.1.0 Ok
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: DATA
+
+[2025-05-16 15:22:26][2] SERVER -> CLIENT: 354 Go ahead
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: Date: Fri, 16 May 2025 15:22:25 +0000
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: To: xcvb <bbbb@wwww.ffff>
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: From: PetsBook <noreply@petsbook.com>
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: Subject: =?UTF-8?B?0J/QvtC00YLQstC10YDQttC00LXQvdC40LUgZW1haWwg0LDQtNGA0LXRgdCw?=
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: Message-ID: <rrti659jmv8E3ewTBatNkKsuF3KCXwH5AZtmjYad4@localhost>
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: X-Mailer: PHPMailer 6.9.3 (https://github.com/PHPMailer/PHPMailer)
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: MIME-Version: 1.0
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: Content-Type: multipart/alternative;
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER:  boundary="b1=_rrti659jmv8E3ewTBatNkKsuF3KCXwH5AZtmjYad4"
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: --b1=_rrti659jmv8E3ewTBatNkKsuF3KCXwH5AZtmjYad4
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: Content-Type: text/plain; charset=UTF-8
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: Здравствуйте, xcvb!
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: Для завершения регистрации необходимо подтвердить ваш email адрес.
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: Перейдите по ссылке: http://localhost:5173/verify-email/21ada65cec797212dfe57ddc39df908d50f55409530494a313d379415dbd02c9
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: Ссылка действительна в течение 24 часов.
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: --b1=_rrti659jmv8E3ewTBatNkKsuF3KCXwH5AZtmjYad4
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: Content-Type: text/html; charset=UTF-8
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER:                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER:                     <h2>Здравствуйте, xcvb!</h2>
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER:                     <p>Для завершения регистрации необходимо подтвердить ваш email адрес.</p>
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER:                     <p>Пожалуйста, нажмите на кнопку ниже:</p>
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER:                     <p style='text-align: center;'>
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER:                         <a href='http://localhost:5173/verify-email/21ada65cec797212dfe57ddc39df908d50f55409530494a313d379415dbd02c9' 
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER:                            style='display: inline-block; padding: 10px 20px; 
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER:                                   background-color: #4CAF50; color: white; 
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER:                                   text-decoration: none; border-radius: 5px;'>
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER:                             Подтвердить email
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER:                         </a>
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER:                     </p>
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER:                     <p>Или перейдите по ссылке: <a href='http://localhost:5173/verify-email/21ada65cec797212dfe57ddc39df908d50f55409530494a313d379415dbd02c9'>http://localhost:5173/verify-email/21ada65cec797212dfe57ddc39df908d50f55409530494a313d379415dbd02c9</a></p>
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER:                     <p>Ссылка действительна в течение 24 часов.</p>
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER:                     <p>Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.</p>
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER:                 </div>
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: --b1=_rrti659jmv8E3ewTBatNkKsuF3KCXwH5AZtmjYad4--
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: .
+
+[2025-05-16 15:22:26][2] SERVER -> CLIENT: 250 2.0.0 Ok: queued
+
+[2025-05-16 15:22:26][1] CLIENT -> SERVER: QUIT
+
+[2025-05-16 15:22:26][2] SERVER -> CLIENT: 221 2.0.0 Bye
+
+[2025-05-16 15:24:36][INFO] === REGISER ===
+BEFORE[2025-05-16 15:24:37][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
+
+[2025-05-16 15:24:37][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-05-16 15:24:37][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250-AUTH PLAIN LOGIN CRAM-MD5
+250 STARTTLS
+
+[2025-05-16 15:24:37][1] CLIENT -> SERVER: STARTTLS
+
+[2025-05-16 15:24:37][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
+
+[2025-05-16 15:24:37][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-05-16 15:24:37][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250 AUTH PLAIN LOGIN CRAM-MD5
+
+[2025-05-16 15:24:37][1] CLIENT -> SERVER: AUTH CRAM-MD5
+
+[2025-05-16 15:24:37][2] SERVER -> CLIENT: 334 PDEzNTcwNTg2NDguMTc0NzQwOTA3N0BzbXRwLm1haWx0cmFwLmlvPg==
+
+[2025-05-16 15:24:37][1] CLIENT -> SERVER: [credentials hidden]
+[2025-05-16 15:24:37][2] SERVER -> CLIENT: 235 2.0.0 OK
+
+[2025-05-16 15:24:37][1] CLIENT -> SERVER: QUIT
+
+[2025-05-16 15:24:37][2] SERVER -> CLIENT: 221 2.0.0 Bye
+
+[2025-05-16 15:24:38][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-05-16 15:24:38][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250-AUTH PLAIN LOGIN CRAM-MD5
+250 STARTTLS
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: STARTTLS
+
+[2025-05-16 15:24:38][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-05-16 15:24:38][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250 AUTH PLAIN LOGIN CRAM-MD5
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: AUTH CRAM-MD5
+
+[2025-05-16 15:24:38][2] SERVER -> CLIENT: 334 PDkxODE3NTQ5My4xNzQ3NDA5MDc4QHNtdHAubWFpbHRyYXAuaW8+
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: [credentials hidden]
+[2025-05-16 15:24:38][2] SERVER -> CLIENT: 235 2.0.0 OK
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: MAIL FROM:<noreply@petsbook.com>
+
+[2025-05-16 15:24:38][2] SERVER -> CLIENT: 250 2.1.0 Ok
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: RCPT TO:<shdghd@yyy.sass>
+
+[2025-05-16 15:24:38][2] SERVER -> CLIENT: 250 2.1.0 Ok
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: DATA
+
+[2025-05-16 15:24:38][2] SERVER -> CLIENT: 354 Go ahead
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: Date: Fri, 16 May 2025 15:24:37 +0000
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: To: xcb <shdghd@yyy.sass>
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: From: PetsBook <noreply@petsbook.com>
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: Subject: =?UTF-8?B?0J/QvtC00YLQstC10YDQttC00LXQvdC40LUgZW1haWwg0LDQtNGA0LXRgdCw?=
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: Message-ID: <lFV865LnfactdyXj5fMWxLnWPWZV8nsgT3S51AIMkc@localhost>
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: X-Mailer: PHPMailer 6.9.3 (https://github.com/PHPMailer/PHPMailer)
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: MIME-Version: 1.0
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: Content-Type: multipart/alternative;
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER:  boundary="b1=_lFV865LnfactdyXj5fMWxLnWPWZV8nsgT3S51AIMkc"
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: --b1=_lFV865LnfactdyXj5fMWxLnWPWZV8nsgT3S51AIMkc
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: Content-Type: text/plain; charset=UTF-8
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: Здравствуйте, xcb!
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: Для завершения регистрации необходимо подтвердить ваш email адрес.
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: Перейдите по ссылке: http://localhost:5173/verify-email/8f2b6614d677b4366a1d40d7d5282432ae50b4a81ca36e09a0602bfa10a8922a
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: Ссылка действительна в течение 24 часов.
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: --b1=_lFV865LnfactdyXj5fMWxLnWPWZV8nsgT3S51AIMkc
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: Content-Type: text/html; charset=UTF-8
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER:                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER:                     <h2>Здравствуйте, xcb!</h2>
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER:                     <p>Для завершения регистрации необходимо подтвердить ваш email адрес.</p>
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER:                     <p>Пожалуйста, нажмите на кнопку ниже:</p>
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER:                     <p style='text-align: center;'>
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER:                         <a href='http://localhost:5173/verify-email/8f2b6614d677b4366a1d40d7d5282432ae50b4a81ca36e09a0602bfa10a8922a' 
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER:                            style='display: inline-block; padding: 10px 20px; 
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER:                                   background-color: #4CAF50; color: white; 
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER:                                   text-decoration: none; border-radius: 5px;'>
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER:                             Подтвердить email
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER:                         </a>
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER:                     </p>
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER:                     <p>Или перейдите по ссылке: <a href='http://localhost:5173/verify-email/8f2b6614d677b4366a1d40d7d5282432ae50b4a81ca36e09a0602bfa10a8922a'>http://localhost:5173/verify-email/8f2b6614d677b4366a1d40d7d5282432ae50b4a81ca36e09a0602bfa10a8922a</a></p>
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER:                     <p>Ссылка действительна в течение 24 часов.</p>
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER:                     <p>Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.</p>
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER:                 </div>
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: --b1=_lFV865LnfactdyXj5fMWxLnWPWZV8nsgT3S51AIMkc--
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: .
+
+[2025-05-16 15:24:38][2] SERVER -> CLIENT: 250 2.0.0 Ok: queued
+
+[2025-05-16 15:24:38][1] CLIENT -> SERVER: QUIT
+
+[2025-05-16 15:24:38][2] SERVER -> CLIENT: 221 2.0.0 Bye
+
+[2025-05-16 15:25:51][INFO] === REGISER ===
+BEFORE[2025-05-16 15:25:51][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
+
+[2025-05-16 15:25:51][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-05-16 15:25:51][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250-AUTH PLAIN LOGIN CRAM-MD5
+250 STARTTLS
+
+[2025-05-16 15:25:51][1] CLIENT -> SERVER: STARTTLS
+
+[2025-05-16 15:25:51][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
+
+[2025-05-16 15:25:51][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-05-16 15:25:51][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250 AUTH PLAIN LOGIN CRAM-MD5
+
+[2025-05-16 15:25:51][1] CLIENT -> SERVER: AUTH CRAM-MD5
+
+[2025-05-16 15:25:51][2] SERVER -> CLIENT: 334 PDE1MDQ1Njk0NzMuMTc0NzQwOTE1MUBzbXRwLm1haWx0cmFwLmlvPg==
+
+[2025-05-16 15:25:51][1] CLIENT -> SERVER: [credentials hidden]
+[2025-05-16 15:25:51][2] SERVER -> CLIENT: 235 2.0.0 OK
+
+[2025-05-16 15:25:51][1] CLIENT -> SERVER: QUIT
+
+[2025-05-16 15:25:51][2] SERVER -> CLIENT: 221 2.0.0 Bye
+
+[2025-05-16 15:25:51][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP ready
+
+[2025-05-16 15:25:51][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-05-16 15:25:52][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250-AUTH PLAIN LOGIN CRAM-MD5
+250 STARTTLS
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: STARTTLS
+
+[2025-05-16 15:25:52][2] SERVER -> CLIENT: 220 2.0.0 Start TLS
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: EHLO localhost
+
+[2025-05-16 15:25:52][2] SERVER -> CLIENT: 250-smtp.mailtrap.io
+250-SIZE 5242880
+250-PIPELINING
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250 AUTH PLAIN LOGIN CRAM-MD5
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: AUTH CRAM-MD5
+
+[2025-05-16 15:25:52][2] SERVER -> CLIENT: 334 PDIzNzM2NjczOS4xNzQ3NDA5MTUyQHNtdHAubWFpbHRyYXAuaW8+
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: [credentials hidden]
+[2025-05-16 15:25:52][2] SERVER -> CLIENT: 235 2.0.0 OK
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: MAIL FROM:<noreply@petsbook.com>
+
+[2025-05-16 15:25:52][2] SERVER -> CLIENT: 250 2.1.0 Ok
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: RCPT TO:<lggkgkg@rgn.vhjh>
+
+[2025-05-16 15:25:52][2] SERVER -> CLIENT: 250 2.1.0 Ok
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: DATA
+
+[2025-05-16 15:25:52][2] SERVER -> CLIENT: 354 Go ahead
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: Date: Fri, 16 May 2025 15:25:51 +0000
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: To: nvncnc <lggkgkg@rgn.vhjh>
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: From: PetsBook <noreply@petsbook.com>
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: Subject: =?UTF-8?B?0J/QvtC00YLQstC10YDQttC00LXQvdC40LUgZW1haWwg0LDQtNGA0LXRgdCw?=
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: Message-ID: <6GEq8cDDzpXxz1U4lqaLXHhJZAt44vTTagzogFuRWrg@localhost>
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: X-Mailer: PHPMailer 6.9.3 (https://github.com/PHPMailer/PHPMailer)
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: MIME-Version: 1.0
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: Content-Type: multipart/alternative;
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER:  boundary="b1=_6GEq8cDDzpXxz1U4lqaLXHhJZAt44vTTagzogFuRWrg"
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: --b1=_6GEq8cDDzpXxz1U4lqaLXHhJZAt44vTTagzogFuRWrg
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: Content-Type: text/plain; charset=UTF-8
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: Здравствуйте, nvncnc!
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: Для завершения регистрации необходимо подтвердить ваш email адрес.
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: Перейдите по ссылке: http://localhost:5173/verify-email/981b6332939dfa723c028a1566a646111985286967b5770971ed31cc742b6f87
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: Ссылка действительна в течение 24 часов.
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: --b1=_6GEq8cDDzpXxz1U4lqaLXHhJZAt44vTTagzogFuRWrg
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: Content-Type: text/html; charset=UTF-8
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: Content-Transfer-Encoding: 8bit
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER:                 <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER:                     <h2>Здравствуйте, nvncnc!</h2>
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER:                     <p>Для завершения регистрации необходимо подтвердить ваш email адрес.</p>
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER:                     <p>Пожалуйста, нажмите на кнопку ниже:</p>
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER:                     <p style='text-align: center;'>
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER:                         <a href='http://localhost:5173/verify-email/981b6332939dfa723c028a1566a646111985286967b5770971ed31cc742b6f87' 
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER:                            style='display: inline-block; padding: 10px 20px; 
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER:                                   background-color: #4CAF50; color: white; 
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER:                                   text-decoration: none; border-radius: 5px;'>
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER:                             Подтвердить email
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER:                         </a>
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER:                     </p>
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER:                     <p>Или перейдите по ссылке: <a href='http://localhost:5173/verify-email/981b6332939dfa723c028a1566a646111985286967b5770971ed31cc742b6f87'>http://localhost:5173/verify-email/981b6332939dfa723c028a1566a646111985286967b5770971ed31cc742b6f87</a></p>
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER:                     <p>Ссылка действительна в течение 24 часов.</p>
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER:                     <p>Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.</p>
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER:                 </div>
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: --b1=_6GEq8cDDzpXxz1U4lqaLXHhJZAt44vTTagzogFuRWrg--
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: 
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: .
+
+[2025-05-16 15:25:52][2] SERVER -> CLIENT: 250 2.0.0 Ok: queued
+
+[2025-05-16 15:25:52][1] CLIENT -> SERVER: QUIT
+
+[2025-05-16 15:25:52][2] SERVER -> CLIENT: 221 2.0.0 Bye
 

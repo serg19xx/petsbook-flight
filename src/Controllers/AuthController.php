@@ -195,6 +195,7 @@ class AuthController extends BaseController {
      * @apiError {String} error_code Error code (EMAIL_ALREADY_EXISTS, INVALID_ROLE, etc.)
      */
     public function register() {
+        $this->logMessage("=== REGISER ===");
         $logFile = __DIR__ . '/../../logs/auth.log';
         try {
             $requestBody = Flight::request()->getBody();
@@ -226,7 +227,7 @@ class AuthController extends BaseController {
                 ], 400);
             }
 
-            $allowedRoles = ['admin', 'moderator', 'partner', 'commercial', 'user'];
+            $allowedRoles = ['agent', 'bussiness', 'user'];
             if (!in_array($role, $allowedRoles)) {
                 return Flight::json([
                     'status' => 400,
@@ -236,92 +237,80 @@ class AuthController extends BaseController {
                 ], 400);
             }
 
+            
             // Password hashing
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-            
+            file_put_contents($logFile,"BEFORE", FILE_APPEND);
             // Call registration procedure
             $stmt = $this->db->prepare("CALL sp_Register(?, ?, ?, ?)");
             $stmt->execute([$name, $email, $hashedPassword, $role]);
-            $result = $stmt->fetch();
-            
-            // Создаем свой лог-файл
-           
-            $timestamp = date('Y-m-d H:i:s');
-            $logMessage = "[$timestamp] Registration result: " . print_r($result, true) . PHP_EOL;
-            
-            file_put_contents($logFile, $logMessage, FILE_APPEND);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // Если процедура завершилась успешно, можно вернуть результат
+            echo json_encode([
+                'success' => true,
+                'id' => $result['id'] ?? null,
+                'message' => $result['message'] ?? 'User registered successfully'
+            ]);
             
             $stmt->closeCursor();
             
-            if ($result['success'] === 0 && $result['message'] === 'Email already exists') {
-                return Flight::json([
-                    'status' => 400,
-                    'error_code' => ResponseCodes::EMAIL_ALREADY_EXISTS,
-                    'message' => '',
-                    'data' => null
-                ], 400);
-            }
-            
-            if ($result && isset($result['success']) && $result['success']) {
-                try {
-                    // Create verification token
-                    $token = $this->createVerificationToken($result['id']);
-                    
-                    // Close all possible open cursors before next query
-                    while ($this->db->inTransaction()) {
-                        $this->db->commit();
-                    }
-                    
-                    // Send verification email
-                    $emailSent = $this->sendVerificationEmail($email, $name, $token);
-                    
-                    return Flight::json([
-                        'status' => 200,
-                        'error_code' => ResponseCodes::REGISTRATION_SUCCESS,
-                        'message' => '',
-                        'data' => [
-                            'user' => [
-                                'id' => $result['id'],
-                                'email' => $email,
-                                'name' => $name,
-                                'role' => $role,
-                                'email_verified' => false
-                            ]
-                        ]
-                    ], 200);
-                } catch (\Exception $e) {
-                    error_log("Post-registration process error: " . $e->getMessage());
-                    // Registration is successful even if email sending failed
-                    return Flight::json([
-                        'status' => 200,
-                        'error_code' => ResponseCodes::EMAIL_SEND_ERROR,
-                        'message' => '',
-                        'data' => [
-                            'user' => [
-                                'id' => $result['id'],
-                                'email' => $email,
-                                'name' => $name,
-                                'role' => $role,
-                                'email_verified' => false
-                            ]
-                        ]
-                    ], 200);
+            try {
+                // Create verification token
+                $token = $this->createVerificationToken($result['id']);
+                
+                // Close all possible open cursors before next query
+                while ($this->db->inTransaction()) {
+                    $this->db->commit();
                 }
-            } else {
-                throw new \Exception('Registration failed: ' . ($result['message'] ?? 'Unknown error'));
+                
+                // Send verification email
+                $emailSent = $this->sendVerificationEmail($email, $name, $token);
+                
+                return Flight::json([
+                    'status' => 200,
+                    'error_code' => ResponseCodes::REGISTRATION_SUCCESS,
+                    'message' => '',
+                    'data' => [
+                        'user' => [
+                            'id' => $result['id'],
+                            'email' => $email,
+                            'name' => $name,
+                            'role' => $role,
+                            'email_verified' => false
+                        ]
+                    ]
+                ], 200);
+            } catch (\Exception $e) {
+                error_log("Post-registration process error: " . $e->getMessage());
+                // Registration is successful even if email sending failed
+                return Flight::json([
+                    'status' => 200,
+                    'error_code' => ResponseCodes::EMAIL_SEND_ERROR,
+                    'message' => '',
+                    'data' => [
+                        'user' => [
+                            'id' => $result['id'],
+                            'email' => $email,
+                            'name' => $name,
+                            'role' => $role,
+                            'email_verified' => false
+                        ]
+                    ]
+                ], 200);
             }
 
         } catch (\Exception $e) {
             $timestamp = date('Y-m-d H:i:s');
             $errorMessage = "[$timestamp] Registration error: " . $e->getMessage() . PHP_EOL;
             file_put_contents($logFile, $errorMessage, FILE_APPEND);
-            
+
             return Flight::json([
                 'status' => 500,
-                'error_code' => ResponseCodes::SYSTEM_ERROR,
-                'message' => '',
+                'error_code' => ResponseCodes::EMAIL_EXISTS,
+                'message' => $e->getMessage(),
                 'data' => null
-            ], 500);
+            ], 500);            
         }
     }
 
