@@ -1560,3 +1560,4 @@ BEFORE[2025-05-16 15:25:51][2] SERVER -> CLIENT: 220 smtp.mailtrap.io ESMTP read
 
 [2025-05-16 15:25:52][2] SERVER -> CLIENT: 221 2.0.0 Bye
 
+[2025-05-16 15:48:42][INFO] `````getUserData```````
