@@ -593,8 +593,9 @@ class AuthController extends BaseController {
                 $this->logMessage($str, $level);
             };
             var_dump($_ENV['SMTP_USERNAME'], $_ENV['SMTP_PASSWORD']);
+            $this->logMessage()
             // Server settings
-            $mail->isSMTP();
+            $mail->isSMTP($_ENV['SMTP_USERNAME'].' : '.$_ENV['SMTP_PASSWORD'], 'AuthController');
             $mail->Host = $_ENV['SMTP_HOST'];
             $mail->Port = intval($_ENV['SMTP_PORT']);
             $mail->SMTPAuth = true;
