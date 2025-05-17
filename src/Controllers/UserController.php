@@ -31,7 +31,7 @@ use PHPMailer\PHPMailer\Exception;
  * System error codes:
  * - SYSTEM_ERROR: System error
  */
-class UserController {
+class UserController extends BaseController {
     /** @var array Avatar upload and processing settings */
     private $avatarSettings;
     
@@ -40,6 +40,13 @@ class UserController {
 
     public function __construct($db) {
         $this->db = $db;
+
+        $this->avatarSettings = [
+            'baseUrl' => $_ENV['AVATAR_BASE_URL'],
+            'style' => $_ENV['AVATAR_STYLE'],
+            'backgroundColor' => $_ENV['AVATAR_BG_COLOR'],
+            'size' => $_ENV['AVATAR_SIZE']
+        ];        
     }
 
     /**
@@ -55,9 +62,11 @@ class UserController {
      * @apiError {String} error_code Error code (USER_NOT_FOUND, INVALID_TOKEN, etc.)
      */
     public function getUserData() {
-        error_log('THIS IS THE FILE I AM EDITING');
 
-        error_log('$_COOKIE: ' . print_r($_COOKIE, true)); 
+        $this->logMessage("`````getUserData```````",'UserController');
+       
+
+        //$this->logMessage('$_COOKIE: ' . print_r($_COOKIE, true),'UserController'); 
         try {          
             // Получаем и проверяем токен
             //$headers = getallheaders();
@@ -83,10 +92,11 @@ class UserController {
                     'data' => null
                 ], 500);
             }
-            
-error_log("GET USER_DATA - COOKIE:".print_r($_COOKIE, true));
 
             $token = $_COOKIE['auth_token'] ?? null;
+
+            //$this->logMessage('$token: ' . $token,'UserController'); 
+
             if (!$token) {
                 return Flight::json([
                     'status' => 401,
@@ -97,16 +107,21 @@ error_log("GET USER_DATA - COOKIE:".print_r($_COOKIE, true));
             }   
 
             try {
+                
+                //$this->logMessage('JWT_SECRET: ' . $_ENV['JWT_SECRET'],'UserController'); 
                 $decoded = JWT::decode($token, new Key($_ENV['JWT_SECRET'], 'HS256'));
+                //$this->logMessage('$decoded: ' . print_r($decoded, true),'UserController'); 
             } catch (\Exception $e) {
+                //$this->logMessage('JWT decode error: ' . $e->getMessage(), 'UserController');
                 return Flight::json([
                     'status' => 401,
                     'error_code' => 'INVALID_TOKEN',
-                    'message' => 'Invalid token',
+                    'message' => $e->getMessage(),
                     'data' => null
                 ], 401);
             }
             
+            //$this->logMessage('Вызываем хранимую процедуру: ' ,'UserController'); 
             // Вызываем хранимую процедуру
             $stmt = $this->db->prepare("CALL sp_GetUserData(:login_id)");
             $stmt->execute([':login_id' => $decoded->id]);
@@ -119,7 +134,7 @@ error_log("GET USER_DATA - COOKIE:".print_r($_COOKIE, true));
 
             // Декодируем JSON из поля data
             $userData = json_decode($result['data'], true);
-            
+            //$this->logMessage('userData: '. print_r($userData,true),'UserController'); 
             if (json_last_error() !== JSON_ERROR_NONE) {
                 throw new \Exception('Failed to decode JSON data: ' . json_last_error_msg());
             }
@@ -131,17 +146,29 @@ error_log("GET USER_DATA - COOKIE:".print_r($_COOKIE, true));
             $avatarExists = false;
             $coverExists = false;
 
-       // Check avatar
+       // Check avatar  
+       
+            $avatarExists = false;
             foreach ($possibleExtensions as $ext) {
                 $avatarPath = '/profile-images/avatars/' . $fileName . '.' . $ext;
                 $localPath = $_SERVER['DOCUMENT_ROOT'] . $avatarPath;
+                //$this->logMessage('$localPath: '. $localPath,'UserController'); 
                 
                 if (file_exists($localPath)) {
+                    $this->logMessage('YES', 'UserController');
                     $userData['user']['avatar'] = 'http://' . $_SERVER['HTTP_HOST'] . $avatarPath;
                     $avatarExists = true;
                     break;
                 }
             }
+            $this->logMessage('$avatarExists: '. ($avatarExists ? 'YES' :'NO'),'UserController'); 
+            if (!$avatarExists) {
+                $tmpAvatar = $this->generateDicebearUrl($userData['user']);
+                $userData['user']['avatar'] = $tmpAvatar;
+            }
+            //$this->logMessage("$userData: 2=========". $this->generateDicebearUrl($userData['user']),'UserController'); 
+
+
 
             // Check cover
             foreach ($possibleExtensions as $ext) {
@@ -155,9 +182,7 @@ error_log("GET USER_DATA - COOKIE:".print_r($_COOKIE, true));
                 }
             }
 
-            if (!$avatarExists) {
-                $userData['user']['avatar'] = $this->generateDicebearUrl($userData['user']);
-            }
+
 
             // В методе getUserData():
             if (!$coverExists) {
@@ -402,18 +427,19 @@ error_log("GET USER_DATA - COOKIE:".print_r($_COOKIE, true));
     }
 
     private function generateDicebearUrl($userData) {
+        //$this->logMessage('``````generateDicebearUrl``````: ','UserController'); 
         $defaultSeeds = [
-            'female' => 'Destiny',
-            'male' => 'Christopher',
+            'female' => 'Wyatt',
+            'male' => 'Robert',
             'other' => 'Alex'
         ];
-
+        //$this->logMessage('``````generateDicebearUrl``````1: ','UserController'); 
         $params = [
             'backgroundColor' => $this->avatarSettings['backgroundColor'],
             'radius' => '50',
             'size' => $this->avatarSettings['size']
         ];
-
+        //$this->logMessage('``````generateDicebearUrl``````2: '.print_r($userData,true),'UserController'); 
         if (isset($userData['gender'])) {
             $gender = strtolower($userData['gender']);
             
@@ -425,11 +451,16 @@ error_log("GET USER_DATA - COOKIE:".print_r($_COOKIE, true));
         } else {
             $params['seed'] = $defaultSeeds['other'];
         }
-
+        //$this->logMessage('``````generateDicebearUrl``````3: '.print_r($this->avatarSettings,true),'UserController'); 
         $baseUrl = $this->avatarSettings['baseUrl'];
         $style = $this->avatarSettings['style'];
-        
-        return "{$baseUrl}/{$style}/svg?" . http_build_query($params);
+        $url = "{$baseUrl}/{$style}/svg?" . http_build_query($params);
+
+
+        //$url = "https://api.dicebear.com/7.x/identicon/svg?backgroundColor=b6e3f4&radius=50&size=128&seed=" . urlencode($user['fullName'] ?? 'User');
+        //$this->logMessage('GENERATE AVATAR: ' . $url, 'UserController');
+        return $url; // <-- обязательно!
+        //return "{$baseUrl}/{$style}/svg?" . http_build_query($params);
     }
 
     private function sendContactEmailVerification($email, $name, $token) {

@@ -561,39 +561,7 @@ class AuthController extends BaseController {
      * @param string $type Log type (INFO, ERROR, etc.)
      * @return void
      */
-    private function logMessage($message, $type = 'INFO') {
-        try {
-            $logDir = __DIR__ . '/../../logs';
-            $logFile = $logDir . '/auth.log';
-            
-            // Create log directory if it doesn't exist
-            if (!file_exists($logDir)) {
-                if (!mkdir($logDir, 0777, true)) {
-                    error_log("Failed to create log directory: " . $logDir);
-                    return;
-                }
-            }
-            
-            // Check if directory is writable
-            if (!is_writable($logDir)) {
-                error_log("Log directory is not writable: " . $logDir);
-                return;
-            }
-            
-            $timestamp = date('Y-m-d H:i:s');
-            $formattedMessage = "[$timestamp][$type] $message" . PHP_EOL;
-            
-            // Write to log file
-            if (file_put_contents($logFile, $formattedMessage, FILE_APPEND) === false) {
-                error_log("Failed to write to log file: " . $logFile);
-            }
-            
-            // Also output to error_log for debugging
-            error_log($formattedMessage);
-        } catch (\Exception $e) {
-            error_log("Error in logMessage: " . $e->getMessage());
-        }
-    }
+
 
     private function sendVerificationEmail($email, $name, $token) {
         try {
