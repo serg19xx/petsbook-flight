@@ -592,7 +592,7 @@ class AuthController extends BaseController {
             $mail->Debugoutput = function($str, $level) {
                 $this->logMessage($str, $level);
             };
-
+            var_dump($_ENV['SMTP_USERNAME'], $_ENV['SMTP_PASSWORD']);
             // Server settings
             $mail->isSMTP();
             $mail->Host = $_ENV['SMTP_HOST'];
