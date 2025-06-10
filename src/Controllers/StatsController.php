@@ -6,6 +6,7 @@ use PDO;
 use Flight;
 use PHPMailer\PHPMailer\Exception;
 use App\Constants\ResponseCodes;
+use App\Utils\Logger;
 
 
 class StatsController extends BaseController {
@@ -21,7 +22,7 @@ class StatsController extends BaseController {
             $requestBody = Flight::request()->getBody();
             $data = json_decode($requestBody, true);
 
-            self::log($requestBody);
+            Logger::info($requestBody,'StatsController');
 
             $language = $data['language'] ?? null;
             $referrer = $data['referrer'] ?? null;
@@ -52,7 +53,7 @@ class StatsController extends BaseController {
                 ]
             ]);
         } catch (\Exception $e) {
-            error_log('Stats visit error: ' . $e->getMessage());
+            Logger::error('Stats visit error: ' . $e->getMessage(),'StatsController');
             return Flight::json([
                 'status' => 'error',
                 'message' => $e->getMessage()
@@ -71,15 +72,9 @@ class StatsController extends BaseController {
             $data = json_decode($response, true);
             return isset($data['country']) ? $data['country'] : 'Unknown';
         } catch (\Exception $e) {
-            error_log('IP API error: ' . $e->getMessage());
+            Logger::error('IP API error: ' . $e->getMessage(),'StatsController');
             return 'Unknown';
         }
-    }
-    
-    private static function log($message) {
-        $timestamp = date('Y-m-d H:i:s');
-        $logMessage = "[$timestamp] $message\n";
-        error_log($logMessage, 3, self::$logFile);
     }
 
 }

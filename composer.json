@@ -5,7 +5,10 @@
         "firebase/php-jwt": "^6.0",
         "vlucas/phpdotenv": "^5.3",
         "phpmailer/phpmailer": "^6.9",
-        "geoip2/geoip2": "^3.1"
+        "geoip2/geoip2": "^3.1",
+        "sendgrid/sendgrid": "^8.1",
+        "twig/twig": "^3.21",
+        "google/cloud-translate": "^1.12"
     },
     "autoload": {
         "psr-4": {
