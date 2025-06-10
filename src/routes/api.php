@@ -6,6 +6,8 @@ use App\Controllers\UserController;
 use App\Controllers\AvatarController;
 use App\Controllers\CoverController;
 use App\Controllers\StatsController;
+use App\Controllers\I18n\LocaleController;
+use App\Controllers\I18n\TranslationController;
 
 /**
  * API Routes configuration
@@ -35,6 +37,8 @@ $userController = new UserController($db);
 $avatarController = new AvatarController($db);
 $coverController = new CoverController($db);
 $statsController = new StatsController($db);
+$localeController = new LocaleController($db);
+$translationController = new TranslationController($db);
 
 // Тестовый endpoint без базы
 Flight::route('GET /api/test', function() {
@@ -95,6 +99,14 @@ Flight::route('POST /api/user/cover', [$coverController, 'upload']);
 Flight::route('GET /api/images/*', [$avatarController, 'getImage']);
 
 Flight::route('POST /api/stats/visit', [$statsController, 'visit']);
+
+// routes/api.php
+
+// Locale routes
+Flight::route('GET /api/i18n/locales', [$localeController, 'index']);
+Flight::route('GET /api/i18n/locales/@code', [$localeController, 'show']);
+Flight::route('GET /api/i18n/translations/@locale', [$translationController, 'getByLocale']);
+Flight::route('GET /api/i18n/translations/@locale/@namespace', [$translationController, 'getByNamespace']);
 
 // Handle 404
 Flight::map('notFound', function() {
