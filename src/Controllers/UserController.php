@@ -8,6 +8,7 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+use App\Utils\Logger;
 
 /**
  * API Response Codes
@@ -37,9 +38,11 @@ class UserController extends BaseController {
     
     /** @var PDO Database connection instance */
     private $db;
+    private $request;
 
     public function __construct($db) {
         $this->db = $db;
+        $this->request = Flight::request();
 
         $this->avatarSettings = [
             'baseUrl' => $_ENV['AVATAR_BASE_URL'],
@@ -47,6 +50,7 @@ class UserController extends BaseController {
             'backgroundColor' => $_ENV['AVATAR_BG_COLOR'],
             'size' => $_ENV['AVATAR_SIZE']
         ];        
+        Logger::info("UserController initialized", "UserController");
     }
 
     /**
@@ -62,29 +66,11 @@ class UserController extends BaseController {
      * @apiError {String} error_code Error code (USER_NOT_FOUND, INVALID_TOKEN, etc.)
      */
     public function getUserData() {
+        Logger::info("`````getUserData```````", "UserController");
 
-        $this->logMessage("`````getUserData```````",'UserController');
-       
-
-        //$this->logMessage('$_COOKIE: ' . print_r($_COOKIE, true),'UserController'); 
         try {          
-            // Получаем и проверяем токен
-            //$headers = getallheaders();
-            //$authHeader = isset($headers['Authorization']) ? $headers['Authorization'] : '';
-            /*
-            if (empty($authHeader) || !preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
-                return Flight::json([
-                    'status' => 401,
-                    'error_code' => 'TOKEN_NOT_PROVIDED',
-                    'message' => 'Authorization token is required',
-                    'data' => null
-                ], 401);
-            }
-
-            $token = $matches[1];
-            */         
-
             if (!isset($_ENV['JWT_SECRET'])) {
+                Logger::error("JWT_SECRET not set", "UserController");
                 return Flight::json([
                     'status' => 500,
                     'error_code' => 'JWT_CONFIG_MISSING',
@@ -94,25 +80,39 @@ class UserController extends BaseController {
             }
 
             $token = $_COOKIE['auth_token'] ?? null;
-
-            //$this->logMessage('$token: ' . $token,'UserController'); 
+            Logger::info("Token from cookie: " . ($token ? "exists" : "missing"), "UserController");
 
             if (!$token) {
+                Logger::error("No token provided", "UserController");
                 return Flight::json([
                     'status' => 401,
                     'error_code' => 'TOKEN_NOT_PROVIDED',
-                    'message' => 'Authorization token is required',
+                    'message' => '',
                     'data' => null
                 ], 401);
-            }   
+            }
 
             try {
-                
-                //$this->logMessage('JWT_SECRET: ' . $_ENV['JWT_SECRET'],'UserController'); 
                 $decoded = JWT::decode($token, new Key($_ENV['JWT_SECRET'], 'HS256'));
-                //$this->logMessage('$decoded: ' . print_r($decoded, true),'UserController'); 
+                Logger::info("Decoded token: " . json_encode($decoded), "UserController");
+                
+                // Проверяем структуру decoded
+                if (!isset($decoded->user_id) || !isset($decoded->role)) {
+                    Logger::error("Invalid token structure", "UserController", [
+                        'decoded' => $decoded
+                    ]);
+                    return Flight::json([
+                        'status' => 401,
+                        'error_code' => 'INVALID_TOKEN_STRUCTURE',
+                        'message' => 'Token missing required fields',
+                        'data' => null
+                    ], 401);
+                }
             } catch (\Exception $e) {
-                //$this->logMessage('JWT decode error: ' . $e->getMessage(), 'UserController');
+                Logger::error("JWT decode error", "UserController", [
+                    'error' => $e->getMessage(),
+                    'token' => $token
+                ]);
                 return Flight::json([
                     'status' => 401,
                     'error_code' => 'INVALID_TOKEN',
@@ -121,54 +121,60 @@ class UserController extends BaseController {
                 ], 401);
             }
             
-            //$this->logMessage('Вызываем хранимую процедуру: ' ,'UserController'); 
             // Вызываем хранимую процедуру
             $stmt = $this->db->prepare("CALL sp_GetUserData(:login_id)");
-            $stmt->execute([':login_id' => $decoded->id]);
+            $stmt->execute([':login_id' => $decoded->user_id]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            Logger::info("Database result: " . json_encode($result), "UserController");
             
             // Проверяем результат
             if (!$result) {
+                Logger::error("No data returned from database", "UserController");
                 throw new \Exception('No data returned from database');
             }
 
             // Декодируем JSON из поля data
             $userData = json_decode($result['data'], true);
-            //$this->logMessage('userData: '. print_r($userData,true),'UserController'); 
             if (json_last_error() !== JSON_ERROR_NONE) {
+                Logger::error("JSON decode error", "UserController", [
+                    'error' => json_last_error_msg(),
+                    'data' => $result['data']
+                ]);
                 throw new \Exception('Failed to decode JSON data: ' . json_last_error_msg());
             }
 
+            // Проверяем структуру userData
+            if (!isset($userData['user'])) {
+                Logger::error("Invalid user data structure", "UserController", [
+                    'userData' => $userData
+                ]);
+                throw new \Exception('Invalid user data structure');
+            }
 
             // Initialize variables for file checks
-            $fileName = $decoded->role . '-' . $decoded->id;
+            $fileName = $decoded->role . '-' . $decoded->user_id;
             $possibleExtensions = ['jpg', 'jpeg', 'png', 'gif'];
             $avatarExists = false;
             $coverExists = false;
 
-       // Check avatar  
-       
+            // Check avatar  
             $avatarExists = false;
             foreach ($possibleExtensions as $ext) {
                 $avatarPath = '/profile-images/avatars/' . $fileName . '.' . $ext;
                 $localPath = $_SERVER['DOCUMENT_ROOT'] . $avatarPath;
-                //$this->logMessage('$localPath: '. $localPath,'UserController'); 
                 
                 if (file_exists($localPath)) {
-                    $this->logMessage('YES', 'UserController');
                     $userData['user']['avatar'] = 'http://' . $_SERVER['HTTP_HOST'] . $avatarPath;
                     $avatarExists = true;
                     break;
                 }
             }
-            $this->logMessage('$avatarExists: '. ($avatarExists ? 'YES' :'NO'),'UserController'); 
+            Logger::info('$avatarExists: '. ($avatarExists ? 'YES' :'NO'),'UserController'); 
             if (!$avatarExists) {
                 $tmpAvatar = $this->generateDicebearUrl($userData['user']);
                 $userData['user']['avatar'] = $tmpAvatar;
             }
-            //$this->logMessage("$userData: 2=========". $this->generateDicebearUrl($userData['user']),'UserController'); 
-
-
 
             // Check cover
             foreach ($possibleExtensions as $ext) {
@@ -182,23 +188,41 @@ class UserController extends BaseController {
                 }
             }
 
-
-
-            // В методе getUserData():
             if (!$coverExists) {
                 $userData['user']['cover'] = $this->generateDefaultCoverUrl();
             }
 
-            // Возвращаем успешный ответ
             return Flight::json([
                 'status' => 200,
-                'error_code' => null,
-                'message' => null,
-                'data' => $userData
+                'error_code' => 'USER_DATA_SUCCESS',
+                'message' => '',
+                'data' => [
+                    'id' => $userData['user']['id'],
+                    'email' => $userData['user']['email'],
+                    'role' => $userData['user']['role'],
+                    'fullName' => $userData['user']['fullName'],
+                    'avatar' => $userData['user']['avatar'],
+                    'cover' => $userData['user']['cover'],
+                    'aboutMe' => $userData['user']['aboutMe'],
+                    'birthDate' => $userData['user']['birthDate'],
+                    'contactEmail' => $userData['user']['contactEmail'],
+                    'dateCreated' => $userData['user']['dateCreated'],
+                    'dateUpdated' => $userData['user']['dateUpdated'],
+                    'emailVerified' => $userData['user']['emailVerified'],
+                    'gender' => $userData['user']['gender'],
+                    'isActive' => $userData['user']['isActive'],
+                    'location' => $userData['user']['location'],
+                    'nickname' => $userData['user']['nickname'],
+                    'phone' => $userData['user']['phone'],
+                    'website' => $userData['user']['website']
+                ]
             ], 200);
-            
+
         } catch (\Exception $e) {
-            error_log("Get user data error: " . $e->getMessage());
+            Logger::error("getUserData error", "UserController", [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return Flight::json([
                 'status' => 500,
                 'error_code' => 'SYSTEM_ERROR',
@@ -286,7 +310,7 @@ class UserController extends BaseController {
 
             // Подготавливаем параметры для процедуры
             $params = [
-                ':p_login_id' => $decoded->id,
+                ':p_login_id' => $decoded->user_id,
                 ':p_full_name' => isset($data['fullName']) ? trim($data['fullName']) : '',
                 ':p_nickname' => isset($data['nickname']) ? trim($data['nickname']) : '',
                 ':p_gender' => isset($data['gender']) ? trim($data['gender']) : 'Male',
@@ -427,19 +451,17 @@ class UserController extends BaseController {
     }
 
     private function generateDicebearUrl($userData) {
-        //$this->logMessage('``````generateDicebearUrl``````: ','UserController'); 
         $defaultSeeds = [
             'female' => 'Wyatt',
             'male' => 'Robert',
             'other' => 'Alex'
         ];
-        //$this->logMessage('``````generateDicebearUrl``````1: ','UserController'); 
         $params = [
             'backgroundColor' => $this->avatarSettings['backgroundColor'],
             'radius' => '50',
             'size' => $this->avatarSettings['size']
         ];
-        //$this->logMessage('``````generateDicebearUrl``````2: '.print_r($userData,true),'UserController'); 
+        
         if (isset($userData['gender'])) {
             $gender = strtolower($userData['gender']);
             
@@ -451,16 +473,12 @@ class UserController extends BaseController {
         } else {
             $params['seed'] = $defaultSeeds['other'];
         }
-        //$this->logMessage('``````generateDicebearUrl``````3: '.print_r($this->avatarSettings,true),'UserController'); 
+        
         $baseUrl = $this->avatarSettings['baseUrl'];
         $style = $this->avatarSettings['style'];
         $url = "{$baseUrl}/{$style}/svg?" . http_build_query($params);
 
-
-        //$url = "https://api.dicebear.com/7.x/identicon/svg?backgroundColor=b6e3f4&radius=50&size=128&seed=" . urlencode($user['fullName'] ?? 'User');
-        //$this->logMessage('GENERATE AVATAR: ' . $url, 'UserController');
         return $url; // <-- обязательно!
-        //return "{$baseUrl}/{$style}/svg?" . http_build_query($params);
     }
 
     private function sendContactEmailVerification($email, $name, $token) {
