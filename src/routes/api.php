@@ -108,6 +108,13 @@ Flight::route('GET /api/i18n/locales/@code', [$localeController, 'show']);
 Flight::route('GET /api/i18n/translations/@locale', [$translationController, 'getByLocale']);
 Flight::route('GET /api/i18n/translations/@locale/@namespace', [$translationController, 'getByNamespace']);
 
+// В routes.php или где у вас определены маршруты
+Flight::route('GET /api/i18n/translated-languages', [$translationController, 'getTranslatedLanguages']);
+Flight::route('GET /api/i18n/available-languages', [$translationController, 'getAvailableLanguages']);
+// В routes.php
+Flight::route('POST /api/i18n/initialize-languages', [$translationController, 'initializeLanguages']);
+
+Flight::route('POST /api/i18n/translate-language/@locale', [$translationController, 'translateLanguage']);
 // Handle 404
 Flight::map('notFound', function() {
     Flight::json([
