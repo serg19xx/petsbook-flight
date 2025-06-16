@@ -20,3 +20,6 @@ git push origin main
 
 # Уведомление об успешной загрузке
 echo "✅ Изменения отправлены на GitHub."
+
+# End of script
+exit 0
