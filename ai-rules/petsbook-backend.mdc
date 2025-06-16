@@ -1,0 +1,121 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# PetsBook Backend — AI Project Rules
+
+## 🗂️ Project Overview
+- Project: PetsBook Backend
+- Language: PHP (FlightPHP Framework)
+- Database: MySQL / MariaDB
+- Template Engine: Twig
+- Email: SendGrid, MailTrap, MailJet
+- Context: REST API for PetsBook web application
+- API responses are JSON.
+
+## 📌 Code Style Guidelines
+- Use **PSR-12** code style.
+- Use **strict_types = 1** at the start of PHP files.
+- File structure:
+  - `/public` — Entry point (`index.php`)
+  - `/src/Controllers/` — API endpoints (e.g., `UserController.php`)
+  - `/src/Models/` — Database access
+  - `/src/Services/` — Auxiliary services (e.g., `AuthService.php`, `MailService.php`)
+  - `/src/Helpers/` — Utility functions
+  - `/views/` — Twig templates for emails
+  - `/ai-rules/` — This file
+
+## 📌 Naming Conventions
+- Snake case for PHP variables and function names (`get_user_data()`).
+- PascalCase for class names (`UserService`).
+- File names: match class name (`UserService.php`).
+- Route handlers in controllers should map clearly to the URL path.
+
+## 📌 Comments & Documentation
+- All code comments **MUST be in English**.
+- Use `/** PHPDoc */` for all functions, methods, and classes.
+- Comments should explain the *why*, not just the *what*.
+- Prepare code for automated documentation generation in future (e.g., phpDocumentor).
+
+## 📌 API Rules
+- API responses **MUST** use consistent JSON structure:
+```json
+{
+  "status": "success",
+  "data": {...},
+  "errors": []
+}
+```
+
+HTTP error codes must follow REST conventions:
+- 200 OK for success
+- 400 Bad Request for client errors
+- 401 Unauthorized
+- 403 Forbidden
+- 404 Not Found
+ -500 Internal Server Error
+
+## 📌 Database
+- Migrations are NOT used.
+- Manual database change log → DATABASE_CHANGES.md
+- No destructive schema changes unless explicitly specified by the developer.
+
+## 📌 Email Templates
+- All outgoing emails must use Twig templates.
+- Template files → /views/emails/
+- Support localization using placeholders; actual translations fetched from DB.
+
+## 📌 Localization (i18n)
+- All localization strings stored in the database, NOT static files.
+- Provide interface for fetching translations via API.
+
+## 📌 Environment Variables
+- Environment-specific configs → stored in .env
+- Do NOT hardcode sensitive data in code.
+
+## ✅ Development Best Practices
+- Prefer dependency injection where applicable.
+- Write modular, testable code.
+- Prefer pure functions in Helpers and Utility modules.
+- Avoid global state and mutable static variables.
+- Catch exceptions and return meaningful error responses.
+
+## 📌 Testing
+- Critical logic should have unit tests (if test framework present or introduced in the future).
+- Email sending should be tested via sandbox (e.g., MailTrap).
+
+## 📌 Communication Rules
+- All your answers must be in Russian, unless requested otherwise.
+- I ask questions in Russian, you respond in Russian.
+- All code, comments, and technical documentation → strictly in English.
+
+# 🛡️ Stable Modules Protection
+
+Do not suggest, modify, or refactor the following files, folders, or modules unless I explicitly request it during the current conversation.
+
+## ✅ Protected files and directories:
+
+- `/src/Controllers/` → Any controller marked as stable in comments or commit history.
+- `/src/Models/` → Database access logic that is already tested and deployed.
+- `/src/Helpers/` → Utility functions that are fully tested.
+- `/src/Services/` → Service modules that are stable and tested.
+- `/composer.json` → Do not modify unless explicitly requested.
+- `/composer.lock` → Do not modify unless explicitly requested.
+- `/config.php` → Do not modify unless explicitly requested.
+- `/views/` → Twig templates for email rendering that are stable.
+- `/.env` → Never suggest modifications to environment variables.
+- `/ai-rules/` → Do not modify project rules unless explicitly requested.
+- `/DATABASE_CHANGES.md` → Do not suggest modifications to database change logs.
+
+## ⚠️ General Rule:
+Only assist with files or areas that I am **currently editing or explicitly mention** in my prompts.  
+Do not proactively refactor or suggest changes to parts of the codebase that are unrelated to the current task.
+
+## 📝 Markers in Code:
+
+Files or blocks can contain comments like:
+
+```php
+// @ai-ignore-file
+// Cursor: This file/module is complete. Do not modify.

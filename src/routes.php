@@ -1,2 +1,0 @@
-Flight::route('POST /api/i18n/add-keys', ['App\Controllers\I18n\TranslationController', 'addTranslationKeys']);
-Flight::route('POST /api/i18n/translate-new-keys', ['App\Controllers\I18n\TranslationController', 'translateNewKeys']); 
