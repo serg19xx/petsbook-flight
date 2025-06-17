@@ -124,6 +124,6 @@ Flight::map('notFound', function() {
 });
 
 Flight::before('start', function(&$params, &$output) {
-    CorsMiddleware::handle();
+    //CorsMiddleware::handle();
 });
 
