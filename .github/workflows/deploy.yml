@@ -46,3 +46,12 @@ jobs:
             **/public/profile-images/covers/**
             **/public/profile-images/defaults/**
             **/logs/**
+            **/vendor/sendgrid/sendgrid/twilio_sendgrid_logo.png**
+            **/vendor/sendgrid/sendgrid/UPGRADE.md**
+            **/vendor/starkbank/ecdsa/.travis.yml**
+            **/vendor/starkbank/ecdsa/composer.json**
+          dangerous-clean-slate: false
+          timeout: 300000  # 5 минут в миллисекундах
+          retry: 3  # Количество попыток
+          retry-delay: 10000  # Задержка между попытками (10 секунд)
+
