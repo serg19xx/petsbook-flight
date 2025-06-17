@@ -28,6 +28,14 @@ jobs:
           echo "SMTP_HOST=${{ secrets.SMTP_HOST }}" >> .env
           echo "SMTP_USER=${{ secrets.SMTP_USER }}" >> .env
           echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" >> .env
+
+      - name: List files before deployment
+        run: |
+          echo "=== Files to be deployed ==="
+          find . -type f -not -path "*/\.*" -not -path "*/vendor/*" | sort
+          echo "=== Vendor files ==="
+          find ./vendor -type f | wc -l
+          echo "Total files to deploy: $(find . -type f | wc -l)"
       
       - name: 📂 Deploy to Server
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
@@ -56,7 +64,13 @@ jobs:
             **/storage/logs/**
           dangerous-clean-slate: false
           timeout: 300000
-          retry: 3
-          retry-delay: 10000
           log-level: verbose
           dry-run: false
+
+      - name: Check deployment status
+        if: always()
+        run: |
+          echo "=== Deployment completed ==="
+          echo "Current time: $(date)"
+          echo "GitHub Action run ID: ${{ github.run_id }}"
+          echo "GitHub Action run number: ${{ github.run_number }}"
