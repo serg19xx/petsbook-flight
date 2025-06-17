@@ -16,6 +16,7 @@ class CorsMiddleware {
         // Разрешаем только нужные домены
         $allowedOrigins = [
             'https://site.petsbook.ca',
+            'https://api.petsbook.ca',
             'http://localhost:5173',  // для локальной разработки
         ];
 
