@@ -6,7 +6,7 @@ error_reporting(E_ALL);
 header('X-Debug-CORS: index.php reached');
 // Load environment variables
 require_once __DIR__ . '/../vendor/autoload.php';
-require __DIR__ . '/../src/middleware/CorsMiddleware.php';
+require __DIR__ . '/../src/Middleware/CorsMiddleware.php';
 \App\Middleware\CorsMiddleware::handle();
 
 $dotenv = \Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
