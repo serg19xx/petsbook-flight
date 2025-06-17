@@ -199,7 +199,7 @@ class AuthController extends BaseController {
                     'samesite' => 'Lax'      // или 'Strict'
                 ]);    
             }    
-            
+
             return Flight::json([
                 'status' => 200,
                 'error_code' => ResponseCodes::LOGIN_SUCCESS,
@@ -300,7 +300,7 @@ class AuthController extends BaseController {
                     'data' => null
                 ], 400);
             }
-            
+
             // Password hashing
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
             
@@ -308,7 +308,7 @@ class AuthController extends BaseController {
                 'email' => $email,
                 'role' => $role
             ]);
-
+            
             // Call registration procedure
             $stmt = $this->db->prepare("CALL sp_Register(?, ?, ?, ?)");
             $stmt->execute([$name, $email, $hashedPassword, $role]);
@@ -321,20 +321,20 @@ class AuthController extends BaseController {
             
             $stmt->closeCursor();
             
-            try {
-                // Create verification token
-                $token = $this->createVerificationToken($result['id']);
+                try {
+                    // Create verification token
+                    $token = $this->createVerificationToken($result['id']);
                 
                 Logger::info("Verification token created", "AuthController", [
                     'userId' => $result['id'],
                     'token' => $token
                 ]);
-                
-                // Close all possible open cursors before next query
-                while ($this->db->inTransaction()) {
-                    $this->db->commit();
-                }
-                
+                    
+                    // Close all possible open cursors before next query
+                    while ($this->db->inTransaction()) {
+                        $this->db->commit();
+                    }
+                    
                 // Send welcome and verification email
                 $emailSent = $this->sendWelcomeVerificationEmail($email, $name, $token);
                 
@@ -343,43 +343,43 @@ class AuthController extends BaseController {
                     'email' => $email,
                     'emailSent' => $emailSent
                 ]);
-                
-                return Flight::json([
-                    'status' => 200,
-                    'error_code' => ResponseCodes::REGISTRATION_SUCCESS,
-                    'message' => '',
-                    'data' => [
-                        'user' => [
-                            'id' => $result['id'],
-                            'email' => $email,
-                            'name' => $name,
-                            'role' => $role,
-                            'email_verified' => false
+                    
+                    return Flight::json([
+                        'status' => 200,
+                        'error_code' => ResponseCodes::REGISTRATION_SUCCESS,
+                        'message' => '',
+                        'data' => [
+                            'user' => [
+                                'id' => $result['id'],
+                                'email' => $email,
+                                'name' => $name,
+                                'role' => $role,
+                                'email_verified' => false
+                            ]
                         ]
-                    ]
-                ], 200);
-            } catch (\Exception $e) {
+                    ], 200);
+                } catch (\Exception $e) {
                 Logger::error("Post-registration process error", "AuthController", [
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString(),
                     'userId' => $result['id'] ?? null
                 ]);
                 
-                // Registration is successful even if email sending failed
-                return Flight::json([
-                    'status' => 200,
-                    'error_code' => ResponseCodes::EMAIL_SEND_ERROR,
-                    'message' => '',
-                    'data' => [
-                        'user' => [
-                            'id' => $result['id'],
-                            'email' => $email,
-                            'name' => $name,
-                            'role' => $role,
-                            'email_verified' => false
+                    // Registration is successful even if email sending failed
+                    return Flight::json([
+                        'status' => 200,
+                        'error_code' => ResponseCodes::EMAIL_SEND_ERROR,
+                        'message' => '',
+                        'data' => [
+                            'user' => [
+                                'id' => $result['id'],
+                                'email' => $email,
+                                'name' => $name,
+                                'role' => $role,
+                                'email_verified' => false
+                            ]
                         ]
-                    ]
-                ], 200);
+                    ], 200);
             }
 
         } catch (\Exception $e) {
@@ -387,13 +387,13 @@ class AuthController extends BaseController {
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-
+            
             return Flight::json([
                 'status' => 500,
                 'error_code' => ResponseCodes::EMAIL_EXISTS,
                 'message' => $e->getMessage(),
                 'data' => null
-            ], 500);            
+            ], 500);
         }
     }
 
@@ -922,7 +922,7 @@ class AuthController extends BaseController {
                 $stmt->execute([$result['login_id']]);
 
                 $this->db->commit();
-                
+
                 return Flight::json([
                     'success' => true,
                     'message' => 'Password has been successfully reset'
