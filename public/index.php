@@ -1,4 +1,5 @@
 <?php
+header('X-Debug-CORS: index.php reached');
 // Load environment variables
 require_once __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/../src/middleware/CorsMiddleware.php';
