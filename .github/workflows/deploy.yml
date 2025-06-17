@@ -18,25 +18,6 @@ jobs:
       - name: Install Composer Dependencies
         run: composer install --no-dev --optimize-autoloader
       
-      - name: Create .env file
-        run: |
-          echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
-          echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
-          echo "DB_USER=${{ secrets.DB_USER }}" >> .env
-          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-          echo "SMTP_HOST=${{ secrets.SMTP_HOST }}" >> .env
-          echo "SMTP_USER=${{ secrets.SMTP_USER }}" >> .env
-          echo "SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}" >> .env
-
-      - name: List files before deployment
-        run: |
-          echo "=== Files to be deployed ==="
-          find . -type f -not -path "*/\.*" -not -path "*/vendor/*" | sort
-          echo "=== Vendor files ==="
-          find ./vendor -type f | wc -l
-          echo "Total files to deploy: $(find . -type f | wc -l)"
-      
       - name: 📂 Deploy to Server
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
@@ -47,45 +28,14 @@ jobs:
           exclude: |
             .git
             .github
-            .gitignore
             .env
-            .env.*
-            !.env.production
             node_modules
             vendor
-            storage
             tests
             docker
-            docker-compose.yml
-            make-backup.sh
-            restore-latest-backup.sh
-            push.sh
-            test_*.php
-            translate-missing.php
-            LangSwitcher.txt
-            .DS_Store
-            .vscode
-            .cursorrules
-            .ftpignore
-            .ftp-deploy-sync-state.json
             logs/*
-            !logs/.gitkeep
-            database/json/*
-            !database/json/.gitkeep
-            ai-rules/*
-            !ai-rules/.gitkeep
-            project-structure.txt
-            php_errors.log
-            .user.ini
+            *.md
           dangerous-clean-slate: false
           timeout: 300000
           log-level: verbose
           dry-run: false
-
-      - name: Check deployment status
-        if: always()
-        run: |
-          echo "=== Deployment completed ==="
-          echo "Current time: $(date)"
-          echo "GitHub Action run ID: ${{ github.run_id }}"
-          echo "GitHub Action run number: ${{ github.run_number }}"
