@@ -18,6 +18,9 @@ jobs:
       - name: Install Composer Dependencies
         run: composer install --no-dev --optimize-autoloader
       
+      - name: Remove vendor before deploy
+        run: rm -rf vendor
+      
       - name: 📂 Deploy to Server
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
