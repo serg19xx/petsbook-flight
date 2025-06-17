@@ -43,25 +43,40 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: /
+          server-dir: /public_html/
           exclude: |
-            **/public/profile-images/**
-            **/public/profile-images/avatars/**
-            **/public/profile-images/covers/**
-            **/public/profile-images/defaults/**
-            **/logs/**
-            **/.git/**
-            **/.github/**
-            **/.gitignore**
-            **/.env.example**
-            **/README.md**
-            **/composer.lock**
-            **/phpunit.xml**
-            **/tests/**
-            **/storage/framework/cache/**
-            **/storage/framework/sessions/**
-            **/storage/framework/views/**
-            **/storage/logs/**
+            .git
+            .github
+            .gitignore
+            .env
+            .env.*
+            !.env.production
+            node_modules
+            vendor
+            storage
+            tests
+            docker
+            docker-compose.yml
+            make-backup.sh
+            restore-latest-backup.sh
+            push.sh
+            test_*.php
+            translate-missing.php
+            LangSwitcher.txt
+            .DS_Store
+            .vscode
+            .cursorrules
+            .ftpignore
+            .ftp-deploy-sync-state.json
+            logs/*
+            !logs/.gitkeep
+            database/json/*
+            !database/json/.gitkeep
+            ai-rules/*
+            !ai-rules/.gitkeep
+            project-structure.txt
+            php_errors.log
+            .user.ini
           dangerous-clean-slate: false
           timeout: 300000
           log-level: verbose
