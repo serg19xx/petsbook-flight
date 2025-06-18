@@ -407,12 +407,45 @@ class TranslationController extends BaseController
         }
     }
 
+    /**
+     * Start translation task for specific locale
+     * 
+     * @param string $locale Locale code (e.g., 'en', 'ru')
+     * @return void
+     */
     public function translateLanguage($locale)
     {
         try {
-            // 1. Получить все ключи и значения для английского языка
+            Logger::info(
+                "Starting translation for locale $locale",
+                'TranslationController::translateLanguage'
+            );
+
+            // Проверяем существование языка
+            $stmt = $this->db->prepare("SELECT * FROM i18n_locales WHERE code = ?");
+            $stmt->execute([$locale]);
+            $language = $stmt->fetch();
+
+            if (!$language) {
+                Logger::warning(
+                    "Language not found",
+                    'TranslationController::translateLanguage',
+                    ['locale' => $locale]
+                );
+                header('Content-Type: text/event-stream');
+                header('Cache-Control: no-cache');
+                header('Connection: keep-alive');
+                header('Access-Control-Allow-Origin: *');
+                echo "event: error\n";
+                echo "data: {\"error\":\"Language not found\"}\n\n";
+                if (ob_get_level()) ob_flush();
+                flush();
+                exit();
+            }
+
+            // Получаем все ключи и их значения на английском
             $stmt = $this->db->prepare("
-                SELECT tk.id as key_id, tv.value
+                SELECT tk.id as key_id, tk.key_name, tk.namespace, tv.value
                 FROM i18n_translation_keys tk
                 JOIN i18n_translation_values tv ON tk.id = tv.key_id
                 WHERE tv.locale = 'en'
@@ -420,45 +453,208 @@ class TranslationController extends BaseController
             $stmt->execute();
             $englishStrings = $stmt->fetchAll();
 
-            // 2. Перевести каждую строку на целевой язык
-            $translations = [];
-            foreach ($englishStrings as $string) {
-                $result = $this->googleTranslate->translate($string['value'], $locale);
-                if ($result) {
-                    // Декодируем HTML-сущности в переведенном тексте
-                    $translatedText = html_entity_decode($result['text'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
-                    
-                    $translations[] = [
-                        'key_id' => $string['key_id'],
-                        'locale' => $locale,
-                        'value' => $translatedText,
-                        'is_auto_translated' => true
-                    ];
+            Logger::info(
+                "Found English strings to translate",
+                'TranslationController::translateLanguage',
+                ['count' => count($englishStrings)]
+            );
+
+            // Отключаем буферизацию вывода
+            if (ob_get_level()) ob_end_clean();
+
+            header('Content-Type: text/event-stream');
+            header('Cache-Control: no-cache');
+            header('Connection: keep-alive');
+            header('Access-Control-Allow-Origin: *');
+            header('X-Accel-Buffering: no');
+
+            // Отправляем старт
+            echo "event: start\n";
+            echo "data: {\"message\":\"Translation started\"}\n\n";
+            if (ob_get_level()) ob_flush();
+            flush();
+
+            // Переводим все строки (без промежуточных событий)
+            $batches = array_chunk($englishStrings, 10);
+            $processedCount = 0;
+            $skippedCount = 0;
+            $errors = [];
+
+            $this->db->beginTransaction();
+            try {
+                foreach ($batches as $batch) {
+                    foreach ($batch as $string) {
+                        // Проверяем, существует ли уже перевод
+                        $stmt = $this->db->prepare("
+                            SELECT id FROM i18n_translation_values 
+                            WHERE key_id = ? AND locale = ?
+                        ");
+                        $stmt->execute([$string['key_id'], $locale]);
+                        $existingTranslation = $stmt->fetch();
+                        
+                        if ($existingTranslation) {
+                            $skippedCount++;
+                            continue;
+                        }
+                        
+                        try {
+                            $result = $this->googleTranslate->translate($string['value'], $locale);
+                            if ($result) {
+                                $translatedText = html_entity_decode($result['text'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                                $stmt = $this->db->prepare("
+                                    INSERT INTO i18n_translation_values 
+                                    (key_id, locale, value, is_auto_translated)
+                                    VALUES (?, ?, ?, 1)
+                                ");
+                                $stmt->execute([$string['key_id'], $locale, $translatedText]);
+                                $processedCount++;
+                            }
+                        } catch (\Exception $e) {
+                            $errors[] = [
+                                'key' => $string['key_name'],
+                                'error' => $e->getMessage()
+                            ];
+                        }
+                    }
+                    usleep(100000); // 100ms задержка между батчами
                 }
+                
+                // Обновляем флаг перевода
+                $stmt = $this->db->prepare("
+                    UPDATE i18n_locales 
+                    SET already_translated = 1 
+                    WHERE code = ?
+                ");
+                $stmt->execute([$locale]);
+                $this->db->commit();
+                
+                Logger::info(
+                    "Translation completed successfully",
+                    'TranslationController::translateLanguage',
+                    [
+                        'locale' => $locale,
+                        'processed' => $processedCount,
+                        'skipped' => $skippedCount,
+                        'errors' => count($errors)
+                    ]
+                );
+
+                // Отправляем complete
+                echo "event: complete\n";
+                echo "data: {\"message\":\"Translation completed\",\"processed\":$processedCount,\"skipped\":$skippedCount}\n\n";
+                if (ob_get_level()) ob_flush();
+                flush();
+                exit();
+                
+            } catch (\Exception $e) {
+                $this->db->rollBack();
+                Logger::error(
+                    "Translation failed with database error",
+                    'TranslationController::translateLanguage',
+                    [
+                        'locale' => $locale,
+                        'error' => $e->getMessage()
+                    ]
+                );
+                echo "event: error\n";
+                echo "data: {\"error\":\"" . addslashes($e->getMessage()) . "\"}\n\n";
+                if (ob_get_level()) ob_flush();
+                flush();
+                exit();
+            }
+            
+        } catch (\Exception $e) {
+            Logger::error(
+                "Translation failed with general error",
+                'TranslationController::translateLanguage',
+                [
+                    'locale' => $locale,
+                    'error' => $e->getMessage()
+                ]
+            );
+            echo "event: error\n";
+            echo "data: {\"error\":\"" . addslashes($e->getMessage()) . "\"}\n\n";
+            if (ob_get_level()) ob_flush();
+            flush();
+            exit();
+        }
+    }
+
+    /**
+     * Get translation task status
+     * 
+     * @param int $taskId Task ID
+     * @return void
+     */
+    public function getTranslationStatus($taskId)
+    {
+        try {
+            Logger::info(
+                "Checking translation task status",
+                'TranslationController::getTranslationStatus',
+                ['task_id' => $taskId]
+            );
+
+            $stmt = $this->db->prepare("
+                SELECT * FROM i18n_translation_tasks 
+                WHERE id = ?
+            ");
+            $stmt->execute([$taskId]);
+            $task = $stmt->fetch();
+
+            if (!$task) {
+                Logger::warning(
+                    "Translation task not found",
+                    'TranslationController::getTranslationStatus',
+                    ['task_id' => $taskId]
+                );
+                return Flight::json([
+                    'status' => 404,
+                    'message' => "Translation task not found"
+                ], 404);
             }
 
-            // 3. Сохранить переводы в базу
-            $stmt = $this->db->prepare("
-                INSERT INTO i18n_translation_values 
-                (key_id, locale, value, is_auto_translated) 
-                VALUES 
-                (:key_id, :locale, :value, :is_auto_translated)
-            ");
-            foreach ($translations as $translation) {
-                $stmt->execute($translation);
-            }
+            $progress = $task['total_strings'] > 0 
+                ? round(($task['processed_strings'] + $task['skipped_strings']) / $task['total_strings'] * 100, 2)
+                : 0;
 
-            // 4. Обновить флаг already_translated
-            $stmt = $this->db->prepare("
-                UPDATE i18n_locales SET already_translated = 1 WHERE code = ?
-            ");
-            $stmt->execute([$locale]);
+            Logger::info(
+                "Translation task status retrieved",
+                'TranslationController::getTranslationStatus',
+                [
+                    'task_id' => $task['id'],
+                    'locale' => $task['locale'],
+                    'status' => $task['status'],
+                    'progress' => $progress
+                ]
+            );
 
             return Flight::json([
                 'status' => 200,
-                'message' => "Language $locale translated and added successfully"
+                'message' => "Translation task status retrieved",
+                'data' => [
+                    'task_id' => $task['id'],
+                    'locale' => $task['locale'],
+                    'status' => $task['status'],
+                    'progress' => $progress,
+                    'total_strings' => $task['total_strings'],
+                    'processed_strings' => $task['processed_strings'],
+                    'skipped_strings' => $task['skipped_strings'],
+                    'errors' => json_decode($task['errors'], true) ?: [],
+                    'created_at' => $task['created_at'],
+                    'completed_at' => $task['completed_at']
+                ]
             ]);
+
         } catch (\Exception $e) {
+            Logger::error(
+                "Failed to get translation task status",
+                'TranslationController::getTranslationStatus',
+                [
+                    'task_id' => $taskId,
+                    'error' => $e->getMessage()
+                ]
+            );
             return Flight::json([
                 'status' => 500,
                 'message' => $e->getMessage()
@@ -609,6 +805,145 @@ class TranslationController extends BaseController
             ]);
 
         } catch (\Exception $e) {
+            return Flight::json([
+                'status' => 500,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Clean up all translations except English and reset language states
+     */
+    public function cleanupTranslations()
+    {
+        Logger::info(
+            "Starting translations cleanup",
+            'TranslationController::cleanupTranslations'
+        );
+
+        try {
+            // Начинаем транзакцию
+            $this->db->beginTransaction();
+
+            Logger::info(
+                "Transaction started",
+                'TranslationController::cleanupTranslations'
+            );
+
+            // Получаем количество переводов до удаления
+            $stmt = $this->db->query("SELECT COUNT(*) as count FROM i18n_translation_values WHERE locale != 'en'");
+            $beforeCount = $stmt->fetch()['count'];
+
+            Logger::info(
+                "Found translations to delete",
+                'TranslationController::cleanupTranslations',
+                ['count' => $beforeCount]
+            );
+
+            // 1. Удаляем все переводы кроме английского
+            $stmt = $this->db->prepare("
+                DELETE FROM i18n_translation_values 
+                WHERE locale != 'en'
+            ");
+            $stmt->execute();
+            $deletedCount = $stmt->rowCount();
+
+            Logger::info(
+                "Deleted translations",
+                'TranslationController::cleanupTranslations',
+                ['count' => $deletedCount]
+            );
+
+            // Получаем количество языков для сброса
+            $stmt = $this->db->query("SELECT COUNT(*) as count FROM i18n_locales WHERE code != 'en'");
+            $localesCount = $stmt->fetch()['count'];
+
+            Logger::info(
+                "Found locales to reset",
+                'TranslationController::cleanupTranslations',
+                ['count' => $localesCount]
+            );
+
+            // 2. Сбрасываем флаг already_translated для всех языков кроме английского
+            $stmt = $this->db->prepare("
+                UPDATE i18n_locales 
+                SET already_translated = 0 
+                WHERE code != 'en'
+            ");
+            $stmt->execute();
+            $resetLocalesCount = $stmt->rowCount();
+
+            Logger::info(
+                "Reset locales",
+                'TranslationController::cleanupTranslations',
+                ['count' => $resetLocalesCount]
+            );
+
+            // Получаем количество английских переводов
+            $stmt = $this->db->query("SELECT COUNT(*) as count FROM i18n_translation_values WHERE locale = 'en'");
+            $englishCount = $stmt->fetch()['count'];
+
+            Logger::info(
+                "Found English translations",
+                'TranslationController::cleanupTranslations',
+                ['count' => $englishCount]
+            );
+
+            // 3. Сбрасываем флаг is_auto_translated для английских переводов
+            $stmt = $this->db->prepare("
+                UPDATE i18n_translation_values 
+                SET is_auto_translated = 0 
+                WHERE locale = 'en'
+            ");
+            $stmt->execute();
+            $resetEnglishCount = $stmt->rowCount();
+
+            Logger::info(
+                "Reset English translations",
+                'TranslationController::cleanupTranslations',
+                ['count' => $resetEnglishCount]
+            );
+
+            // Завершаем транзакцию
+            $this->db->commit();
+
+            Logger::info(
+                "Transaction committed",
+                'TranslationController::cleanupTranslations'
+            );
+
+            $response = [
+                'status' => 200,
+                'message' => 'Translations cleanup completed successfully',
+                'data' => [
+                    'before_count' => $beforeCount,
+                    'deleted_translations' => $deletedCount,
+                    'total_locales' => $localesCount,
+                    'reset_locales' => $resetLocalesCount,
+                    'total_english' => $englishCount,
+                    'reset_english' => $resetEnglishCount
+                ]
+            ];
+
+            Logger::info(
+                "Sending response",
+                'TranslationController::cleanupTranslations',
+                ['response' => $response]
+            );
+
+            return Flight::json($response);
+
+        } catch (\Exception $e) {
+            // Откатываем транзакцию в случае ошибки
+            $this->db->rollBack();
+
+            Logger::error(
+                "Translations cleanup failed",
+                'TranslationController::cleanupTranslations',
+                ['error' => $e->getMessage()]
+            );
+
             return Flight::json([
                 'status' => 500,
                 'message' => $e->getMessage()

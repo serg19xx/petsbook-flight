@@ -21,7 +21,8 @@ class CorsMiddleware {
         if (empty($allowedOrigins)) {
             $allowedOrigins = [
                 'http://localhost:5173',
-                'http://localhost:8080'
+                'http://localhost:8080',
+                'http://localhost:3000'
             ];
         }
 
@@ -29,23 +30,28 @@ class CorsMiddleware {
             header("Access-Control-Allow-Origin: $origin");
             header("Access-Control-Allow-Credentials: true");
             header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH");
-            header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+            header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, Cache-Control");
             header("Access-Control-Max-Age: 86400");
             header("X-CORS-Debug: Origin $origin allowed");
+            
+            // Добавляем заголовки для длительных запросов и SSE
+            header("Connection: keep-alive");
+            header("Keep-Alive: timeout=300");
+            header("X-Accel-Buffering: no"); // Отключаем буферизацию в nginx
         } else {
             // Если origin не разрешён — ставим первый из списка (обычно продакшн)
             $defaultOrigin = $allowedOrigins[0] ?? 'http://localhost:5173';
             header("Access-Control-Allow-Origin: $defaultOrigin");
             header("Access-Control-Allow-Credentials: true");
             header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH");
-            header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+            header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, Cache-Control");
             header("Access-Control-Max-Age: 86400");
             header("X-CORS-Debug: Origin $origin not in allowed list, defaulting to $defaultOrigin");
         }
 
+        // Обработка preflight запросов
         if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-            Logger::info("Handling OPTIONS request", "CorsMiddleware");
-            http_response_code(200);
+            http_response_code(204);
             exit();
         }
     }
