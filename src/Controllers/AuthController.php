@@ -190,14 +190,19 @@ class AuthController extends BaseController {
             }
 
             if($token){
+                $isLocal = $_ENV['APP_ENV'] === 'local' || $_ENV['APP_ENV'] === 'development';
+                
                 setcookie('auth_token', $token, [
                     'expires' => time() + 7*24*60*60,
                     'path' => '/',
-                    //'domain' => 'zzzzzzzzzz.petsbook.ca', // для всех поддоменов
-                    'secure' => true,           // только по https!
+                    'domain' => $isLocal ? 'localhost' : '.petsbook.ca',
+                    'secure' => !$isLocal,           // только по https! кроме локальной разработки
                     'httponly' => true,         // не доступно из JS
-                    'samesite' => 'Lax'      // или 'Strict'
+                    'samesite' => $isLocal ? 'Lax' : 'None'  // для локальной разработки используем Lax
                 ]);    
+
+                // Добавляем заголовок для отладки
+                header('X-Set-Cookie-Debug: auth_token set with domain=' . ($isLocal ? 'localhost' : '.petsbook.ca'));
             }    
 
             return Flight::json([
