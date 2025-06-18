@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   php:
     build:
@@ -11,7 +9,7 @@ services:
       - DB_HOST=${DB_HOST}
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
-      - DB_PASS=${DB_PASS}
+      - DB_PASS=${DB_PASSWORD}
     networks:
       - app-network
 
