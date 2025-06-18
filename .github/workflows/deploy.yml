@@ -27,7 +27,7 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: /
+          server-dir: /api.petsbook.ca/
           exclude: |
             .git
             .github
@@ -39,6 +39,8 @@ jobs:
             logs/*
             *.md
           dangerous-clean-slate: false
-          timeout: 300000
+          timeout: 600000
           log-level: verbose
           dry-run: false
+          retry: 3
+          retry-delay: 10000
