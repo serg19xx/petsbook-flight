@@ -11,34 +11,36 @@ class CorsMiddleware {
         Logger::info("CORS middleware called for " . ($_SERVER['REQUEST_URI'] ?? 'NO URI'),'CorsMiddleware');
 
         // Получаем origin из заголовков
-        $origin = $_SERVER['HTTP_ORIGIN'] ?? 'http://localhost:5173';
-        
-        // Разрешаем только нужные домены
-        $allowedOrigins = [
-            'https://site.petsbook.ca',
-            'https://api.petsbook.ca',
-            'http://localhost:5173',  // для локальной разработки
-            'http://localhost:8080'   // для локальной разработки
-        ];
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
-        if (in_array($origin, $allowedOrigins)) {
+        // Читаем список разрешённых origin из переменной окружения
+        $envOrigins = $_ENV['CORS_ALLOWED_ORIGINS'] ?? getenv('CORS_ALLOWED_ORIGINS') ?? '';
+        $allowedOrigins = array_filter(array_map('trim', explode(',', $envOrigins)));
+
+        // Если список пуст — fallback на localhost для dev
+        if (empty($allowedOrigins)) {
+            $allowedOrigins = [
+                'http://localhost:5173',
+                'http://localhost:8080'
+            ];
+        }
+
+        if ($origin && in_array($origin, $allowedOrigins, true)) {
             header("Access-Control-Allow-Origin: $origin");
             header("Access-Control-Allow-Credentials: true");
             header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH");
             header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
-            header("Access-Control-Max-Age: 86400");    // кэшируем preflight запрос на 24 часа
-            
-            // Добавляем заголовок для отладки
+            header("Access-Control-Max-Age: 86400");
             header("X-CORS-Debug: Origin $origin allowed");
         } else {
-            header("Access-Control-Allow-Origin: http://localhost:5173");
+            // Если origin не разрешён — ставим первый из списка (обычно продакшн)
+            $defaultOrigin = $allowedOrigins[0] ?? 'http://localhost:5173';
+            header("Access-Control-Allow-Origin: $defaultOrigin");
             header("Access-Control-Allow-Credentials: true");
             header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, PATCH");
             header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
             header("Access-Control-Max-Age: 86400");
-            
-            // Добавляем заголовок для отладки
-            header("X-CORS-Debug: Origin $origin not in allowed list, defaulting to localhost:5173");
+            header("X-CORS-Debug: Origin $origin not in allowed list, defaulting to $defaultOrigin");
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
