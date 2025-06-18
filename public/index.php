@@ -47,3 +47,9 @@ set_exception_handler(function($e) {
         'line' => $e->getLine()
     ]);
 });
+
+file_put_contents('/api.petsbook.ca/logs/debug_env.log', 'CORS_ALLOWED_ORIGINS: ' . (isset($_ENV['CORS_ALLOWED_ORIGINS']) ? $_ENV['CORS_ALLOWED_ORIGINS'] : (getenv('CORS_ALLOWED_ORIGINS') ?: 'NOT SET')) . PHP_EOL, FILE_APPEND);
+
+Logger::info('DEBUG_CORS_ALLOWED_ORIGINS', 'Env', [
+    'CORS_ALLOWED_ORIGINS' => $_ENV['CORS_ALLOWED_ORIGINS'] ?? getenv('CORS_ALLOWED_ORIGINS') ?? 'NOT SET'
+]);
