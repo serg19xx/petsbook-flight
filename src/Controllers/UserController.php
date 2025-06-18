@@ -97,7 +97,7 @@ class UserController extends BaseController {
                 Logger::info("Decoded token: " . json_encode($decoded), "UserController");
                 
                 // Проверяем структуру decoded
-                if (!isset($decoded->id) || !isset($decoded->role)) {
+                if (!isset($decoded->user_id) || !isset($decoded->role)) {
                     Logger::error("Invalid token structure", "UserController", [
                         'decoded' => $decoded
                     ]);
@@ -123,7 +123,7 @@ class UserController extends BaseController {
             
             // Вызываем хранимую процедуру
             $stmt = $this->db->prepare("CALL sp_GetUserData(:login_id)");
-            $stmt->execute([':login_id' => $decoded->id]);
+            $stmt->execute([':login_id' => $decoded->user_id]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             
             Logger::info("Database result: " . json_encode($result), "UserController");
@@ -153,7 +153,7 @@ class UserController extends BaseController {
             }
 
             // Initialize variables for file checks
-            $fileName = $decoded->role . '-' . $decoded->id;
+            $fileName = $decoded->role . '-' . $decoded->user_id;
             $possibleExtensions = ['jpg', 'jpeg', 'png', 'gif'];
             $avatarExists = false;
             $coverExists = false;
@@ -310,7 +310,7 @@ class UserController extends BaseController {
 
             // Подготавливаем параметры для процедуры
             $params = [
-                ':p_login_id' => $decoded->id,
+                ':p_login_id' => $decoded->user_id,
                 ':p_full_name' => isset($data['fullName']) ? trim($data['fullName']) : '',
                 ':p_nickname' => isset($data['nickname']) ? trim($data['nickname']) : '',
                 ':p_gender' => isset($data['gender']) ? trim($data['gender']) : 'Male',
