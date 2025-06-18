@@ -27,7 +27,7 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: /api.petsbook.ca/
+          server-dir: /home/petsbook/api.petsbook.ca/public
           exclude: |
             .git
             .github
