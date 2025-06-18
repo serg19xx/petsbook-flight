@@ -16,9 +16,15 @@ header('X-Debug-CORS: index.php reached');
 
 require  __DIR__ . '/../src/routes/api.php';
 
-Flight::start();
 
 use App\Utils\Logger;
+file_put_contents('/api.petsbook.ca/logs/debug_env.log', 'CORS_ALLOWED_ORIGINS: ' . (isset($_ENV['CORS_ALLOWED_ORIGINS']) ? $_ENV['CORS_ALLOWED_ORIGINS'] : (getenv('CORS_ALLOWED_ORIGINS') ?: 'NOT SET')) . PHP_EOL, FILE_APPEND);
+
+Logger::info('DEBUG_CORS_ALLOWED_ORIGINS', 'Env', [
+    'CORS_ALLOWED_ORIGINS' => $_ENV['CORS_ALLOWED_ORIGINS'] ?? getenv('CORS_ALLOWED_ORIGINS') ?? 'NOT SET'
+]);
+
+Flight::start();
 
 // Настраиваем error_log
 ini_set('error_log', __DIR__ . '/../logs/php_errors.log');
@@ -48,8 +54,4 @@ set_exception_handler(function($e) {
     ]);
 });
 
-file_put_contents('/api.petsbook.ca/logs/debug_env.log', 'CORS_ALLOWED_ORIGINS: ' . (isset($_ENV['CORS_ALLOWED_ORIGINS']) ? $_ENV['CORS_ALLOWED_ORIGINS'] : (getenv('CORS_ALLOWED_ORIGINS') ?: 'NOT SET')) . PHP_EOL, FILE_APPEND);
 
-Logger::info('DEBUG_CORS_ALLOWED_ORIGINS', 'Env', [
-    'CORS_ALLOWED_ORIGINS' => $_ENV['CORS_ALLOWED_ORIGINS'] ?? getenv('CORS_ALLOWED_ORIGINS') ?? 'NOT SET'
-]);
