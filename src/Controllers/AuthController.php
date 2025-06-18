@@ -192,6 +192,15 @@ class AuthController extends BaseController {
             if($token){
                 $isLocal = $_ENV['APP_ENV'] === 'local' || $_ENV['APP_ENV'] === 'development';
                 
+                // Добавляем отладочную информацию
+                Logger::info("Setting auth cookie", "AuthController", [
+                    'token_length' => strlen($token),
+                    'domain' => $isLocal ? 'localhost' : '.petsbook.ca',
+                    'secure' => !$isLocal,
+                    'samesite' => $isLocal ? 'Lax' : 'None',
+                    'env' => $_ENV['APP_ENV'] ?? 'not set'
+                ]);
+
                 setcookie('auth_token', $token, [
                     'expires' => time() + 7*24*60*60,
                     'path' => '/',
@@ -200,6 +209,13 @@ class AuthController extends BaseController {
                     'httponly' => true,         // не доступно из JS
                     'samesite' => $isLocal ? 'Lax' : 'None'  // для локальной разработки используем Lax
                 ]);    
+
+                // Проверяем, установилась ли кука
+                $cookieSet = isset($_COOKIE['auth_token']);
+                Logger::info("Cookie set status", "AuthController", [
+                    'cookie_set' => $cookieSet,
+                    'cookie_value' => $cookieSet ? 'exists' : 'missing'
+                ]);
 
                 // Добавляем заголовок для отладки
                 header('X-Set-Cookie-Debug: auth_token set with domain=' . ($isLocal ? 'localhost' : '.petsbook.ca'));
