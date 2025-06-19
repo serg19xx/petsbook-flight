@@ -420,12 +420,12 @@ class TranslationController extends BaseController
                 "Starting translation for locale $locale",
                 'TranslationController::translateLanguage'
             );
-
+    
             // Проверяем существование языка
             $stmt = $this->db->prepare("SELECT * FROM i18n_locales WHERE code = ?");
             $stmt->execute([$locale]);
             $language = $stmt->fetch();
-
+    
             if (!$language) {
                 Logger::warning(
                     "Language not found",
@@ -437,12 +437,12 @@ class TranslationController extends BaseController
                 header('Connection: keep-alive');
                 header('Access-Control-Allow-Origin: *');
                 echo "event: error\n";
-                echo "data: {\"error\":\"Language not found\"}\n\n";
+                echo "data: " . json_encode(['error' => 'Language not found']) . "\n\n";
                 if (ob_get_level()) ob_flush();
                 flush();
                 exit();
             }
-
+    
             // Получаем все ключи и их значения на английском
             $stmt = $this->db->prepare("
                 SELECT tk.id as key_id, tk.key_name, tk.namespace, tv.value
@@ -452,37 +452,38 @@ class TranslationController extends BaseController
             ");
             $stmt->execute();
             $englishStrings = $stmt->fetchAll();
-
+    
             Logger::info(
                 "Found English strings to translate",
                 'TranslationController::translateLanguage',
                 ['count' => count($englishStrings)]
             );
-
+    
             // Отключаем буферизацию вывода
             if (ob_get_level()) ob_end_clean();
-
+    
             header('Content-Type: text/event-stream');
             header('Cache-Control: no-cache');
             header('Connection: keep-alive');
             header('Access-Control-Allow-Origin: *');
             header('X-Accel-Buffering: no');
-
+    
             // Отправляем старт
             echo "event: start\n";
-            echo "data: {\"message\":\"Translation started\"}\n\n";
+            echo "data: " . json_encode(['message' => 'Translation started']) . "\n\n";
             if (ob_get_level()) ob_flush();
             flush();
-
-            // Переводим все строки (без промежуточных событий)
+    
+            // Переводим все строки с промежуточными событиями
             $batches = array_chunk($englishStrings, 10);
             $processedCount = 0;
             $skippedCount = 0;
             $errors = [];
-
+            $totalBatches = count($batches);
+    
             $this->db->beginTransaction();
             try {
-                foreach ($batches as $batch) {
+                foreach ($batches as $batchIndex => $batch) {
                     foreach ($batch as $string) {
                         // Проверяем, существует ли уже перевод
                         $stmt = $this->db->prepare("
@@ -516,6 +517,19 @@ class TranslationController extends BaseController
                             ];
                         }
                     }
+                    
+                    // Отправляем прогресс после каждого батча
+                    $progress = round((($batchIndex + 1) / $totalBatches) * 100);
+                    echo "event: progress\n";
+                    echo "data: " . json_encode([
+                        'progress' => $progress,
+                        'message' => "Processed batch " . ($batchIndex + 1) . " of $totalBatches",
+                        'processed' => $processedCount,
+                        'skipped' => $skippedCount
+                    ]) . "\n\n";
+                    if (ob_get_level()) ob_flush();
+                    flush();
+                    
                     usleep(100000); // 100ms задержка между батчами
                 }
                 
@@ -538,10 +552,15 @@ class TranslationController extends BaseController
                         'errors' => count($errors)
                     ]
                 );
-
+    
                 // Отправляем complete
                 echo "event: complete\n";
-                echo "data: {\"message\":\"Translation completed\",\"processed\":$processedCount,\"skipped\":$skippedCount}\n\n";
+                echo "data: " . json_encode([
+                    'message' => 'Translation completed',
+                    'processed' => $processedCount,
+                    'skipped' => $skippedCount,
+                    'errors' => count($errors)
+                ]) . "\n\n";
                 if (ob_get_level()) ob_flush();
                 flush();
                 exit();
@@ -557,7 +576,7 @@ class TranslationController extends BaseController
                     ]
                 );
                 echo "event: error\n";
-                echo "data: {\"error\":\"" . addslashes($e->getMessage()) . "\"}\n\n";
+                echo "data: " . json_encode(['error' => $e->getMessage()]) . "\n\n";
                 if (ob_get_level()) ob_flush();
                 flush();
                 exit();
@@ -573,7 +592,7 @@ class TranslationController extends BaseController
                 ]
             );
             echo "event: error\n";
-            echo "data: {\"error\":\"" . addslashes($e->getMessage()) . "\"}\n\n";
+            echo "data: " . json_encode(['error' => $e->getMessage()]) . "\n\n";
             if (ob_get_level()) ob_flush();
             flush();
             exit();
