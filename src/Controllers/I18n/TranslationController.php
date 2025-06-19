@@ -421,6 +421,10 @@ class TranslationController extends BaseController
                 'TranslationController::translateLanguage'
             );
     
+            Flight::response()
+                ->header('Access-Control-Allow-Origin', 'http://localhost:5173')
+                ->header('Content-Type', 'application/json');
+    
             // Проверяем существование языка
             $stmt = $this->db->prepare("SELECT * FROM i18n_locales WHERE code = ?");
             $stmt->execute([$locale]);
@@ -432,18 +436,15 @@ class TranslationController extends BaseController
                     'TranslationController::translateLanguage',
                     ['locale' => $locale]
                 );
-                header('Content-Type: text/event-stream');
-                header('Cache-Control: no-cache');
-                header('Connection: keep-alive');
-                header('Access-Control-Allow-Origin: *');
-                echo "event: error\n";
-                echo "data: " . json_encode(['error' => 'Language not found']) . "\n\n";
-                if (ob_get_level()) ob_flush();
-                flush();
-                exit();
+                
+                Flight::json([
+                    'status' => 404,
+                    'message' => 'Language not found'
+                ], 404);
+                return;
             }
     
-            // Получаем все ключи и их значения на английском
+            // Получаем строки для перевода
             $stmt = $this->db->prepare("
                 SELECT tk.id as key_id, tk.key_name, tk.namespace, tv.value
                 FROM i18n_translation_keys tk
@@ -453,87 +454,53 @@ class TranslationController extends BaseController
             $stmt->execute();
             $englishStrings = $stmt->fetchAll();
     
-            Logger::info(
-                "Found English strings to translate",
-                'TranslationController::translateLanguage',
-                ['count' => count($englishStrings)]
-            );
-    
-            // Отключаем буферизацию вывода
-            if (ob_get_level()) ob_end_clean();
-    
-            header('Content-Type: text/event-stream');
-            header('Cache-Control: no-cache');
-            header('Connection: keep-alive');
-            header('Access-Control-Allow-Origin: *');
-            header('X-Accel-Buffering: no');
-    
-            // Отправляем старт
-            echo "event: start\n";
-            echo "data: " . json_encode(['message' => 'Translation started']) . "\n\n";
-            if (ob_get_level()) ob_flush();
-            flush();
-    
-            // Переводим все строки с промежуточными событиями
-            $batches = array_chunk($englishStrings, 10);
             $processedCount = 0;
             $skippedCount = 0;
             $errors = [];
-            $totalBatches = count($batches);
     
-            $this->db->beginTransaction();
-            try {
-                foreach ($batches as $batchIndex => $batch) {
-                    foreach ($batch as $string) {
-                        // Проверяем, существует ли уже перевод
+            // Обрабатываем по одной строке за транзакцию
+            foreach ($englishStrings as $string) {
+                $this->db->beginTransaction();
+                try {
+                    // Проверяем существующий перевод
+                    $stmt = $this->db->prepare("
+                        SELECT id FROM i18n_translation_values 
+                        WHERE key_id = ? AND locale = ?
+                    ");
+                    $stmt->execute([$string['key_id'], $locale]);
+                    
+                    if ($stmt->fetch()) {
+                        $skippedCount++;
+                        $this->db->commit();
+                        continue;
+                    }
+    
+                    // Переводим
+                    $result = $this->googleTranslate->translate($string['value'], $locale);
+                    if ($result) {
+                        $translatedText = html_entity_decode($result['text'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
                         $stmt = $this->db->prepare("
-                            SELECT id FROM i18n_translation_values 
-                            WHERE key_id = ? AND locale = ?
+                            INSERT INTO i18n_translation_values 
+                            (key_id, locale, value, is_auto_translated)
+                            VALUES (?, ?, ?, 1)
                         ");
-                        $stmt->execute([$string['key_id'], $locale]);
-                        $existingTranslation = $stmt->fetch();
-                        
-                        if ($existingTranslation) {
-                            $skippedCount++;
-                            continue;
-                        }
-                        
-                        try {
-                            $result = $this->googleTranslate->translate($string['value'], $locale);
-                            if ($result) {
-                                $translatedText = html_entity_decode($result['text'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
-                                $stmt = $this->db->prepare("
-                                    INSERT INTO i18n_translation_values 
-                                    (key_id, locale, value, is_auto_translated)
-                                    VALUES (?, ?, ?, 1)
-                                ");
-                                $stmt->execute([$string['key_id'], $locale, $translatedText]);
-                                $processedCount++;
-                            }
-                        } catch (\Exception $e) {
-                            $errors[] = [
-                                'key' => $string['key_name'],
-                                'error' => $e->getMessage()
-                            ];
-                        }
+                        $stmt->execute([$string['key_id'], $locale, $translatedText]);
+                        $processedCount++;
                     }
                     
-                    // Отправляем прогресс после каждого батча
-                    $progress = round((($batchIndex + 1) / $totalBatches) * 100);
-                    echo "event: progress\n";
-                    echo "data: " . json_encode([
-                        'progress' => $progress,
-                        'message' => "Processed batch " . ($batchIndex + 1) . " of $totalBatches",
-                        'processed' => $processedCount,
-                        'skipped' => $skippedCount
-                    ]) . "\n\n";
-                    if (ob_get_level()) ob_flush();
-                    flush();
-                    
-                    usleep(100000); // 100ms задержка между батчами
+                    $this->db->commit();
+                } catch (\Exception $e) {
+                    $this->db->rollBack();
+                    $errors[] = [
+                        'key' => $string['key_name'],
+                        'error' => $e->getMessage()
+                    ];
                 }
-                
-                // Обновляем флаг перевода
+            }
+    
+            // Обновляем флаг перевода в отдельной транзакции
+            $this->db->beginTransaction();
+            try {
                 $stmt = $this->db->prepare("
                     UPDATE i18n_locales 
                     SET already_translated = 1 
@@ -541,61 +508,43 @@ class TranslationController extends BaseController
                 ");
                 $stmt->execute([$locale]);
                 $this->db->commit();
-                
-                Logger::info(
-                    "Translation completed successfully",
-                    'TranslationController::translateLanguage',
-                    [
-                        'locale' => $locale,
-                        'processed' => $processedCount,
-                        'skipped' => $skippedCount,
-                        'errors' => count($errors)
-                    ]
-                );
-    
-                // Отправляем complete
-                echo "event: complete\n";
-                echo "data: " . json_encode([
-                    'message' => 'Translation completed',
-                    'processed' => $processedCount,
-                    'skipped' => $skippedCount,
-                    'errors' => count($errors)
-                ]) . "\n\n";
-                if (ob_get_level()) ob_flush();
-                flush();
-                exit();
-                
             } catch (\Exception $e) {
                 $this->db->rollBack();
-                Logger::error(
-                    "Translation failed with database error",
-                    'TranslationController::translateLanguage',
-                    [
-                        'locale' => $locale,
-                        'error' => $e->getMessage()
-                    ]
-                );
-                echo "event: error\n";
-                echo "data: " . json_encode(['error' => $e->getMessage()]) . "\n\n";
-                if (ob_get_level()) ob_flush();
-                flush();
-                exit();
+                $errors[] = [
+                    'key' => 'update_flag',
+                    'error' => $e->getMessage()
+                ];
             }
-            
-        } catch (\Exception $e) {
-            Logger::error(
-                "Translation failed with general error",
+    
+            Logger::info(
+                "Translation completed",
                 'TranslationController::translateLanguage',
                 [
                     'locale' => $locale,
-                    'error' => $e->getMessage()
+                    'processed' => $processedCount,
+                    'skipped' => $skippedCount
                 ]
             );
-            echo "event: error\n";
-            echo "data: " . json_encode(['error' => $e->getMessage()]) . "\n\n";
-            if (ob_get_level()) ob_flush();
-            flush();
-            exit();
+    
+            Flight::json([
+                'status' => 200,
+                'message' => 'Translation completed',
+                'processed' => $processedCount,
+                'skipped' => $skippedCount,
+                'errors' => $errors
+            ]);
+    
+        } catch (\Exception $e) {
+            Logger::error(
+                "Translation failed",
+                'TranslationController::translateLanguage',
+                ['locale' => $locale, 'error' => $e->getMessage()]
+            );
+    
+            Flight::json([
+                'status' => 500,
+                'message' => 'Translation failed: ' . $e->getMessage()
+            ], 500);
         }
     }
 
