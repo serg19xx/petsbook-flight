@@ -428,25 +428,26 @@ class TranslationController extends BaseController
         // Просто обновляем статус, а cron будет проверять pending задачи
     }
 
-    public function translateLanguage1($locale){
+    public function translateLanguage($locale){
+        Logger::warning("Method translateLanguage called", "", ['locale' => $locale]);
         try {
             Logger::info(
                 "Starting translation for locale $locale",
-                'TranslationController::translateLanguage1'
+                'TranslationController::translateLanguage'
             );
             
             // 1. Создаем запись в таблице
-            Logger::info("Preparing SQL statement", 'TranslationController::translateLanguage1');
+            Logger::info("Preparing SQL statement", 'TranslationController::translateLanguage');
             
             $stmt = $this->db->prepare("INSERT INTO i18n_translation_tasks (locale, status, total_strings, processed_strings, skipped_strings) VALUES (?, ?, ?, ?, ?)");
             
-            Logger::info("Executing SQL statement", 'TranslationController::translateLanguage1');
+            Logger::info("Executing SQL statement", 'TranslationController::translateLanguage');
             $stmt->execute([$locale, 'pending', 0, 0, 0]);
             
-            Logger::info("SQL executed successfully", 'TranslationController::translateLanguage1');
+            Logger::info("SQL executed successfully", 'TranslationController::translateLanguage');
             $taskId = $this->db->lastInsertId();
             
-            Logger::info("Task ID: $taskId", 'TranslationController::translateLanguage1');
+            Logger::info("Task ID: $taskId", 'TranslationController::translateLanguage');
 
 //==================================================
 
@@ -458,7 +459,7 @@ $filePath = $projectRoot . "/translate-task.php";
 
 Logger::info(
     "File path check",
-    'TranslationController::translateLanguage1',
+    'TranslationController::translateLanguage',
     [
         'filePath' => $filePath,
         'exists' => file_exists($filePath)
@@ -468,7 +469,7 @@ Logger::info(
 if (!file_exists($filePath)) {
     Logger::error(
         "File not found",
-        'TranslationController::translateLanguage1',
+        'TranslationController::translateLanguage',
         ['filePath' => $filePath]
     );
     throw new Exception("translate-task.php not found at: $filePath");
@@ -477,7 +478,7 @@ if (!file_exists($filePath)) {
 $command = "php " . $filePath . " $taskId > /dev/null 2>&1 &";
 Logger::info(
     "Executing command: $command",
-    'TranslationController::translateLanguage1'
+    'TranslationController::translateLanguage'
 );
 
 //$result = exec($command, $output, $returnCode);
@@ -485,7 +486,7 @@ Logger::info(
 pclose(popen($command, 'r'));
 Logger::info(
     "Command result",
-    'TranslationController::translateLanguage1',
+    'TranslationController::translateLanguage',
     [
         //'result' => $result,
         //'output' => $output || '',
@@ -498,7 +499,7 @@ Logger::info(
             
             Logger::info(
                 "Background process started for task $taskId",
-                'TranslationController::translateLanguage1'
+                'TranslationController::translateLanguage'
             );
             
             return Flight::json([
@@ -513,7 +514,7 @@ Logger::info(
         } catch (\PDOException $e) {
             Logger::error(
                 "Database error in translation",
-                'TranslationController::translateLanguage1',
+                'TranslationController::translateLanguage',
                 [
                     'locale' => $locale, 
                     'error' => $e->getMessage(),
@@ -533,7 +534,7 @@ Logger::info(
         } catch (\Exception $e) {
             Logger::error(
                 "Translation failed",
-                'TranslationController::translateLanguage1',
+                'TranslationController::translateLanguage',
                 ['locale' => $locale, 'error' => $e->getMessage()]
             );
             
@@ -552,140 +553,7 @@ Logger::info(
      * @param string $locale Locale code (e.g., 'en', 'ru')
      * @return void
      */
-    public function translateLanguage($locale)
-    {
-        try {
-            Logger::info(
-                "Starting translation for locale $locale",
-                'TranslationController::translateLanguage'
-            );
-    
-            Flight::response()
-                ->header('Access-Control-Allow-Origin', 'http://localhost:5173')
-                ->header('Content-Type', 'application/json');
-    
-            // Проверяем существование языка
-            $stmt = $this->db->prepare("SELECT * FROM i18n_locales WHERE code = ?");
-            $stmt->execute([$locale]);
-            $language = $stmt->fetch();
-    
-            if (!$language) {
-                Logger::warning(
-                    "Language not found",
-                    'TranslationController::translateLanguage',
-                    ['locale' => $locale]
-                );
-                
-                Flight::json([
-                    'status' => 404,
-                    'message' => 'Language not found'
-                ], 404);
-                return;
-            }
-    
-            // Получаем строки для перевода
-            $stmt = $this->db->prepare("
-                SELECT tk.id as key_id, tk.key_name, tk.namespace, tv.value
-                FROM i18n_translation_keys tk
-                JOIN i18n_translation_values tv ON tk.id = tv.key_id
-                WHERE tv.locale = 'en'
-            ");
-            $stmt->execute();
-            $englishStrings = $stmt->fetchAll();
-    
-            $processedCount = 0;
-            $skippedCount = 0;
-            $errors = [];
-    
-            // Обрабатываем по одной строке за транзакцию
-            foreach ($englishStrings as $string) {
-                $this->db->beginTransaction();
-                try {
-                    // Проверяем существующий перевод
-                    $stmt = $this->db->prepare("
-                        SELECT id FROM i18n_translation_values 
-                        WHERE key_id = ? AND locale = ?
-                    ");
-                    $stmt->execute([$string['key_id'], $locale]);
-                    
-                    if ($stmt->fetch()) {
-                        $skippedCount++;
-                        $this->db->commit();
-                        continue;
-                    }
-    
-                    // Переводим
-                    $result = $this->googleTranslate->translate($string['value'], $locale);
-                    if ($result) {
-                        $translatedText = html_entity_decode($result['text'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
-                        $stmt = $this->db->prepare("
-                            INSERT INTO i18n_translation_values 
-                            (key_id, locale, value, is_auto_translated)
-                            VALUES (?, ?, ?, 1)
-                        ");
-                        $stmt->execute([$string['key_id'], $locale, $translatedText]);
-                        $processedCount++;
-                    }
-                    
-                    $this->db->commit();
-                } catch (\Exception $e) {
-                    $this->db->rollBack();
-                    $errors[] = [
-                        'key' => $string['key_name'],
-                        'error' => $e->getMessage()
-                    ];
-                }
-            }
-    
-            // Обновляем флаг перевода в отдельной транзакции
-            $this->db->beginTransaction();
-            try {
-                $stmt = $this->db->prepare("
-                    UPDATE i18n_locales 
-                    SET already_translated = 1 
-                    WHERE code = ?
-                ");
-                $stmt->execute([$locale]);
-                $this->db->commit();
-            } catch (\Exception $e) {
-                $this->db->rollBack();
-                $errors[] = [
-                    'key' => 'update_flag',
-                    'error' => $e->getMessage()
-                ];
-            }
-    
-            Logger::info(
-                "Translation completed",
-                'TranslationController::translateLanguage',
-                [
-                    'locale' => $locale,
-                    'processed' => $processedCount,
-                    'skipped' => $skippedCount
-                ]
-            );
-    
-            Flight::json([
-                'status' => 200,
-                'message' => 'Translation completed',
-                'processed' => $processedCount,
-                'skipped' => $skippedCount,
-                'errors' => $errors
-            ]);
-    
-        } catch (\Exception $e) {
-            Logger::error(
-                "Translation failed",
-                'TranslationController::translateLanguage',
-                ['locale' => $locale, 'error' => $e->getMessage()]
-            );
-    
-            Flight::json([
-                'status' => 500,
-                'message' => 'Translation failed: ' . $e->getMessage()
-            ], 500);
-        }
-    }
+
 
     /**
      * Get translation task status
