@@ -8,6 +8,11 @@ class CorsMiddleware {
     //private static $logFile = __DIR__ . '/../../logs/cors.log';
 
     public static function handle() {
+        if (headers_sent()) {
+            Logger::warning("Headers already sent, skipping CORS middleware", 'CorsMiddleware');
+            return;
+        }
+
         Logger::info("CORS middleware called for " . ($_SERVER['REQUEST_URI'] ?? 'NO URI'),'CorsMiddleware');
 
         // Получаем origin из заголовков

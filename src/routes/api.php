@@ -120,18 +120,9 @@ Flight::route('OPTIONS /api/i18n/translate-language/@locale', function() {
         ->status(200)
         ->send();
 });
-Flight::route('POST /api/i18n/translate-language/@locale', [$translationController, 'translateLanguage']);
 
-Flight::route('OPTIONS /api/i18n/translate-language-1/@locale', function() {
-    Flight::response()
-        ->header('Access-Control-Allow-Origin', 'http://localhost:5173')
-        ->header('Access-Control-Allow-Methods', 'POST, OPTIONS')
-        ->header('Access-Control-Allow-Headers', 'Content-Type')
-        ->header('Access-Control-Max-Age', '86400')
-        ->status(200)
-        ->send();
-});
-Flight::route('GET /api/i18n/translate-language-1/@locale', [$translationController, 'translateLanguage1']);
+Flight::route('GET /api/i18n/translate-language/@locale', [$translationController, 'translateLanguage']);
+
 // В routes.php
 Flight::route('POST /api/i18n/initialize-languages', [$translationController, 'initializeLanguages']);
 
