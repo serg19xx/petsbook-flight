@@ -407,6 +407,145 @@ class TranslationController extends BaseController
         }
     }
 
+    public function createTranslationTask($locale) {
+        $sql = "INSERT INTO translation_tasks (language_code, status, created_at, updated_at) VALUES (?, ?, ?, ?)";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$locale, 'pending', date('Y-m-d H:i:s'), date('Y-m-d H:i:s')]);
+        
+        return $this->db->lastInsertId();
+    }    
+
+    public function startTranslationInBackground($taskId, $locale) {
+        // Запускаем перевод в фоне
+        // Вариант 1: Через exec (если есть доступ к командной строке)
+        $command = "php /path/to/your/translation-worker.php $taskId $locale > /dev/null 2>&1 &";
+        exec($command);
+        
+        // Вариант 2: Через shell_exec
+        // shell_exec("php /path/to/your/translation-worker.php $taskId $locale > /dev/null 2>&1 &");
+        
+        // Вариант 3: Если нет доступа к exec, можно использовать cron job
+        // Просто обновляем статус, а cron будет проверять pending задачи
+    }
+
+    public function translateLanguage1($locale){
+        try {
+            Logger::info(
+                "Starting translation for locale $locale",
+                'TranslationController::translateLanguage1'
+            );
+            
+            // 1. Создаем запись в таблице
+            Logger::info("Preparing SQL statement", 'TranslationController::translateLanguage1');
+            
+            $stmt = $this->db->prepare("INSERT INTO i18n_translation_tasks (locale, status, total_strings, processed_strings, skipped_strings) VALUES (?, ?, ?, ?, ?)");
+            
+            Logger::info("Executing SQL statement", 'TranslationController::translateLanguage1');
+            $stmt->execute([$locale, 'pending', 0, 0, 0]);
+            
+            Logger::info("SQL executed successfully", 'TranslationController::translateLanguage1');
+            $taskId = $this->db->lastInsertId();
+            
+            Logger::info("Task ID: $taskId", 'TranslationController::translateLanguage1');
+
+//==================================================
+
+// 2. Запускаем фоновый процесс
+
+$currentDir = __DIR__;
+$projectRoot = dirname(dirname(dirname($currentDir))); // Поднимаемся на 3 уровня выше
+$filePath = $projectRoot . "/translate-task.php";
+
+Logger::info(
+    "File path check",
+    'TranslationController::translateLanguage1',
+    [
+        'filePath' => $filePath,
+        'exists' => file_exists($filePath)
+    ]
+);
+
+if (!file_exists($filePath)) {
+    Logger::error(
+        "File not found",
+        'TranslationController::translateLanguage1',
+        ['filePath' => $filePath]
+    );
+    throw new Exception("translate-task.php not found at: $filePath");
+}
+
+$command = "php " . $filePath . " $taskId > /dev/null 2>&1 &";
+Logger::info(
+    "Executing command: $command",
+    'TranslationController::translateLanguage1'
+);
+
+//$result = exec($command, $output, $returnCode);
+//$result = shell_exec($command);
+pclose(popen($command, 'r'));
+Logger::info(
+    "Command result",
+    'TranslationController::translateLanguage1',
+    [
+        //'result' => $result,
+        //'output' => $output || '',
+        //'returnCode' => $returnCode || 0
+    ]
+);
+
+//==================================================
+          
+            
+            Logger::info(
+                "Background process started for task $taskId",
+                'TranslationController::translateLanguage1'
+            );
+            
+            return Flight::json([
+                'status' => 200,
+                'error_code' => 'USER_DATA_SUCCESS',
+                'message' => '',
+                'data' => [
+                    'taskId' => $taskId
+                ]
+            ], 200);
+            
+        } catch (\PDOException $e) {
+            Logger::error(
+                "Database error in translation",
+                'TranslationController::translateLanguage1',
+                [
+                    'locale' => $locale, 
+                    'error' => $e->getMessage(),
+                    'code' => $e->getCode(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
+                ]
+            );
+            
+            return Flight::json([
+                'status' => 500,
+                'error_code' => 'DATABASE_ERROR',
+                'message' => 'Database error occurred',
+                'data' => []
+            ], 500);
+            
+        } catch (\Exception $e) {
+            Logger::error(
+                "Translation failed",
+                'TranslationController::translateLanguage1',
+                ['locale' => $locale, 'error' => $e->getMessage()]
+            );
+            
+            return Flight::json([
+                'status' => 500,
+                'error_code' => 'TRANSLATION_FAILED',
+                'message' => 'Translation failed',
+                'data' => []
+            ], 500);
+        }
+    }
+
     /**
      * Start translation task for specific locale
      * 
@@ -554,81 +693,98 @@ class TranslationController extends BaseController
      * @param int $taskId Task ID
      * @return void
      */
-    public function getTranslationStatus($taskId)
-    {
+    public function getTaskStatus($taskId) {
         try {
             Logger::info(
-                "Checking translation task status",
-                'TranslationController::getTranslationStatus',
-                ['task_id' => $taskId]
+                "Checking status for task $taskId",
+                'TranslationController::getTaskStatus'
             );
-
-            $stmt = $this->db->prepare("
-                SELECT * FROM i18n_translation_tasks 
-                WHERE id = ?
-            ");
+            
+            // Получаем данные задачи из БД
+            $stmt = $this->db->prepare("SELECT * FROM i18n_translation_tasks WHERE id = ?");
             $stmt->execute([$taskId]);
-            $task = $stmt->fetch();
-
+            $task = $stmt->fetch(\PDO::FETCH_ASSOC);
+            
             if (!$task) {
                 Logger::warning(
-                    "Translation task not found",
-                    'TranslationController::getTranslationStatus',
-                    ['task_id' => $taskId]
+                    "Task not found",
+                    'TranslationController::getTaskStatus',
+                    ['taskId' => $taskId]
                 );
+                
                 return Flight::json([
                     'status' => 404,
-                    'message' => "Translation task not found"
+                    'error_code' => 'TASK_NOT_FOUND',
+                    'message' => 'Task not found',
+                    'data' => []
                 ], 404);
             }
-
-            $progress = $task['total_strings'] > 0 
-                ? round(($task['processed_strings'] + $task['skipped_strings']) / $task['total_strings'] * 100, 2)
-                : 0;
-
+            
+            // Вычисляем прогресс
+            $progress = $task['total_strings'] > 0 ? 
+                round(($task['processed_strings'] / $task['total_strings']) * 100) : 0;
+            
             Logger::info(
-                "Translation task status retrieved",
-                'TranslationController::getTranslationStatus',
+                "Task status retrieved",
+                'TranslationController::getTaskStatus',
                 [
-                    'task_id' => $task['id'],
-                    'locale' => $task['locale'],
+                    'taskId' => $taskId,
                     'status' => $task['status'],
                     'progress' => $progress
                 ]
             );
-
+            
             return Flight::json([
                 'status' => 200,
-                'message' => "Translation task status retrieved",
+                'error_code' => 'USER_DATA_SUCCESS',
+                'message' => '',
                 'data' => [
-                    'task_id' => $task['id'],
-                    'locale' => $task['locale'],
+                    'taskId' => $taskId,
                     'status' => $task['status'],
                     'progress' => $progress,
-                    'total_strings' => $task['total_strings'],
                     'processed_strings' => $task['processed_strings'],
+                    'total_strings' => $task['total_strings'],
                     'skipped_strings' => $task['skipped_strings'],
-                    'errors' => json_decode($task['errors'], true) ?: [],
+                    'errors' => $task['errors'] ? json_decode($task['errors'], true) : null,
                     'created_at' => $task['created_at'],
+                    'updated_at' => $task['updated_at'],
                     'completed_at' => $task['completed_at']
                 ]
-            ]);
-
-        } catch (\Exception $e) {
+            ], 200);
+            
+        } catch (\PDOException $e) {
             Logger::error(
-                "Failed to get translation task status",
-                'TranslationController::getTranslationStatus',
+                "Database error in getTaskStatus",
+                'TranslationController::getTaskStatus',
                 [
-                    'task_id' => $taskId,
-                    'error' => $e->getMessage()
+                    'taskId' => $taskId,
+                    'error' => $e->getMessage(),
+                    'code' => $e->getCode()
                 ]
             );
+            
             return Flight::json([
                 'status' => 500,
-                'message' => $e->getMessage()
+                'error_code' => 'DATABASE_ERROR',
+                'message' => 'Database error occurred',
+                'data' => []
+            ], 500);
+            
+        } catch (\Exception $e) {
+            Logger::error(
+                "Error in getTaskStatus",
+                'TranslationController::getTaskStatus',
+                ['taskId' => $taskId, 'error' => $e->getMessage()]
+            );
+            
+            return Flight::json([
+                'status' => 500,
+                'error_code' => 'INTERNAL_ERROR',
+                'message' => 'Internal error occurred',
+                'data' => []
             ], 500);
         }
-    }
+    }    
 
     /**
      * Add new translation keys
