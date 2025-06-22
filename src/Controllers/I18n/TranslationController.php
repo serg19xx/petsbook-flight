@@ -655,66 +655,126 @@ Logger::info(
     }    
 
     /**
-     * Add new translation keys
+     * Add a single translation key with its English value
+     * 
+     * @return void
      */
-    public function addTranslationKeys()
+    public function addTranslationKey()
     {
         try {
+            $input = json_decode(Flight::request()->getBody(), true);
+            
+            if (!$input) {
+                return Flight::json([
+                    'status' => 400,
+                    'error_code' => 'INVALID_INPUT',
+                    'message' => 'Invalid JSON input'
+                ], 400);
+            }
+
+            $keyName = $input['key_name'] ?? null;
+            $namespace = $input['namespace'] ?? null;
+            $description = $input['description'] ?? null;
+            $englishValue = $input['value'] ?? null; // Это английское значение от фронтенда
+
+            if (!$keyName || !$namespace || !$englishValue) {
+                return Flight::json([
+                    'status' => 400,
+                    'error_code' => 'MISSING_REQUIRED_FIELDS',
+                    'message' => 'key_name, namespace, and value are required'
+                ], 400);
+            }
+
             // Начинаем транзакцию
             $this->db->beginTransaction();
 
-            // Добавляем новые ключи
+            // Проверяем, существует ли ключ
             $stmt = $this->db->prepare("
-                INSERT INTO i18n_translation_keys (key_name, namespace, description) 
-                VALUES 
-                ('UI.editprofile.fields.full_name', 'UI', 'Full name field label in edit profile form'),
-                ('UI.editprofile.fields.location', 'UI', 'Location field label in edit profile form')
+                SELECT id FROM i18n_translation_keys 
+                WHERE key_name = ?
             ");
-            $stmt->execute();
+            $stmt->execute([$keyName]);
+            $existingKey = $stmt->fetch();
 
-            // Получаем ID добавленных ключей
-            $keyIds = $this->db->lastInsertId();
-            $keyIds = range($keyIds, $keyIds + 1);
+            if ($existingKey) {
+                $this->db->rollBack();
+                return Flight::json([
+                    'status' => 409,
+                    'error_code' => 'KEY_ALREADY_EXISTS',
+                    'message' => 'Translation key already exists'
+                ], 409);
+            }
 
-            // Добавляем английские значения
+            // Добавляем новый ключ
             $stmt = $this->db->prepare("
-                INSERT INTO i18n_translation_values (key_id, locale, value, is_auto_translated) 
-                VALUES 
-                (?, 'en', 'Full Name', 0),
-                (?, 'en', 'Location', 0)
+                INSERT INTO i18n_translation_keys (key_name, namespace, description)
+                VALUES (?, ?, ?)
             ");
-            $stmt->execute($keyIds);
+            $stmt->execute([$keyName, $namespace, $description]);
+            $keyId = $this->db->lastInsertId();
 
-            // Добавляем пустые значения для всех остальных языков
+            // Добавляем английское значение (базовое, не переводим)
             $stmt = $this->db->prepare("
                 INSERT INTO i18n_translation_values (key_id, locale, value, is_auto_translated)
-                SELECT 
-                    k.id as key_id,
-                    l.code as locale,
-                    NULL as value,
-                    0 as is_auto_translated
-                FROM i18n_translation_keys k
-                CROSS JOIN i18n_locales l
-                WHERE k.id IN (?, ?)
-                AND l.code != 'en'
+                VALUES (?, 'en', ?, 0)
             ");
-            $stmt->execute($keyIds);
+            $stmt->execute([$keyId, $englishValue]);
+
+            // Получаем все языки, которые уже имеют переводы (кроме английского)
+            $stmt = $this->db->prepare("
+                SELECT code FROM i18n_locales 
+                WHERE already_translated = 1 AND code != 'en'
+            ");
+            $stmt->execute();
+            $translatedLanguages = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+            // Переводим с английского на другие языки
+            foreach ($translatedLanguages as $lang) {
+                $result = $this->googleTranslate->translate($englishValue, $lang);
+                if ($result) {
+                    $translatedText = html_entity_decode($result['text'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                    
+                    $stmt = $this->db->prepare("
+                        INSERT INTO i18n_translation_values 
+                        (key_id, locale, value, is_auto_translated)
+                        VALUES (?, ?, ?, 1)
+                    ");
+                    $stmt->execute([$keyId, $lang, $translatedText]);
+                }
+            }
 
             // Завершаем транзакцию
             $this->db->commit();
 
             return Flight::json([
                 'status' => 200,
-                'message' => 'Translation keys added successfully'
-            ]);
+                'error_code' => 'SUCCESS',
+                'message' => 'Translation key added successfully',
+                'data' => [
+                    'key_id' => $keyId,
+                    'key_name' => $keyName,
+                    'namespace' => $namespace,
+                    'english_value' => $englishValue,
+                    'translated_languages' => $translatedLanguages
+                ]
+            ], 200);
 
         } catch (\Exception $e) {
             // Откатываем транзакцию в случае ошибки
-            $this->db->rollBack();
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            
+            Logger::error(
+                "Error adding translation key",
+                'TranslationController::addTranslationKey',
+                ['error' => $e->getMessage()]
+            );
             
             return Flight::json([
                 'status' => 500,
-                'message' => $e->getMessage()
+                'error_code' => 'INTERNAL_ERROR',
+                'message' => 'Internal server error'
             ], 500);
         }
     }
@@ -939,6 +999,345 @@ Logger::info(
             return Flight::json([
                 'status' => 500,
                 'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get all translation keys with their English values only
+     * 
+     * @return void
+     */
+    public function getAllTranslationKeys()
+    {
+        try {
+            $stmt = $this->db->prepare("
+                SELECT 
+                    tk.id as key_id,
+                    tk.key_name,
+                    tk.namespace,
+                    tk.description,
+                    tv.value as english_value,
+                    tv.is_auto_translated
+                FROM i18n_translation_keys tk
+                LEFT JOIN i18n_translation_values tv ON tk.id = tv.key_id AND tv.locale = 'en'
+                ORDER BY tk.namespace, tk.key_name
+            ");
+            $stmt->execute();
+            $results = $stmt->fetchAll();
+
+            // Форматируем результат
+            $formattedKeys = [];
+            foreach ($results as $row) {
+                $formattedKeys[] = [
+                    'key_id' => $row['key_id'],
+                    'key_name' => $row['key_name'],
+                    'namespace' => $row['namespace'],
+                    'description' => $row['description'],
+                    'english_value' => $row['english_value'],
+                    'is_auto_translated' => (bool)$row['is_auto_translated']
+                ];
+            }
+
+            return Flight::json([
+                'status' => 200,
+                'error_code' => 'SUCCESS',
+                'message' => 'All translation keys retrieved successfully',
+                'data' => [
+                    'keys' => $formattedKeys
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            Logger::error(
+                "Error getting all translation keys",
+                'TranslationController::getAllTranslationKeys',
+                ['error' => $e->getMessage()]
+            );
+            
+            return Flight::json([
+                'status' => 500,
+                'error_code' => 'INTERNAL_ERROR',
+                'message' => 'Internal server error'
+            ], 500);
+        }
+    }
+
+    /**
+     * Update translation key and its values
+     * 
+     * @return void
+     */
+    public function updateTranslationKey()
+    {
+        try {
+            $input = json_decode(Flight::request()->getBody(), true);
+            
+            if (!$input) {
+                return Flight::json([
+                    'status' => 400,
+                    'error_code' => 'INVALID_INPUT',
+                    'message' => 'Invalid JSON input'
+                ], 400);
+            }
+    
+            $keyId = $input['key_id'] ?? null;
+            $keyName = $input['key_name'] ?? null;
+            $namespace = $input['namespace'] ?? null;
+            $description = $input['description'] ?? null;
+            $newValue = $input['value'] ?? null;
+    
+            if (!$keyId || !$keyName || !$namespace) {
+                return Flight::json([
+                    'status' => 400,
+                    'error_code' => 'MISSING_REQUIRED_FIELDS',
+                    'message' => 'key_id, key_name, and namespace are required'
+                ], 400);
+            }
+    
+            // Начинаем транзакцию
+            $this->db->beginTransaction();
+    
+            // Проверяем, существует ли ключ
+            $stmt = $this->db->prepare("
+                SELECT id FROM i18n_translation_keys 
+                WHERE id = ?
+            ");
+            $stmt->execute([$keyId]);
+            $existingKey = $stmt->fetch();
+    
+            if (!$existingKey) {
+                $this->db->rollBack();
+                return Flight::json([
+                    'status' => 404,
+                    'error_code' => 'KEY_NOT_FOUND',
+                    'message' => 'Translation key not found'
+                ], 404);
+            }
+    
+            // Получаем текущее значение для сравнения
+            $stmt = $this->db->prepare("
+                SELECT value FROM i18n_translation_values 
+                WHERE key_id = ? AND locale = 'en'
+            ");
+            $stmt->execute([$keyId]);
+            $currentValue = $stmt->fetch();
+    
+            // Обновляем ключ
+            $stmt = $this->db->prepare("
+                UPDATE i18n_translation_keys 
+                SET key_name = ?, namespace = ?, description = ?
+                WHERE id = ?
+            ");
+            $stmt->execute([$keyName, $namespace, $description, $keyId]);
+    
+            // Обновляем английское значение
+            if ($newValue) {
+                $stmt = $this->db->prepare("
+                    UPDATE i18n_translation_values 
+                    SET value = ?, updated_at = NOW()
+                    WHERE key_id = ? AND locale = 'en'
+                ");
+                $stmt->execute([$newValue, $keyId]);
+    
+                // Проверяем, изменилось ли значение
+                $valueChanged = ($currentValue && $currentValue['value'] !== $newValue);
+    
+                // Если значение изменилось, обновляем переводы для других языков
+                if ($valueChanged) {
+                    // Получаем все переведенные языки (кроме английского)
+                    $stmt = $this->db->prepare("
+                        SELECT DISTINCT locale 
+                        FROM i18n_translation_values 
+                        WHERE key_id = ? AND locale != 'en'
+                    ");
+                    $stmt->execute([$keyId]);
+                    $translatedLanguages = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    
+                    // Для каждого языка переводим новое значение
+                    foreach ($translatedLanguages as $locale) {
+                        try {
+                            // Здесь вызываем метод перевода
+                            $translatedText = $this->translateText($newValue, 'en', $locale);
+                            
+                            // Обновляем перевод
+                            $stmt = $this->db->prepare("
+                                UPDATE i18n_translation_values 
+                                SET value = ?, is_auto_translated = 1, updated_at = NOW()
+                                WHERE key_id = ? AND locale = ?
+                            ");
+                            $stmt->execute([$translatedText, $keyId, $locale]);
+                            
+                        } catch (\Exception $e) {
+                            Logger::warning(
+                                "Failed to translate text for locale: $locale",
+                                'TranslationController::updateTranslationKey',
+                                ['error' => $e->getMessage()]
+                            );
+                        }
+                    }
+                }
+            }
+    
+            // Завершаем транзакцию
+            $this->db->commit();
+    
+            return Flight::json([
+                'status' => 200,
+                'error_code' => 'SUCCESS',
+                'message' => 'Translation key updated successfully',
+                'data' => [
+                    'key_id' => $keyId,
+                    'key_name' => $keyName,
+                    'namespace' => $namespace,
+                    'value' => $newValue,
+                    'value_changed' => $valueChanged ?? false
+                ]
+            ], 200);
+    
+        } catch (\Exception $e) {
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            
+            Logger::error(
+                "Error updating translation key",
+                'TranslationController::updateTranslationKey',
+                ['error' => $e->getMessage()]
+            );
+            
+            return Flight::json([
+                'status' => 500,
+                'error_code' => 'INTERNAL_ERROR',
+                'message' => 'Internal server error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    // Добавить метод перевода (если его нет)
+    private function translateText($text, $sourceLang, $targetLang)
+    {
+        // Здесь должна быть логика перевода через Google Translate API
+        // Используйте тот же код, что и в translate-task.php
+        
+        // Пример:
+        $apiKey = $_ENV['GOOGLE_TRANSLATE_API_KEY'];
+        $url = "https://translation.googleapis.com/language/translate/v2?key=" . $apiKey;
+        
+        $data = [
+            'q' => $text,
+            'source' => $sourceLang,
+            'target' => $targetLang
+        ];
+        
+        $response = file_get_contents($url, false, stream_context_create([
+            'http' => [
+                'method' => 'POST',
+                'header' => 'Content-Type: application/json',
+                'content' => json_encode($data)
+            ]
+        ]));
+        
+        $result = json_decode($response, true);
+        
+        if (isset($result['data']['translations'][0]['translatedText'])) {
+            return $result['data']['translations'][0]['translatedText'];
+        }
+        
+        throw new \Exception('Translation failed');
+    }
+
+    /**
+     * Delete translation key and all its values
+     * 
+     * @return void
+     */
+    public function deleteTranslationKey()
+    {
+        try {
+            $input = json_decode(Flight::request()->getBody(), true);
+            
+            if (!$input) {
+                return Flight::json([
+                    'status' => 400,
+                    'error_code' => 'INVALID_INPUT',
+                    'message' => 'Invalid JSON input'
+                ], 400);
+            }
+
+            $keyId = $input['key_id'] ?? null;
+
+            if (!$keyId) {
+                return Flight::json([
+                    'status' => 400,
+                    'error_code' => 'MISSING_REQUIRED_FIELDS',
+                    'message' => 'key_id is required'
+                ], 400);
+            }
+
+            // Начинаем транзакцию
+            $this->db->beginTransaction();
+
+            // Проверяем, существует ли ключ
+            $stmt = $this->db->prepare("
+                SELECT id, key_name FROM i18n_translation_keys 
+                WHERE id = ?
+            ");
+            $stmt->execute([$keyId]);
+            $existingKey = $stmt->fetch();
+
+            if (!$existingKey) {
+                $this->db->rollBack();
+                return Flight::json([
+                    'status' => 404,
+                    'error_code' => 'KEY_NOT_FOUND',
+                    'message' => 'Translation key not found'
+                ], 404);
+            }
+
+            // Удаляем все значения перевода для этого ключа
+            $stmt = $this->db->prepare("
+                DELETE FROM i18n_translation_values 
+                WHERE key_id = ?
+            ");
+            $stmt->execute([$keyId]);
+
+            // Удаляем сам ключ
+            $stmt = $this->db->prepare("
+                DELETE FROM i18n_translation_keys 
+                WHERE id = ?
+            ");
+            $stmt->execute([$keyId]);
+
+            // Завершаем транзакцию
+            $this->db->commit();
+
+            return Flight::json([
+                'status' => 200,
+                'error_code' => 'SUCCESS',
+                'message' => 'Translation key deleted successfully',
+                'data' => [
+                    'deleted_key_id' => $keyId,
+                    'deleted_key_name' => $existingKey['key_name']
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            // Откатываем транзакцию в случае ошибки
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+            
+            Logger::error(
+                "Error deleting translation key",
+                'TranslationController::deleteTranslationKey',
+                ['error' => $e->getMessage()]
+            );
+            
+            return Flight::json([
+                'status' => 500,
+                'error_code' => 'INTERNAL_ERROR',
+                'message' => 'Internal server error'
             ], 500);
         }
     }
