@@ -122,9 +122,15 @@ Flight::route('OPTIONS /api/i18n/translate-language/@locale', function() {
 });
 
 Flight::route('GET /api/i18n/translate-language/@locale', [$translationController, 'translateLanguage']);
+Flight::route('POST /api/i18n/add-translation-key', [$translationController, 'addTranslationKey']);
 
 // В routes.php
 Flight::route('POST /api/i18n/initialize-languages', [$translationController, 'initializeLanguages']);
+
+// На эти:
+Flight::route('GET /api/i18n/all-translation-keys', [$translationController, 'getAllTranslationKeys']);
+Flight::route('POST /api/i18n/update-translation-key', [$translationController, 'updateTranslationKey']);
+Flight::route('POST /api/i18n/delete-translation-key', [$translationController, 'deleteTranslationKey']);
 
 // Handle 404
 Flight::map('notFound', function() {
