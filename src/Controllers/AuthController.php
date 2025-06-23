@@ -411,7 +411,7 @@ class AuthController extends BaseController {
             
             return Flight::json([
                 'status' => 500,
-                'error_code' => ResponseCodes::EMAIL_EXISTS,
+                'error_code' => ResponseCodes::EMAIL_ALREADY_EXISTS,
                 'message' => $e->getMessage(),
                 'data' => null
             ], 500);

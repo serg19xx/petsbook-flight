@@ -205,7 +205,7 @@ function translateText($text, $targetLocale, $apiKey) {
     if (isset($response['data']['translations'][0]['translatedText'])) {
         $translatedText = $response['data']['translations'][0]['translatedText'];
         Logger::info("7 ====Перевод успешен=====", "", ["translatedText" => $translatedText]);
-        return $translatedText;
+        return html_entity_decode($translatedText, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     } else {
         Logger::error("8 ====Ошибка в ответе=====", "", ["response" => $response]);
         return false;
