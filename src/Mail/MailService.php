@@ -89,12 +89,12 @@ class MailService
         ]);
 
         try {
-            $body = '';
+            $body = 'TEST REGISTRATION EMAIL';
             
             // Используем Twig только для Mailtrap
             if ($_ENV['MAIL_DRIVER'] === 'mailtrap') {
                 Logger::info("Rendering local template", "MailService");
-                $body = $this->twig->render($template, $recipient->getPersonalizedVars());
+                //$body = $this->twig->render($template, $recipient->getPersonalizedVars());
                 Logger::info("Template rendered", "MailService", [
                     'body' => $body
                 ]);
