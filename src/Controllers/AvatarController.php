@@ -16,39 +16,40 @@ class AvatarController {
     }
 
     public function upload() {
-        //$headers = getallheaders();
-        //$token = str_replace('Bearer ', '', $headers['Authorization'] ?? '');
+        // Получаем токен только из cookie
+        $token = $_COOKIE['auth_token'] ?? null;
         
-        $token = $_COOKIE['auth_token'] ?? ($_SERVER['HTTP_AUTHORIZATION'] ?? null);
-
+        if (!$token) {
+            return Flight::json(['success' => false, 'error' => 'No token provided'], 401);
+        }
+    
         try {
             // Decode token and get user data
             $decoded = JWT::decode($token, new Key($_ENV['JWT_SECRET'], 'HS256'));
-            $userId = $decoded->id;
+            $userId = $decoded->user_id; // проверьте правильное имя поля
             $userRole = $decoded->role;
         } catch(\Exception $e) {
-            return Flight::json(['success' => false, 'error' => 'Invalid token'], 401);
+            return Flight::json(['success' => false, 'error' => 'Invalid token: ' . $e->getMessage()], 401);
         }
-
+    
         $file = Flight::request()->files->photo;
         if (!$file) {
             return Flight::json(['success' => false, 'error' => 'No file uploaded'], 400);
         }
-
+    
         $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         if (!in_array($extension, $this->allowedTypes)) {
             return Flight::json(['success' => false, 'error' => 'Invalid file type'], 400);
         }
-
+    
         // New filename format: [role]-[id].[ext]
         $filename = $userRole . '-' . $userId . '.' . $extension;
         $filePath = $this->uploadDir . $filename;
-
+    
         // Remove old avatar if exists
         if (file_exists($filePath)) {
             unlink($filePath);
         }
-
     
         if (move_uploaded_file($file['tmp_name'], $filePath)) {
             return Flight::json([
@@ -57,9 +58,9 @@ class AvatarController {
                 'path' => '/profile-images/avatars/' . $filename
             ]);
         }
-
+    
         return Flight::json(['success' => false, 'error' => 'Upload failed'], 500);
-    }   
+    }
 
     public function getImage() {
         try {
