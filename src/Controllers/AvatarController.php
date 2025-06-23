@@ -26,7 +26,7 @@ class AvatarController {
         try {
             // Decode token and get user data
             $decoded = JWT::decode($token, new Key($_ENV['JWT_SECRET'], 'HS256'));
-            $userId = $decoded->user_id; // проверьте правильное имя поля
+            $userId = $decoded->user_id;
             $userRole = $decoded->role;
         } catch(\Exception $e) {
             return Flight::json(['success' => false, 'error' => 'Invalid token: ' . $e->getMessage()], 401);
@@ -52,10 +52,12 @@ class AvatarController {
         }
     
         if (move_uploaded_file($file['tmp_name'], $filePath)) {
+            // Добавляем timestamp для предотвращения кеширования
+            $timestamp = time();
             return Flight::json([
                 'success' => true,
                 'filename' => $filename,
-                'path' => '/profile-images/avatars/' . $filename
+                'path' => '/profile-images/avatars/' . $filename . '?t=' . $timestamp
             ]);
         }
     
@@ -90,14 +92,22 @@ class AvatarController {
                 return Flight::json(['error' => 'Access denied'], 403);
             }
 
-            $filePath = $this->baseUrl . $filename;
+            $filePath = $this->uploadDir . $filename;
             
             if (!file_exists($filePath)) {
                 return Flight::json(['error' => 'File not found'], 404);
             }
 
+            // Добавляем заголовки для предотвращения кеширования
+            header('Cache-Control: no-cache, no-store, must-revalidate');
+            header('Pragma: no-cache');
+            header('Expires: 0');
+            header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+            header('ETag: "' . md5_file($filePath) . '"');
+            
             // Отдаем файл
             header('Content-Type: ' . mime_content_type($filePath));
+            header('Content-Length: ' . filesize($filePath));
             readfile($filePath);
             
         } catch (Exception $e) {
