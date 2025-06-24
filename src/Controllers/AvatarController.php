@@ -78,54 +78,19 @@ class AvatarController {
         return Flight::json(['success' => false, 'error' => 'Upload failed'], 500);
     }
 
-    public function getImage() {
-        try {
-            // Получаем токен
-            $headers = getallheaders();
-            $token = isset($headers['Authorization']) ? str_replace('Bearer ', '', $headers['Authorization']) : null;
-            
-            if (!$token) {
-                return Flight::json(['error' => 'Unauthorized'], 401);
-            }
-
-            // Проверяем токен
-            $userData = Auth::validateToken($token);
-            if (!$userData) {
-                return Flight::json(['error' => 'Invalid token'], 401);
-            }
-
-            // Получаем имя файла
-            $filename = basename(Flight::request()->url);
-            
-            // Проверяем права доступа
-            $parts = explode('-', $filename);
-            $fileRole = $parts[0];
-            $fileUserId = explode('.', $parts[1])[0];
-            
-            if ($userData['id'] != $fileUserId) {
-                return Flight::json(['error' => 'Access denied'], 403);
-            }
-
-            $filePath = $this->uploadDir . $filename;
-            
-            if (!file_exists($filePath)) {
-                return Flight::json(['error' => 'File not found'], 404);
-            }
-
-            // Добавляем заголовки для предотвращения кеширования
-            header('Cache-Control: no-cache, no-store, must-revalidate');
-            header('Pragma: no-cache');
-            header('Expires: 0');
-            header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
-            header('ETag: "' . md5_file($filePath) . '"');
-            
-            // Отдаем файл
-            header('Content-Type: ' . mime_content_type($filePath));
-            header('Content-Length: ' . filesize($filePath));
-            readfile($filePath);
-            
-        } catch (Exception $e) {
-            return Flight::json(['error' => $e->getMessage()], 500);
+    public function serveImage() {
+        $path = Flight::request()->url;
+        $filename = basename($path);
+        $filePath = $this->uploadDir . $filename;
+        
+        if (!file_exists($filePath)) {
+            return Flight::json(['error' => 'File not found'], 404);
         }
-    }    
+        
+        $mimeType = mime_content_type($filePath);
+        header('Content-Type: ' . $mimeType);
+        header('Content-Length: ' . filesize($filePath));
+        readfile($filePath);
+    }
+
 }
