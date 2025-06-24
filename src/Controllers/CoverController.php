@@ -81,4 +81,19 @@ class CoverController {
         return Flight::json(['success' => false, 'error' => 'Upload failed'], 500);
     }
 
+    public function serveImage() {
+        $path = Flight::request()->url;
+        $filename = basename($path);
+        $filePath = $this->uploadDir . $filename;
+        
+        if (!file_exists($filePath)) {
+            return Flight::json(['error' => 'File not found'], 404);
+        }
+        
+        $mimeType = mime_content_type($filePath);
+        header('Content-Type: ' . $mimeType);
+        header('Content-Length: ' . filesize($filePath));
+        readfile($filePath);
+    }
+
 }
