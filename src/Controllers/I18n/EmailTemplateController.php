@@ -19,6 +19,12 @@ class EmailTemplateController extends BaseController
     public function __construct(PDO $db)
     {
         $this->db = $db;
+        
+        // Создаем директорию для изображений email шаблонов если она не существует
+        $emailImagesDir = __DIR__ . '/../../public/profile-images/email-tmpl/';
+        if (!is_dir($emailImagesDir)) {
+            mkdir($emailImagesDir, 0755, true);
+        }
     }
 
     /**
@@ -64,5 +70,25 @@ class EmailTemplateController extends BaseController
                 'data' => null
             ], 500);
         }
+    }
+
+    /**
+     * Serve email template images
+     * 
+     * @return void Serves image file or JSON error
+     */
+    public function serveImage() {
+        $path = Flight::request()->url;
+        $filename = basename($path);
+        $filePath = __DIR__ . '/../../public/profile-images/email-tmpl/' . $filename;
+        
+        if (!file_exists($filePath)) {
+            return Flight::json(['error' => 'File not found'], 404);
+        }
+        
+        $mimeType = mime_content_type($filePath);
+        header('Content-Type: ' . $mimeType);
+        header('Content-Length: ' . filesize($filePath));
+        readfile($filePath);
     }
 } 
