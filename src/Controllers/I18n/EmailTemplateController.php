@@ -80,6 +80,8 @@ class EmailTemplateController extends BaseController
     public function serveImage() {
         $path = Flight::request()->url;
         $filename = basename($path);
+        
+        // Поддерживаем оба варианта URL
         $filePath = __DIR__ . '/../../public/profile-images/email-tmpl/' . $filename;
         
         if (!file_exists($filePath)) {
