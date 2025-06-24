@@ -134,7 +134,7 @@ Flight::route('GET /api/i18n/all-translation-keys', [$translationController, 'ge
 Flight::route('POST /api/i18n/update-translation-key', [$translationController, 'updateTranslationKey']);
 Flight::route('POST /api/i18n/delete-translation-key', [$translationController, 'deleteTranslationKey']);
 
-Flight::route('POST /api/i18n/email-templates', [$emailTemplateController, 'getTemplates']);
+Flight::route('GET /api/i18n/email-templates', [$emailTemplateController, 'getTemplates']);
 
 // Handle 404
 Flight::map('notFound', function() {
