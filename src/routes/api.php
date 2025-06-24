@@ -8,6 +8,7 @@ use App\Controllers\CoverController;
 use App\Controllers\StatsController;
 use App\Controllers\I18n\LocaleController;
 use App\Controllers\I18n\TranslationController;
+use App\Controllers\I18n\EmailTemplateController;
 
 /**
  * API Routes configuration
@@ -39,6 +40,7 @@ $coverController = new CoverController($db);
 $statsController = new StatsController($db);
 $localeController = new LocaleController($db);
 $translationController = new TranslationController($db);
+$emailTemplateController = new EmailTemplateController($db);
 
 // Тестовый endpoint без базы
 Flight::route('GET /api/test', function() {
@@ -131,6 +133,8 @@ Flight::route('POST /api/i18n/initialize-languages', [$translationController, 'i
 Flight::route('GET /api/i18n/all-translation-keys', [$translationController, 'getAllTranslationKeys']);
 Flight::route('POST /api/i18n/update-translation-key', [$translationController, 'updateTranslationKey']);
 Flight::route('POST /api/i18n/delete-translation-key', [$translationController, 'deleteTranslationKey']);
+
+Flight::route('POST /api/i18n/email-templates', [$emailTemplateController, 'getTemplates']);
 
 // Handle 404
 Flight::map('notFound', function() {
