@@ -16,6 +16,11 @@ class CoverController {
         $this->uploadDir = __DIR__ . '/../../public/profile-images/covers/';
         $this->baseUrl = $_ENV['APP_URL'] ?? 'http://localhost:8080';
         $this->db = $db;
+        
+        // Создаем директорию если она не существует
+        if (!is_dir($this->uploadDir)) {
+            mkdir($this->uploadDir, 0755, true);
+        }
     }
 
     public function upload() {
@@ -43,6 +48,15 @@ class CoverController {
         $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         if (!in_array($extension, $this->allowedTypes)) {
             return Flight::json(['success' => false, 'error' => 'Invalid file type'], 400);
+        }
+    
+        // Убедимся что директория существует и доступна для записи
+        if (!is_dir($this->uploadDir)) {
+            mkdir($this->uploadDir, 0755, true);
+        }
+        
+        if (!is_writable($this->uploadDir)) {
+            return Flight::json(['success' => false, 'error' => 'Upload directory is not writable'], 500);
         }
     
         // New filename format: [role]-[id].[ext]
