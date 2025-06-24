@@ -138,6 +138,7 @@ Flight::route('GET /api/i18n/email-templates', [$emailTemplateController, 'getTe
 // Static image serving routes
 Flight::route('GET /profile-images/avatars/*', [$avatarController, 'serveImage']);
 Flight::route('GET /profile-images/covers/*', [$coverController, 'serveImage']);
+Flight::route('GET /email-tmpl/*', [$emailTemplateController, 'serveImage']);
 
 // Handle 404
 Flight::map('notFound', function() {
