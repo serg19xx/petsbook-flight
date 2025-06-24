@@ -84,7 +84,21 @@ class EmailTemplateController extends BaseController
         // Поддерживаем оба варианта URL
         $filePath = __DIR__ . '/../../public/profile-images/email-tmpl/' . $filename;
         
+        // Отладочная информация
+        Logger::info("Serving email template image", "EmailTemplateController", [
+            'request_url' => $path,
+            'filename' => $filename,
+            'full_path' => $filePath,
+            'file_exists' => file_exists($filePath),
+            'is_readable' => is_readable($filePath)
+        ]);
+        
         if (!file_exists($filePath)) {
+            Logger::error("Email template image not found", "EmailTemplateController", [
+                'request_url' => $path,
+                'filename' => $filename,
+                'full_path' => $filePath
+            ]);
             return Flight::json(['error' => 'File not found'], 404);
         }
         
