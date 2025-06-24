@@ -19,38 +19,20 @@ class CoverController {
     }
 
     public function upload() {
-        $token = null;
-    
-        // 1. Пробуем взять из заголовка Authorization
-        if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
-            $header = $_SERVER['HTTP_AUTHORIZATION'];
-            if (stripos($header, 'Bearer ') === 0) {
-                $token = substr($header, 7);
-            } else {
-                $token = $header;
-            }
-        }
-        // 2. Если не нашли — пробуем из cookie
-        if (!$token && !empty($_COOKIE['auth_token'])) {
-            $token = $_COOKIE['auth_token'];
-        }
-    
+        // Получаем токен только из cookie (как в AvatarController)  
+        $token = $_COOKIE['auth_token'] ?? null;
+        
         if (!$token) {
-            return Flight::json(['success' => false, 'error' => 'Invalid token'], 401);
+            return Flight::json(['success' => false, 'error' => 'No token provided'], 401);
         }
     
         try {
+            // Decode token and get user data
             $decoded = JWT::decode($token, new Key($_ENV['JWT_SECRET'], 'HS256'));
-            
-            // Используем правильные поля из JWT
-            $userId = $decoded->user_id ?? $decoded->id ?? null;
-            $userRole = $decoded->role ?? 'user';
-            
-            if (!$userId) {
-                return Flight::json(['success' => false, 'error' => 'Invalid token structure'], 401);
-            }
+            $userId = $decoded->user_id;
+            $userRole = $decoded->role;
         } catch(\Exception $e) {
-            return Flight::json(['success' => false, 'error' => 'Invalid token'], 401);
+            return Flight::json(['success' => false, 'error' => 'Invalid token: ' . $e->getMessage()], 401);
         }
     
         $file = Flight::request()->files->photo;
@@ -63,20 +45,22 @@ class CoverController {
             return Flight::json(['success' => false, 'error' => 'Invalid file type'], 400);
         }
     
+        // New filename format: [role]-[id].[ext]
         $filename = $userRole . '-' . $userId . '.' . $extension;
         $filePath = $this->uploadDir . $filename;
     
+        // Remove old cover if exists
         if (file_exists($filePath)) {
             unlink($filePath);
         }
     
         if (move_uploaded_file($file['tmp_name'], $filePath)) {
+            // Добавляем timestamp для предотвращения кеширования
+            $timestamp = time();
             return Flight::json([
                 'success' => true,
-                'url' => $this->baseUrl . '/profile-images/covers/' . $filename,
                 'filename' => $filename,
-                'path' => $this->baseUrl . '/profile-images/covers/' . $filename,
-                'fullPath' => realpath($filePath)
+                'path' => '/profile-images/covers/' . $filename . '?t=' . $timestamp
             ]);
         }
     

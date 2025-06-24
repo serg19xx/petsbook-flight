@@ -136,6 +136,39 @@ Flight::route('POST /api/i18n/delete-translation-key', [$translationController, 
 
 Flight::route('GET /api/i18n/email-templates', [$emailTemplateController, 'getTemplates']);
 
+// Static image serving routes
+Flight::route('GET /profile-images/avatars/*', function() {
+    $path = Flight::request()->url;
+    $filename = basename($path);
+    $filePath = __DIR__ . '/../../public/profile-images/avatars/' . $filename;
+    
+    if (!file_exists($filePath)) {
+        Flight::json(['error' => 'File not found'], 404);
+        return;
+    }
+    
+    $mimeType = mime_content_type($filePath);
+    header('Content-Type: ' . $mimeType);
+    header('Content-Length: ' . filesize($filePath));
+    readfile($filePath);
+});
+
+Flight::route('GET /profile-images/covers/*', function() {
+    $path = Flight::request()->url;
+    $filename = basename($path);
+    $filePath = __DIR__ . '/../../public/profile-images/covers/' . $filename;
+    
+    if (!file_exists($filePath)) {
+        Flight::json(['error' => 'File not found'], 404);
+        return;
+    }
+    
+    $mimeType = mime_content_type($filePath);
+    header('Content-Type: ' . $mimeType);
+    header('Content-Length: ' . filesize($filePath));
+    readfile($filePath);
+});
+
 // Handle 404
 Flight::map('notFound', function() {
     Flight::json([
