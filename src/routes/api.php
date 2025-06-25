@@ -134,14 +134,15 @@ Flight::route('POST /api/i18n/update-translation-key', [$translationController, 
 Flight::route('POST /api/i18n/delete-translation-key', [$translationController, 'deleteTranslationKey']);
 
 Flight::route('GET /api/i18n/email-templates', [$emailTemplateController, 'getTemplates']);
+Flight::route('POST /api/i18n/email-templates/save', [$emailTemplateController, 'saveTemplate']);
 
 // Static image serving routes
-Flight::route('GET /profile-images/avatars/*', [$avatarController, 'serveImage']);
-Flight::route('GET /profile-images/covers/*', [$coverController, 'serveImage']);
-Flight::route('GET /profile-images/email-tmpl/*', [$emailTemplateController, 'serveImage']);
+Flight::route('GET /api/profile-images/avatars/*', [$avatarController, 'serveImage']);
+Flight::route('GET /api/profile-images/covers/*', [$coverController, 'serveImage']);
+Flight::route('GET /api/profile-images/email-tmpl/*', [$emailTemplateController, 'serveImage']);
 
 // Short URL for email template images
-Flight::route('GET /email-tmpl/*', [$emailTemplateController, 'serveImage']);
+Flight::route('GET /api/email-tmpl/*', [$emailTemplateController, 'serveImage']);
 
 // Handle 404
 Flight::map('notFound', function() {
