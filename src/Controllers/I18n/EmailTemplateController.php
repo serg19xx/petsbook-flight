@@ -69,23 +69,23 @@ class EmailTemplateController extends BaseController
     public function getTemplates()
     {
         // Проверяем токен
-        $userData = $this->validateToken();
-        if (!$userData) {
-            return Flight::json(['success' => false, 'error' => 'No token provided'], 401);
-        }
+        //$userData = $this->validateToken();
+        //if (!$userData) {
+        //    return Flight::json(['success' => false, 'error' => 'No token provided'], 401);
+        //}
 
         Logger::info("Getting email templates", "EmailTemplateController", [
-            'user_id' => $userData['user_id']
+            //'user_id' => $userData['user_id']
         ]);
 
         try {
-            $stmt = $this->db->prepare("SELECT * FROM petsbook_new.v_email_templates");
+            $stmt = $this->db->prepare("SELECT * FROM v_email_templates");
             $stmt->execute();
             $templates = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             Logger::info("Email templates retrieved successfully", "EmailTemplateController", [
-                'count' => count($templates),
-                'user_id' => $userData['user_id']
+                'count' => count($templates)
+                //'user_id' => $userData['user_id']
             ]);
 
             return Flight::json([
@@ -100,8 +100,8 @@ class EmailTemplateController extends BaseController
         } catch (\Exception $e) {
             Logger::error("Error getting email templates", "EmailTemplateController", [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'user_id' => $userData['user_id']
+                'trace' => $e->getTraceAsString()
+                //'user_id' => $userData['user_id']
             ]);
 
             return Flight::json([
@@ -120,10 +120,10 @@ class EmailTemplateController extends BaseController
      */
     public function serveImage() {
         // Проверяем токен
-        $userData = $this->validateToken();
-        if (!$userData) {
-            return Flight::json(['error' => 'Unauthorized'], 401);
-        }
+        //$userData = $this->validateToken();
+        //if (!$userData) {
+        //    return Flight::json(['error' => 'Unauthorized'], 401);
+        //}
 
         $path = Flight::request()->url;
         $filename = basename($path);
@@ -159,71 +159,106 @@ class EmailTemplateController extends BaseController
 
     /**
      * Save email template
-     * 
-     * @return void JSON response with save result
      */
     public function saveTemplate()
     {
         // Проверяем токен
-        $userData = $this->validateToken();
-        if (!$userData) {
-            return Flight::json(['success' => false, 'error' => 'No token provided'], 401);
-        }
+        //$userData = $this->validateToken();
+        //if (!$userData) {
+        //    return Flight::json(['success' => false, 'error' => 'No token provided'], 401);
+        //}
 
         Logger::info("Saving email template", "EmailTemplateController", [
-            'user_id' => $userData['user_id']
+            //'user_id' => $userData['user_id']
         ]);
 
         try {
             $data = Flight::request()->data;
             
+            // Подробное логирование входящих данных
+            Logger::info("Incoming data", "EmailTemplateController", [
+                'template_id' => $data->template_id ?? 'NOT_SET',
+                'code' => $data->code ?? 'NOT_SET',
+                'subject' => $data->subject ?? 'NOT_SET',
+                'body_html' => $data->body_html ?? 'NOT_SET',
+                'layout_id' => $data->layout_id ?? 'NOT_SET',
+                'locale' => $data->locale ?? 'NOT_SET'
+            ]);
+            
             // Валидация входных данных
             if (empty($data->code)) {
+                Logger::error("Validation failed: code is empty", "EmailTemplateController");
                 return Flight::json(['success' => false, 'error' => 'Code is required'], 400);
             }
 
             if (empty($data->subject)) {
+                Logger::error("Validation failed: subject is empty", "EmailTemplateController");
                 return Flight::json(['success' => false, 'error' => 'Subject is required'], 400);
             }
 
             if (empty($data->body_html)) {
+                Logger::error("Validation failed: body_html is empty", "EmailTemplateController");
                 return Flight::json(['success' => false, 'error' => 'Body HTML is required'], 400);
             }
 
-            $templateId = (int)($data->template_id ?? 0);
+            // Определяем template_id - если пустой, null, 0 или не число, то считаем новым
+            $templateId = $data->template_id ?? '';
+            $isNewTemplate = empty($templateId) || $templateId === '0' || $templateId === 0 || !is_numeric($templateId);
+            
+            // Устанавливаем значения по умолчанию
+            $layoutId = !empty($data->layout_id) ? (int)$data->layout_id : 1;
+            $locale = !empty($data->locale) ? $data->locale : 'en';
+            
+            Logger::info("Template processing", "EmailTemplateController", [
+                'original_template_id' => $data->template_id ?? 'NOT_SET',
+                'processed_template_id' => $templateId,
+                'is_new_template' => $isNewTemplate,
+                'layout_id' => $layoutId,
+                'locale' => $locale
+            ]);
+            
             $action = '';
             $finalTemplateId = 0;
             
-            if ($templateId === 0) {
-                // Создаем новый шаблон (INSERT)
+            if ($isNewTemplate) {
+                Logger::info("Creating NEW template", "EmailTemplateController");
+                
+                // Создаем новый шаблон
                 $stmt = $this->db->prepare("
-                    INSERT INTO i18n_email_templates (code, subject, body_html, locale, layout_id) 
-                    VALUES (?, ?, ?, 'en', 1)
+                    INSERT INTO i18n_email_templates (code, subject, body_html, locale, layout_id, to_translate) 
+                    VALUES (?, ?, ?, ?, ?, 1)
                 ");
 
                 $result = $stmt->execute([
                     $data->code,
                     $data->subject,
-                    $data->body_html
+                    $data->body_html,
+                    $locale,
+                    $layoutId
+                ]);
+
+                Logger::info("INSERT result", "EmailTemplateController", [
+                    'result' => $result,
+                    'last_insert_id' => $this->db->lastInsertId()
                 ]);
 
                 if ($result) {
                     $finalTemplateId = $this->db->lastInsertId();
                     $action = 'created';
-                    
-                    Logger::info("New email template created", "EmailTemplateController", [
-                        'code' => $data->code,
-                        'template_id' => $finalTemplateId,
-                        'user_id' => $userData['user_id']
-                    ]);
                 } else {
+                    Logger::error("Failed to create template", "EmailTemplateController");
                     return Flight::json(['success' => false, 'error' => 'Failed to create template'], 500);
                 }
             } else {
-                // Обновляем существующий шаблон (UPDATE)
+                $templateId = (int)$templateId;
+                Logger::info("Updating EXISTING template", "EmailTemplateController", [
+                    'template_id' => $templateId
+                ]);
+                
+                // Обновляем существующий шаблон
                 $stmt = $this->db->prepare("
                     UPDATE i18n_email_templates 
-                    SET code = ?, subject = ?, body_html = ?
+                    SET code = ?, subject = ?, body_html = ?, layout_id = ?, to_translate = 1
                     WHERE id = ?
                 ");
 
@@ -231,22 +266,28 @@ class EmailTemplateController extends BaseController
                     $data->code,
                     $data->subject,
                     $data->body_html,
+                    $layoutId,
                     $templateId
                 ]);
 
-                if ($result && $stmt->rowCount() > 0) {
+                Logger::info("UPDATE result", "EmailTemplateController", [
+                    'result' => $result,
+                    'affected_rows' => $stmt->rowCount(),
+                    'template_id' => $templateId
+                ]);
+
+                if ($result) {
                     $finalTemplateId = $templateId;
                     $action = 'updated';
-                    
-                    Logger::info("Email template updated", "EmailTemplateController", [
-                        'code' => $data->code,
-                        'template_id' => $finalTemplateId,
-                        'user_id' => $userData['user_id']
-                    ]);
                 } else {
-                    return Flight::json(['success' => false, 'error' => 'Template not found or no changes made'], 404);
+                    Logger::error("Failed to update template", "EmailTemplateController");
+                    return Flight::json(['success' => false, 'error' => 'Failed to update template'], 500);
                 }
             }
+
+            Logger::info("Template saved, retrieving data", "EmailTemplateController", [
+                'final_template_id' => $finalTemplateId
+            ]);
 
             // Получаем полные данные сохраненного шаблона
             $stmt = $this->db->prepare("SELECT * FROM petsbook_new.v_email_templates WHERE template_id = ?");
@@ -254,12 +295,20 @@ class EmailTemplateController extends BaseController
             $template = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$template) {
+                Logger::error("Template saved but could not retrieve data", "EmailTemplateController", [
+                    'final_template_id' => $finalTemplateId
+                ]);
                 return Flight::json(['success' => false, 'error' => 'Template saved but could not retrieve data'], 500);
             }
 
+            Logger::info("Template operation completed", "EmailTemplateController", [
+                'action' => $action,
+                'template_id' => $finalTemplateId
+            ]);
+
             return Flight::json([
                 'success' => true,
-                'message' => $action === 'created' ? 'New template created/updated successfully' : 'Template updated successfully',
+                'message' => $action === 'created' ? 'New template created successfully' : 'Template updated successfully',
                 'template_id' => $finalTemplateId,
                 'action' => $action,
                 'template' => $template
@@ -268,8 +317,7 @@ class EmailTemplateController extends BaseController
         } catch (\Exception $e) {
             Logger::error("Error saving email template", "EmailTemplateController", [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'user_id' => $userData['user_id']
+                'trace' => $e->getTraceAsString()
             ]);
 
             return Flight::json([
