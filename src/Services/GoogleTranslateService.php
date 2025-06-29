@@ -817,4 +817,194 @@ class GoogleTranslateService
             return [];
         }
     }
+
+    /**
+     * Translate HTML content with variable substitution protection
+     * 
+     * @param string $htmlContent HTML content to translate
+     * @param string $targetLocale Target language code
+     * @return array|null Array with translated text and direction or null on error
+     */
+    public function translateHtml(string $htmlContent, string $targetLocale): ?array
+    {
+        try {
+            Logger::info(
+                'Starting HTML translation',
+                'GoogleTranslateService::translateHtml',
+                [
+                    'targetLocale' => $targetLocale,
+                    'contentLength' => strlen($htmlContent)
+                ]
+            );
+
+            // Шаг 1: Находим и сохраняем все переменные подстановки {{variable}}
+            $variables = [];
+            $variableCounter = 0;
+            
+            // Регулярное выражение для поиска переменных в формате {{variable}}
+            $pattern = '/\{\{([^}]+)\}\}/';
+            
+            $htmlWithPlaceholders = preg_replace_callback($pattern, function($matches) use (&$variables, &$variableCounter) {
+                $variableName = $matches[1];
+                $placeholder = "___VAR_{$variableCounter}___";
+                $variables[$placeholder] = $matches[0]; // Сохраняем оригинальную переменную
+                $variableCounter++;
+                return $placeholder;
+            }, $htmlContent);
+
+            Logger::info(
+                'Variables extracted from HTML',
+                'GoogleTranslateService::translateHtml',
+                [
+                    'variables_count' => count($variables),
+                    'variables' => $variables
+                ]
+            );
+
+            // Шаг 2: Переводим HTML с замененными переменными
+            $translationResult = $this->translate($htmlWithPlaceholders, $targetLocale);
+            
+            if (!$translationResult) {
+                Logger::error(
+                    'Translation failed',
+                    'GoogleTranslateService::translateHtml',
+                    [
+                        'targetLocale' => $targetLocale,
+                        'htmlWithPlaceholders' => $htmlWithPlaceholders
+                    ]
+                );
+                return null;
+            }
+
+            $translatedHtml = $translationResult['text'];
+
+            // Шаг 3: Восстанавливаем переменные подстановки
+            foreach ($variables as $placeholder => $originalVariable) {
+                $translatedHtml = str_replace($placeholder, $originalVariable, $translatedHtml);
+            }
+
+            Logger::info(
+                'HTML translation completed successfully',
+                'GoogleTranslateService::translateHtml',
+                [
+                    'targetLocale' => $targetLocale,
+                    'variables_restored' => count($variables),
+                    'finalLength' => strlen($translatedHtml)
+                ]
+            );
+
+            return [
+                'text' => $translatedHtml,
+                'direction' => $translationResult['direction']
+            ];
+
+        } catch (\Exception $e) {
+            Logger::error(
+                'Error in HTML translation',
+                'GoogleTranslateService::translateHtml',
+                [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'targetLocale' => $targetLocale,
+                    'htmlContent' => $htmlContent
+                ]
+            );
+            return null;
+        }
+    }
+
+    /**
+     * Translate plain text with variable substitution protection
+     * 
+     * @param string $text Plain text to translate
+     * @param string $targetLocale Target language code
+     * @return array|null Array with translated text and direction or null on error
+     */
+    public function translateTextWithVariables(string $text, string $targetLocale): ?array
+    {
+        try {
+            Logger::info(
+                'Starting text translation with variable protection',
+                'GoogleTranslateService::translateTextWithVariables',
+                [
+                    'targetLocale' => $targetLocale,
+                    'textLength' => strlen($text)
+                ]
+            );
+
+            // Шаг 1: Находим и сохраняем все переменные подстановки {{variable}}
+            $variables = [];
+            $variableCounter = 0;
+            
+            // Регулярное выражение для поиска переменных в формате {{variable}}
+            $pattern = '/\{\{([^}]+)\}\}/';
+            
+            $textWithPlaceholders = preg_replace_callback($pattern, function($matches) use (&$variables, &$variableCounter) {
+                $variableName = $matches[1];
+                $placeholder = "___VAR_{$variableCounter}___";
+                $variables[$placeholder] = $matches[0]; // Сохраняем оригинальную переменную
+                $variableCounter++;
+                return $placeholder;
+            }, $text);
+
+            Logger::info(
+                'Variables extracted from text',
+                'GoogleTranslateService::translateTextWithVariables',
+                [
+                    'variables_count' => count($variables),
+                    'variables' => $variables
+                ]
+            );
+
+            // Шаг 2: Переводим текст с замененными переменными
+            $translationResult = $this->translate($textWithPlaceholders, $targetLocale);
+            
+            if (!$translationResult) {
+                Logger::error(
+                    'Translation failed',
+                    'GoogleTranslateService::translateTextWithVariables',
+                    [
+                        'targetLocale' => $targetLocale,
+                        'textWithPlaceholders' => $textWithPlaceholders
+                    ]
+                );
+                return null;
+            }
+
+            $translatedText = $translationResult['text'];
+
+            // Шаг 3: Восстанавливаем переменные подстановки
+            foreach ($variables as $placeholder => $originalVariable) {
+                $translatedText = str_replace($placeholder, $originalVariable, $translatedText);
+            }
+
+            Logger::info(
+                'Text translation with variables completed successfully',
+                'GoogleTranslateService::translateTextWithVariables',
+                [
+                    'targetLocale' => $targetLocale,
+                    'variables_restored' => count($variables),
+                    'finalLength' => strlen($translatedText)
+                ]
+            );
+
+            return [
+                'text' => $translatedText,
+                'direction' => $translationResult['direction']
+            ];
+
+        } catch (\Exception $e) {
+            Logger::error(
+                'Error in text translation with variables',
+                'GoogleTranslateService::translateTextWithVariables',
+                [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'targetLocale' => $targetLocale,
+                    'text' => $text
+                ]
+            );
+            return null;
+        }
+    }
 }
