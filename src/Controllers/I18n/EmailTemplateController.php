@@ -229,6 +229,20 @@ class EmailTemplateController extends BaseController
             if ($isNewTemplate) {
                 Logger::info("Creating NEW template", "EmailTemplateController");
                 
+                // Получаем id лейаута для нужного языка
+                $sqlLayout = "SELECT id FROM i18n_email_layouts WHERE locale = ? AND name = ?";
+                $stmtLayout = $this->db->prepare($sqlLayout);
+                $stmtLayout->execute([$locale, $layoutId]);
+                $layoutRow = $stmtLayout->fetch(PDO::FETCH_ASSOC);
+
+                if (!$layoutRow) {
+                    // Можно кинуть ошибку или пропустить
+                    Logger::error("Layout not found for locale $locale and name $layoutId", "EmailTemplateController");
+                    return Flight::json(['success' => false, 'error' => 'Layout not found'], 500);
+                }
+
+                $layoutId = $layoutRow['id'];
+                
                 // Создаем новый шаблон
                 $stmt = $this->db->prepare("
                     INSERT INTO i18n_email_templates (code, subject, body_html, locale, layout_id, to_translate, test_data_json) 
@@ -261,6 +275,20 @@ class EmailTemplateController extends BaseController
                 Logger::info("Updating EXISTING template", "EmailTemplateController", [
                     'template_id' => $templateId
                 ]);
+                
+                // Получаем id лейаута для нужного языка
+                $sqlLayout = "SELECT id FROM i18n_email_layouts WHERE locale = ? AND name = ?";
+                $stmtLayout = $this->db->prepare($sqlLayout);
+                $stmtLayout->execute([$locale, $layoutId]);
+                $layoutRow = $stmtLayout->fetch(PDO::FETCH_ASSOC);
+
+                if (!$layoutRow) {
+                    // Можно кинуть ошибку или пропустить
+                    Logger::error("Layout not found for locale $locale and name $layoutId", "EmailTemplateController");
+                    return Flight::json(['success' => false, 'error' => 'Layout not found'], 500);
+                }
+
+                $layoutId = $layoutRow['id'];
                 
                 // Обновляем существующий шаблон
                 $stmt = $this->db->prepare("
@@ -342,42 +370,170 @@ class EmailTemplateController extends BaseController
      */
     public function translateTemplates()
     {
-        // Проверяем токен
         $userData = $this->validateToken();
         if (!$userData) {
             return Flight::json(['success' => false, 'error' => 'No token provided'], 401);
         }
 
-        Logger::info("Translating email templates", "EmailTemplateController", [
-            'user_id' => $userData['user_id']
-        ]);
-
         try {
             $availableLanguages = $this->getAvailableLanguages();
-            Logger::info("Available languages", "EmailTemplateController", [
-                'available_languages' => $availableLanguages
-            ]);
-            
-            foreach ($availableLanguages as $language) {
-                $locale = $language['code'];
-                // TODO: Здесь будет логика перевода шаблонов
+            $translatedCount = 0;
+            $errors = [];
+
+            // Получаем все английские шаблоны, которые нужно переводить
+            $sqlEnglishTemplates = "
+                SELECT * FROM i18n_email_templates
+                WHERE locale = 'en' AND to_translate = 1
+            ";
+            $stmtEnglish = $this->db->prepare($sqlEnglishTemplates);
+            $stmtEnglish->execute();
+            $englishTemplates = $stmtEnglish->fetchAll(PDO::FETCH_ASSOC);
+
+            Logger::info("Found " . count($englishTemplates) . " English templates to translate", "EmailTemplateController");
+
+            // Найти все лейауты заранее (один запрос)
+            $sqlAllLayouts = "SELECT id, locale FROM i18n_email_layouts";
+            $stmtAllLayouts = $this->db->prepare($sqlAllLayouts);
+            $stmtAllLayouts->execute();
+            $layouts = [];
+            while ($row = $stmtAllLayouts->fetch(PDO::FETCH_ASSOC)) {
+                $layouts[$row['locale']] = $row['id'];
+            }
+
+            Logger::info("Found " . count($layouts) . " layouts", "EmailTemplateController");
+
+            foreach ($englishTemplates as $englishTemplate) {
+                foreach ($availableLanguages as $language) {
+                    $targetLocale = $language['code'];
+                    if ($targetLocale === 'en') continue;
+
+                    try {
+                        // Получаем правильный layout_id для этого языка
+                        $correctLayoutId = $layouts[$targetLocale] ?? $englishTemplate['layout_id'];
+
+                        // Проверяем, существует ли перевод для этого шаблона и языка
+                        $sqlCheckExisting = "
+                            SELECT * FROM i18n_email_templates
+                            WHERE code = ? AND locale = ?
+                        ";
+                        $stmtCheck = $this->db->prepare($sqlCheckExisting);
+                        $stmtCheck->execute([$englishTemplate['code'], $targetLocale]);
+                        $existingTemplate = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+
+                        // Защищаем переменные в body_html
+                        $protectedBody = $this->protectVariables($englishTemplate['body_html']);
+                        
+                        // Переводим body_html
+                        $translatedBody = $this->translateService->translateHtml($protectedBody, $targetLocale);
+
+                        // Отладочная информация
+                        Logger::info("Translation result", "EmailTemplateController", [
+                            'template' => $englishTemplate['code'],
+                            'locale' => $targetLocale,
+                            'translatedBody_type' => gettype($translatedBody),
+                            'translatedBody' => $translatedBody
+                        ]);
+
+                        // Исправленная логика обработки результата перевода
+                        $translatedText = null;
+                        if ($translatedBody) {
+                            if (is_object($translatedBody) && isset($translatedBody->text)) {
+                                $translatedText = $translatedBody->text;
+                            } elseif (is_array($translatedBody) && isset($translatedBody['text'])) {
+                                $translatedText = $translatedBody['text'];
+                            } else {
+                                $errors[] = "Translation failed for template {$englishTemplate['code']} to locale $targetLocale - invalid response format";
+                                continue;
+                            }
+                            
+                            if ($translatedText) {
+                                $translatedBody = $this->restoreVariables($translatedText);
+                            } else {
+                                $errors[] = "Translation failed for template {$englishTemplate['code']} to locale $targetLocale - empty text";
+                                continue;
+                            }
+                        } else {
+                            $errors[] = "Translation failed for template {$englishTemplate['code']} to locale $targetLocale - no response";
+                            continue;
+                        }
+
+                        // Переводим subject с защитой переменных
+                        $translatedSubject = $englishTemplate['subject'];
+                        if (!empty($englishTemplate['subject'])) {
+                            $protectedSubject = $this->protectVariables($englishTemplate['subject']);
+                            $subjectTranslation = $this->translateService->translate($protectedSubject, $targetLocale);
+                            
+                            if ($subjectTranslation) {
+                                if (is_object($subjectTranslation) && isset($subjectTranslation->text)) {
+                                    $translatedSubject = $this->restoreVariables($subjectTranslation->text);
+                                } elseif (is_array($subjectTranslation) && isset($subjectTranslation['text'])) {
+                                    $translatedSubject = $this->restoreVariables($subjectTranslation['text']);
+                                }
+                            }
+                        }
+
+                        if ($existingTemplate) {
+                            // Обновляем существующий перевод
+                            $sqlUpdate = "
+                                UPDATE i18n_email_templates 
+                                SET subject = ?, body_html = ?, layout_id = ?, updated_at = NOW()
+                                WHERE code = ? AND locale = ?
+                            ";
+                            $stmtUpdate = $this->db->prepare($sqlUpdate);
+                            $stmtUpdate->execute([
+                                $translatedSubject,
+                                $translatedBody,
+                                $correctLayoutId,
+                                $englishTemplate['code'],
+                                $targetLocale
+                            ]);
+                        } else {
+                            // Создаем новый перевод
+                            $sqlInsert = "
+                                INSERT INTO i18n_email_templates 
+                                (code, locale, layout_id, subject, body_html, is_auto_translated, to_translate, test_data_json)
+                                VALUES (?, ?, ?, ?, ?, 1, 0, ?)
+                            ";
+                            $stmtInsert = $this->db->prepare($sqlInsert);
+                            $stmtInsert->execute([
+                                $englishTemplate['code'],
+                                $targetLocale,
+                                $correctLayoutId,
+                                $translatedSubject,
+                                $translatedBody,
+                                $englishTemplate['test_data_json']
+                            ]);
+                        }
+
+                        $translatedCount++;
+
+                    } catch (Exception $e) {
+                        $errors[] = "Error processing template {$englishTemplate['code']} for locale $targetLocale: " . $e->getMessage();
+                    }
+                }
+
+                // Сбрасываем флажок to_translate для английского шаблона
+                $sqlResetFlag = "
+                    UPDATE i18n_email_templates 
+                    SET to_translate = 0 
+                    WHERE id = ?
+                ";
+                $stmtReset = $this->db->prepare($sqlResetFlag);
+                $stmtReset->execute([$englishTemplate['id']]);
             }
 
             return Flight::json([
                 'success' => true,
-                'message' => 'Translation method called successfully'
+                'message' => "Template translation completed. $translatedCount templates processed.",
+                'translated_count' => $translatedCount,
+                'errors' => $errors
             ]);
 
-        } catch (\Exception $e) {
-            Logger::error("Error in translateTemplates", "EmailTemplateController", [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'user_id' => $userData['user_id']
-            ]);
-
+        } catch (Exception $e) {
+            Logger::error("Template translation failed: " . $e->getMessage(), "EmailTemplateController");
             return Flight::json([
                 'success' => false,
-                'error' => 'Translation failed: ' . $e->getMessage()
+                'error' => "Template translation failed: " . $e->getMessage()
             ], 500);
         }
     }
@@ -403,114 +559,153 @@ class EmailTemplateController extends BaseController
             $translatedCount = 0;
             $errors = [];
 
-            // Получаем все английские макеты (базовые)
+            // Получаем все английские макеты с флажками перевода
             $sqlEnglishLayouts = "
-                SELECT * 
-                FROM i18n_email_layouts   
-                WHERE locale = 'en'
+                SELECT * FROM i18n_email_layouts
+                WHERE locale = 'en' AND (h_to_translate = 1 OR f_to_translate = 1)
             ";
             $stmtEnglish = $this->db->prepare($sqlEnglishLayouts);
             $stmtEnglish->execute();
             $englishLayouts = $stmtEnglish->fetchAll(PDO::FETCH_ASSOC);
 
-            foreach ($englishLayouts as $englishLayout) {
-                $baseName = $englishLayout['name'];
-                $shouldTranslateHeader = (int)($englishLayout['h_to_translate'] ?? 0) === 1;
-                $shouldTranslateFooter = (int)($englishLayout['f_to_translate'] ?? 0) === 1;
+            Logger::info("Found " . count($englishLayouts) . " English layouts to translate", "EmailTemplateController");
 
-                // Если оба флажка = 0 — ничего не делаем для этого макета
-                if (!$shouldTranslateHeader && !$shouldTranslateFooter) {
-                    continue;
-                }
+            foreach ($englishLayouts as $englishLayout) {
+                $layoutId = $englishLayout['id'];
+                $layoutName = is_string($englishLayout['name']) ? $englishLayout['name'] : 'Layout name 1';
+                
+                if (!$layoutId) continue;
 
                 foreach ($availableLanguages as $language) {
                     $locale = $language['code'];
                     if ($locale === 'en') continue;
 
-                    // Проверяем, есть ли перевод для этого макета и языка
-                    $sqlCheckExisting = "
-                        SELECT * FROM i18n_email_layouts WHERE name = ? AND locale = ?
-                    ";
-                    $stmtCheck = $this->db->prepare($sqlCheckExisting);
-                    $stmtCheck->execute([$baseName, $locale]);
-                    $existingLayout = $stmtCheck->fetch(PDO::FETCH_ASSOC);
-
-                    // Готовим новые значения
-                    $translatedHeaderHtml = $existingLayout['header_html'] ?? '';
-                    $translatedFooterHtml = $existingLayout['footer_html'] ?? '';
-                    $translatedSlogan = $existingLayout['slogan'] ?? '';
-
-                    if ($shouldTranslateHeader && !empty($englishLayout['header_html'])) {
-                        $headerTranslation = $this->translateService->translateHtml($englishLayout['header_html'], $locale);
-                        if ($headerTranslation) {
-                            $translatedHeaderHtml = $headerTranslation['text'];
-                        }
-                    }
-                    if ($shouldTranslateFooter && !empty($englishLayout['footer_html'])) {
-                        $footerTranslation = $this->translateService->translateHtml($englishLayout['footer_html'], $locale);
-                        if ($footerTranslation) {
-                            $translatedFooterHtml = $footerTranslation['text'];
-                        }
-                    }
-                    if (!empty($englishLayout['slogan'])) {
-                        $sloganTranslation = $this->translateService->translate($englishLayout['slogan'], $locale);
-                        if ($sloganTranslation) {
-                            $translatedSlogan = $sloganTranslation['text'];
-                        }
-                    }
-
-                    if ($existingLayout) {
-                        // UPDATE
-                        $sqlUpdate = "
-                            UPDATE i18n_email_layouts
-                            SET header_html = ?, footer_html = ?, slogan = ?
-                            WHERE name = ? AND locale = ?
+                    try {
+                        // Проверяем, существует ли перевод для этого макета и языка
+                        $sqlCheckExisting = "
+                            SELECT * FROM i18n_email_layouts
+                            WHERE locale = ? AND name = ?
                         ";
-                        $stmtUpdate = $this->db->prepare($sqlUpdate);
-                        $stmtUpdate->execute([
-                            $translatedHeaderHtml,
-                            $translatedFooterHtml,
-                            $translatedSlogan,
-                            $baseName,
-                            $locale
+                        $stmtCheck = $this->db->prepare($sqlCheckExisting);
+                        
+                        // Отладочная информация
+                        Logger::info("Checking existing layout", "EmailTemplateController", [
+                            'locale' => $locale,
+                            'name' => $layoutName,
+                            'name_type' => gettype($layoutName)
                         ]);
-                    } else {
-                        // INSERT
-                        $sqlInsert = "
-                            INSERT INTO i18n_email_layouts (name, header_html, footer_html, slogan, h_to_translate, f_to_translate, locale)
-                            VALUES (?, ?, ?, ?, 0, 0, ?)
-                        ";
-                        $stmtInsert = $this->db->prepare($sqlInsert);
-                        $stmtInsert->execute([
-                            $baseName,
-                            $translatedHeaderHtml,
-                            $translatedFooterHtml,
-                            $translatedSlogan,
-                            $locale
-                        ]);
+                        
+                        $stmtCheck->execute([$locale, $layoutName]);
+                        $existingLayout = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+
+                        $translatedName = $layoutName;
+                        $translatedHeader = is_string($englishLayout['header_html']) ? $englishLayout['header_html'] : '';
+                        $translatedFooter = is_string($englishLayout['footer_html']) ? $englishLayout['footer_html'] : '';
+                        $translatedSlogan = is_string($englishLayout['slogan']) ? $englishLayout['slogan'] : '';
+
+                        // Переводим только те части, которые помечены для перевода
+                        if ($englishLayout['h_to_translate'] && !empty($translatedHeader)) {
+                            $protectedHeader = $this->protectVariables($translatedHeader);
+                            $headerTranslation = $this->translateService->translateHtml($protectedHeader, $locale);
+                            if ($headerTranslation && is_array($headerTranslation) && isset($headerTranslation[0]['text'])) {
+                                $translatedHeader = $this->restoreVariables($headerTranslation[0]['text']);
+                            }
+                        }
+
+                        if ($englishLayout['f_to_translate'] && !empty($translatedFooter)) {
+                            $protectedFooter = $this->protectVariables($translatedFooter);
+                            $footerTranslation = $this->translateService->translateHtml($protectedFooter, $locale);
+                            if ($footerTranslation && is_array($footerTranslation) && isset($footerTranslation[0]['text'])) {
+                                $translatedFooter = $this->restoreVariables($footerTranslation[0]['text']);
+                            }
+                        }
+
+                        // Переводим слоган
+                        if (!empty($translatedSlogan)) {
+                            $sloganTranslation = $this->translateService->translate($translatedSlogan, $locale);
+                            if ($sloganTranslation && is_array($sloganTranslation) && isset($sloganTranslation[0]['text'])) {
+                                $translatedSlogan = $sloganTranslation[0]['text'];
+                            }
+                        }
+
+                        if ($existingLayout) {
+                            // Обновляем существующий перевод
+                            $sqlUpdate = "
+                                UPDATE i18n_email_layouts 
+                                SET name = ?, header_html = ?, footer_html = ?, slogan = ?, h_to_translate = 0, f_to_translate = 0
+                                WHERE locale = ? AND name = ?
+                            ";
+                            $stmtUpdate = $this->db->prepare($sqlUpdate);
+                            
+                            $updateParams = [
+                                $translatedName,
+                                $translatedHeader,
+                                $translatedFooter,
+                                $translatedSlogan,
+                                $locale,
+                                $layoutName
+                            ];
+                            
+                            // Отладочная информация
+                            Logger::info("Update params", "EmailTemplateController", [
+                                'params' => $updateParams
+                            ]);
+                            
+                            $stmtUpdate->execute($updateParams);
+                        } else {
+                            // Создаем новый перевод
+                            $sqlInsert = "
+                                INSERT INTO i18n_email_layouts 
+                                (locale, name, header_html, footer_html, slogan, h_to_translate, f_to_translate)
+                                VALUES (?, ?, ?, ?, ?, 0, 0)
+                            ";
+                            $stmtInsert = $this->db->prepare($sqlInsert);
+                            
+                            $insertParams = [
+                                $locale,
+                                $translatedName,
+                                $translatedHeader,
+                                $translatedFooter,
+                                $translatedSlogan
+                            ];
+                            
+                            // Отладочная информация
+                            Logger::info("Insert params", "EmailTemplateController", [
+                                'params' => $insertParams
+                            ]);
+                            
+                            $stmtInsert->execute($insertParams);
+                        }
+
+                        $translatedCount++;
+
+                    } catch (Exception $e) {
+                        $errors[] = "Error processing layout $layoutId for locale $locale: " . $e->getMessage();
                     }
                 }
 
-                // После обработки всех языков — сбрасываем оба флажка в английском макете
+                // Сбрасываем флажки для английского макета
                 $sqlResetFlags = "
-                    UPDATE i18n_email_layouts
+                    UPDATE i18n_email_layouts 
                     SET h_to_translate = 0, f_to_translate = 0
-                    WHERE name = ? AND locale = 'en'
+                    WHERE id = ?
                 ";
                 $stmtReset = $this->db->prepare($sqlResetFlags);
-                $stmtReset->execute([$baseName]);
+                $stmtReset->execute([$layoutId]);
             }
 
             return Flight::json([
                 'success' => true,
-                'message' => "Layout translation completed. {$translatedCount} layouts processed.",
+                'message' => "Layout translation completed. $translatedCount layouts processed.",
                 'translated_count' => $translatedCount,
                 'errors' => $errors
             ]);
-        } catch (\Exception $e) {
+
+        } catch (Exception $e) {
+            Logger::error("Layout translation failed: " . $e->getMessage(), "EmailTemplateController");
             return Flight::json([
                 'success' => false,
-                'error' => 'Layout translation failed: ' . $e->getMessage()
+                'error' => "Layout translation failed: " . $e->getMessage()
             ], 500);
         }
     }
@@ -527,5 +722,25 @@ class EmailTemplateController extends BaseController
         $stmt->execute();
         $languages = $stmt->fetchAll(PDO::FETCH_ASSOC);        
         return $languages;
+    }
+
+    /**
+     * Защищает переменные в HTML от перевода
+     */
+    private function protectVariables($html)
+    {
+        // Заменяем {{ variable }} на специальные маркеры
+        $html = preg_replace('/\{\{\s*([^}]+)\s*\}\}/', '___VAR___$1___VAR___', $html);
+        return $html;
+    }
+
+    /**
+     * Восстанавливает переменные после перевода
+     */
+    private function restoreVariables($html)
+    {
+        // Восстанавливаем {{ variable }} из маркеров
+        $html = preg_replace('/___VAR___([^_]+)___VAR___/', '{{ $1 }}', $html);
+        return $html;
     }
 } 
