@@ -8,12 +8,10 @@ use PDO;
 use Flight;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
-//use PHPMailer\PHPMailer\PHPMailer;
-//use PHPMailer\PHPMailer\Exception;
-//use PHPMailer\PHPMailer\SMTP;
 use App\Constants\ResponseCodes;
 use App\Mail\MailService;
 use App\Mail\DTOs\PersonalizedRecipient;
+use App\Services\EmailTemplateRenderer;
 
 
 /**
@@ -26,6 +24,7 @@ class AuthController extends BaseController {
     /** @var PDO Database connection instance */
     private $db;
     private $request;
+    private $renderer;
 
     /**
      * Constructor initializes database connection
@@ -35,6 +34,7 @@ class AuthController extends BaseController {
     public function __construct($db) {
         $this->request = Flight::request();
         $this->db = $db;
+        $this->renderer = new EmailTemplateRenderer();
 
         Logger::info("AuthController initialized", "AuthController");
     }
@@ -659,7 +659,7 @@ class AuthController extends BaseController {
             if (!isset($_ENV['APP_URL'])) {
                 throw new \Exception("APP_URL environment variable is not set");
             }
-
+            
             // Определяем протокол в зависимости от окружения
             $protocol = $_ENV['APP_ENV'] === 'production' ? 'https://' : 'http://';
             $baseUrl = preg_replace('/^https?:\/\//', '', $_ENV['APP_URL']);
@@ -672,7 +672,6 @@ class AuthController extends BaseController {
                 'originalUrl' => $_ENV['APP_URL'],
                 'baseUrl' => $baseUrl
             ]);
-
             $mailService = new MailService();
 
             // Ошибка была в использовании $stmt = $this->db->prepare(...); $stmt->execute([$email]);
@@ -709,10 +708,50 @@ class AuthController extends BaseController {
                 'template' => $renderedTemplate
             ]);
 
+            
+            // Получаем шаблон из базы данных
+            $stmt = $this->db->prepare("
+                SELECT * FROM v_email_templates WHERE code='auth.registration.welcome' AND locale='en'");
+            $stmt->execute();
+            $template = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$template) {
+                Logger::error("Email template not found", "AuthController", [
+                    'code' => 'auth.registration.welcome',
+                    'locale' => 'en'
+                ]);
+                throw new \Exception("Email template not found");
+            }
+
+            $tmplSubj = $template['subject'];
+            $tmplBody = $template['header_html'] . $template['body_html'] . $template['footer_html'];
+
+            // Преобразуем имя в UTF-8
+            $utf8Name = mb_convert_encoding($name, 'UTF-8', 'auto');
+
+            // Рендерим тему и тело письма через Twig
+            $rendered = $this->renderer->render(
+                $tmplBody,
+                $tmplSubj,
+                [
+                    'clientName' => $utf8Name,
+                    'verifyUrl' => $verifyUrl,
+                    'Sender_Phone' => $_ENV['MAIL_SENDER_PHONE'],
+                    'Sender_Email' => $_ENV['MAIL_SENDER_EMAIL'],
+                    'now' => date('Y')
+                ]
+            );
+
+            $mailService = new MailService();
+
+            Logger::info("Prepared rendered email", "AuthController", [
+                'email' => $email
+            ]);
+
             $mailService->sendMail(
                 $email,
-                $renderedSubject,
-                $renderedTemplate
+                $rendered['subject'],
+                $rendered['body']
             );
 
             Logger::info("Welcome and verification email sent successfully", "AuthController", [
@@ -838,44 +877,36 @@ class AuthController extends BaseController {
             ]);
             
             $mailService = new MailService();
-
-            $stmt = $this->db->query("SELECT * FROM v_email_templates where code='auth.resetpassword.link' and locale='en'");
-            $response = $stmt->fetch(PDO::FETCH_ASSOC);
             
-            $subject = $response['subject'] ?? 'Welcome to PetsBook - Reset Your Password';
-            $template = $response['header_html'] . $response['body_html'] . $response['footer_html'];
-
-            $senderData = [
-                "clientName" => $name,
-                "resetUrl" => $resetLink, // убедитесь, что $resetLink определён выше
-                "Sender_Phone" => $_ENV['MAIL_SENDER_PHONE'],
-                "Sender_Email" => $_ENV['MAIL_SENDER_EMAIL'],
-                "now" => date('Y')  
-            ];
-
-            // Явно инициализируем Twig, если еще не установлен
-            if (\App\Mail\DTOs\PersonalizedRecipient::getTwigInstance() === null) {
-                $loader = new \Twig\Loader\ArrayLoader();
-                $twig = new \Twig\Environment($loader);
-                \App\Mail\DTOs\PersonalizedRecipient::setTwig($twig);
-            }
-
-            // Рендерим subject и template через Twig
-            $twig = \App\Mail\DTOs\PersonalizedRecipient::getTwigInstance();
-            $renderedSubject = $twig->createTemplate($subject)->render($senderData);
-            $renderedTemplate = $twig->createTemplate($template)->render($senderData);
-
-            // Удалено: лишние mb_convert_encoding и base64_encode
-            Logger::info("Rendered subject and template", "AuthController", [
-                'subject' => $renderedSubject,
-                'template' => $renderedTemplate
+            Logger::info("Created PersonalizedRecipient", "AuthController", [
+                'email' => $email
             ]);
+
+            $stmt = $this->db->prepare("SELECT * FROM v_email_templates WHERE code='auth.resetpassword.link' AND locale='en'");
+            $stmt->execute();
+            $template = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $tmplSubj = $template['subject'];
+            $tmplBody = $template['header_html'] . $template['body_html'] . $template['footer_html'];
+            $utf8Name = mb_convert_encoding($name, 'UTF-8', 'auto');
+
+            $rendered = $this->renderer->render(
+                $tmplBody,
+                $tmplSubj,
+                [
+                    'clientName' => $utf8Name,
+                    'resetUrl' => $resetLink,
+                    'Sender_Phone' => $_ENV['MAIL_SENDER_PHONE'],
+                    'Sender_Email' => $_ENV['MAIL_SENDER_EMAIL'],
+                    'now' => date('Y')
+                ]
+            );
 
             $mailService->sendMail(
                 $email,
-                $renderedSubject,
-                $renderedTemplate
-            );
+                $rendered['subject'],
+                $rendered['body']
+            );            
             
             Logger::info("Reset email sent successfully", "AuthController", [
                 'email' => $email

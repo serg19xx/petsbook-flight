@@ -57,6 +57,7 @@ class SendGridApiProvider implements MailProviderInterface
                     $email->addDynamicTemplateDatas([$key => $value]);
                 }
             } else {
+                // SendGrid API всегда использует UTF-8 для контента
                 $email->addContent("text/html", $body);
             }
             

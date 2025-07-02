@@ -60,6 +60,8 @@ class MailtrapProvider implements MailProviderInterface
 
             $this->config = $config;
             $this->mailer = new PHPMailer(true);
+            $this->mailer->CharSet = 'UTF-8';
+            $this->mailer->Encoding = 'base64';
 
             Logger::info("PHPMailer instance created", "MailtrapProvider");
             
@@ -171,7 +173,9 @@ class MailtrapProvider implements MailProviderInterface
             $this->mailer->Subject = $subject;
             $this->mailer->isHTML(true);
             $this->mailer->Body = $body;
-
+            $this->mailer->CharSet = 'UTF-8'; // гарантируем кодировку для каждого письма
+            $this->mailer->Encoding = 'base64';
+            
             // Добавление вложений
             if (!empty($attachments)) {
                 Logger::info("Processing attachments", "MailtrapProvider", [

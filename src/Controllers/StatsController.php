@@ -4,7 +4,6 @@ namespace App\Controllers;
 
 use PDO;
 use Flight;
-use PHPMailer\PHPMailer\Exception;
 use App\Constants\ResponseCodes;
 use App\Utils\Logger;
 

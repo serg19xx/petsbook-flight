@@ -4,6 +4,7 @@ namespace App\Mail;
 
 use App\Utils\Logger;
 use App\Mail\Contracts\MailProviderInterface;
+use App\Mail\DTOs\PersonalizedRecipient;
 
 
 class MailService
@@ -37,50 +38,37 @@ class MailService
     /**
      * @param string $recipient
      * @param string $subject
-     * @param string $template
+     * @param string $body
      * @param ?string $templateId
      * @return void
      */
     public function sendMail(
-        string $recipient,
+        $recipient,
         string $subject,
-        string $template,
+        string $body,
         ?string $templateId = null
     ): void {
         Logger::info("Starting mail send process", "MailService", [
             'to' => $recipient,
             'subject' => $subject,
-            'template' => $template,
             'templateId' => $templateId
         ]);
 
         try {
-            // Попытка рендера Twig, если возможно
-            $body = $template;
-            if (class_exists('\App\Mail\DTOs\PersonalizedRecipient')) {
-                $twig = \App\Mail\DTOs\PersonalizedRecipient::getTwigInstance();
-                if ($twig && is_array($templateId)) {
-                    // Если templateId передан как массив данных для шаблона
-                    $body = $twig->createTemplate($template)->render($templateId);
-                    $subject = $twig->createTemplate($subject)->render($templateId);
-                }
-            }
-
             Logger::info("Attempting to send email via provider", "MailService", [
                 'provider' => get_class($this->provider),
                 'to' => $recipient,
                 'subject' => $subject
             ]);
 
-            // Для SendGrid используем templateId
             if ($_ENV['MAIL_DRIVER'] === 'sendgrid_api') {
                 $this->provider->send(
                     $recipient,
                     $subject,
                     $body,
                     [], // attachments
-                    is_array($templateId) ? $templateId : [], // templateData
-                    is_string($templateId) ? $templateId : null // templateId
+                    [], // templateData
+                    $templateId
                 );
             } else {
                 $this->provider->send(
