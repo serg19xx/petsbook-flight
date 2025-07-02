@@ -201,14 +201,19 @@ class AuthController extends BaseController {
                     'env' => $_ENV['APP_ENV'] ?? 'not set'
                 ]);
 
-                setcookie('auth_token', $token, [
-                    'expires' => time() + 7*24*60*60,
+                $options = [
+                    'expires' => time() + 7 * 24 * 60 * 60,
                     'path' => '/',
-                    'domain' => $isLocal ? 'localhost' : '.petsbook.ca',
-                    'secure' => !$isLocal,           // только по https! кроме локальной разработки
-                    'httponly' => true,         // не доступно из JS
-                    'samesite' => $isLocal ? 'Lax' : 'None'  // для локальной разработки используем Lax
-                ]);    
+                    'secure' => !$isLocal,
+                    'httponly' => true,
+                    'samesite' => $isLocal ? 'Lax' : 'None'
+                ];
+
+                if (!$isLocal) {
+                    $options['domain'] = '.petsbook.ca';
+                }
+
+                setcookie('auth_token', $token, $options);    
 
                 // Проверяем, установилась ли кука
                 $cookieSet = isset($_COOKIE['auth_token']);
