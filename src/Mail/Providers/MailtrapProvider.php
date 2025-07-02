@@ -72,12 +72,18 @@ class MailtrapProvider implements MailProviderInterface
             $this->mailer->Password = $config['password'];
             $this->mailer->SMTPSecure = $config['encryption'];
 
+            // Явно указываем кодировку UTF-8 для корректной работы с кириллицей
+            $this->mailer->CharSet = 'UTF-8';
+            $this->mailer->Encoding = 'base64';
+
             Logger::info("SMTP settings configured", "MailtrapProvider", [
                 'host' => $this->mailer->Host,
                 'port' => $this->mailer->Port,
                 'username' => $this->mailer->Username ? 'set' : 'not set',
                 'password' => $this->mailer->Password ? 'set' : 'not set',
-                'encryption' => $this->mailer->SMTPSecure
+                'encryption' => $this->mailer->SMTPSecure,
+                'charset' => $this->mailer->CharSet,
+                'encoding' => $this->mailer->Encoding
             ]);        
 
             // Включаем отладку
@@ -158,10 +164,14 @@ class MailtrapProvider implements MailProviderInterface
 
             Logger::info("Set recipients", "MailtrapProvider", ['to' => $to]);
             
+            // Принудительно конвертируем тему и тело письма в UTF-8
+            $subject = mb_convert_encoding($subject, 'UTF-8', 'auto');
+            $body = mb_convert_encoding($body, 'UTF-8', 'auto');
+
             $this->mailer->Subject = $subject;
             $this->mailer->isHTML(true);
             $this->mailer->Body = $body;
-            
+
             // Добавление вложений
             if (!empty($attachments)) {
                 Logger::info("Processing attachments", "MailtrapProvider", [
