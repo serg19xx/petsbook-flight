@@ -588,6 +588,13 @@ class AuthController extends BaseController {
                 'name' => $name
             ]);
 
+            // Добавим логирование перед отправкой письма для отладки
+            Logger::info("Calling sendPasswordResetEmail", "AuthController", [
+                'email' => $user['email'],
+                'name' => $name,
+                'token' => $token
+            ]);
+
             $this->sendPasswordResetEmail($user['email'], $name, $token);
 
             Logger::info("Password reset process completed successfully", "AuthController", [
@@ -652,16 +659,12 @@ class AuthController extends BaseController {
             if (!isset($_ENV['APP_URL'])) {
                 throw new \Exception("APP_URL environment variable is not set");
             }
-            
+
             // Определяем протокол в зависимости от окружения
             $protocol = $_ENV['APP_ENV'] === 'production' ? 'https://' : 'http://';
-            
-            // Убираем существующие протоколы из APP_URL
             $baseUrl = preg_replace('/^https?:\/\//', '', $_ENV['APP_URL']);
-            
-            // Формируем ссылку с учетом протокола
             $verifyUrl = $protocol . $baseUrl . '/verify-email/' . $token;
-            
+
             Logger::info("Generated verification link", "AuthController", [
                 'verifyUrl' => $verifyUrl,
                 'environment' => $_ENV['APP_ENV'] ?? 'development',
@@ -669,48 +672,49 @@ class AuthController extends BaseController {
                 'originalUrl' => $_ENV['APP_URL'],
                 'baseUrl' => $baseUrl
             ]);
-            
+
             $mailService = new MailService();
-            
-            // Формируем персональные данные
-            $personalData = [
-                'name' => $name,
-                'verifyUrl' => $verifyUrl
-            ];
 
-            // Формируем данные отправителя
+            // Ошибка была в использовании $stmt = $this->db->prepare(...); $stmt->execute([$email]);
+            // Для простого SELECT без плейсхолдеров используйте query()
+            $stmt = $this->db->query("SELECT * FROM v_email_templates WHERE code='auth.registration.welcome' AND locale='en'");
+            $response = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            $subject = $response['subject'] ?? 'Welcome to PetsBook - Please Verify Your Email';
+            $template = $response['header_html'] . $response['body_html'] . $response['footer_html'];
+
             $senderData = [
-                'Sender_Phone' => $_ENV['MAIL_SENDER_PHONE'],
-                'Sender_Email' => $_ENV['MAIL_SENDER_EMAIL'],
-                'Company_Address' => $_ENV['MAIL_COMPANY_ADDRESS'],
-                'Company_Website' => $_ENV['MAIL_COMPANY_WEBSITE']
+                "clientName" => $name,
+                "verifyUrl" => $verifyUrl,
+                "Sender_Phone" => $_ENV['MAIL_SENDER_PHONE'],
+                "Sender_Email" => $_ENV['MAIL_SENDER_EMAIL'],
+                "now" => date('Y')
             ];
-            /*
-            MAIL_SENDER_PHONE='+1 (555)888-9999'
-            MAIL_SENDER_EMAIL=contact@petsbook.ca
-            MAIL_COMPANY_NAME=Petsbook
-            MAIL_COMPANY_ADDRESS='123 Pet Street, Toronto, ON'
-            MAIL_COMPANY_WEBSITE=https://petsbook.ca
-            */
 
-            // Объединяем массивы
-            $templateData = array_merge($personalData, $senderData);
+            // Явно инициализируем Twig, если еще не установлен
+            if (\App\Mail\DTOs\PersonalizedRecipient::getTwigInstance() === null) {
+                $loader = new \Twig\Loader\ArrayLoader();
+                $twig = new \Twig\Environment($loader);
+                \App\Mail\DTOs\PersonalizedRecipient::setTwig($twig);
+            }
 
-            // Создаем объект PersonalizedRecipient с объединенными данными
-            $recipient = new PersonalizedRecipient($email, $templateData);
-            
-            Logger::info("Created PersonalizedRecipient", "AuthController", [
-                'email' => $email,
-                'personalizedVars' => $recipient->getPersonalizedVars()
+            // Рендерим subject и template через Twig
+            $twig = \App\Mail\DTOs\PersonalizedRecipient::getTwigInstance();
+            $renderedSubject = $twig->createTemplate($subject)->render($senderData);
+            $renderedTemplate = $twig->createTemplate($template)->render($senderData);
+
+            // Удалено: лишние mb_convert_encoding и base64_encode
+            Logger::info("Rendered subject and template", "AuthController", [
+                'subject' => $renderedSubject,
+                'template' => $renderedTemplate
             ]);
-            
+
             $mailService->sendMail(
-                $recipient,
-                'Welcome to PetsBook - Please Verify Your Email',
-                '', // Пустая строка вместо имени шаблона, так как используем templateId
-                'd-9d44e3c83e9245a7bbd5f1edf7621c08' // ID шаблона SendGrid
+                $email,
+                $renderedSubject,
+                $renderedTemplate
             );
-            
+
             Logger::info("Welcome and verification email sent successfully", "AuthController", [
                 'email' => $email
             ]);
@@ -804,54 +808,73 @@ class AuthController extends BaseController {
             }
             
             // Определяем протокол в зависимости от окружения
-            $protocol = $_ENV['APP_ENV'] === 'production' ? 'https://' : 'http://';
-            
+            $protocol = (isset($_ENV['APP_ENV']) && $_ENV['APP_ENV'] === 'production') ? 'https://' : 'http://';
+
             // Убираем существующие протоколы из APP_URL
-            $baseUrl = preg_replace('/^https?:\/\//', '', $_ENV['APP_URL']);
-            
+            $baseUrl = '';
+            if (!empty($_ENV['APP_URL'])) {
+                $baseUrl = preg_replace('/^https?:\/\//', '', $_ENV['APP_URL']);
+                $baseUrl = rtrim($baseUrl, '/');
+            }
+
             // Формируем ссылку с учетом протокола
+            // $resetLink = $protocol . $baseUrl . '/reset-password/' . $token;
+            // Исправляем порт на 5173 для локальной среды
+            if (
+                isset($_ENV['APP_ENV']) &&
+                ($_ENV['APP_ENV'] === 'local' || $_ENV['APP_ENV'] === 'development') &&
+                strpos($baseUrl, 'localhost:8080') === 0
+            ) {
+                $baseUrl = str_replace('localhost:8080', 'localhost:5173', $baseUrl);
+            }
             $resetLink = $protocol . $baseUrl . '/reset-password/' . $token;
-            
+
             Logger::info("Generated reset link", "AuthController", [
                 'resetLink' => $resetLink,
                 'environment' => $_ENV['APP_ENV'] ?? 'development',
                 'protocol' => $protocol,
-                'originalUrl' => $_ENV['APP_URL'],
+                'originalUrl' => $_ENV['APP_URL'] ?? null,
                 'baseUrl' => $baseUrl
             ]);
             
             $mailService = new MailService();
-            
-            // Формируем персональные данные
-            $personalData = [
-                'name' => $name,
-                'resetUrl' => $resetLink
-            ];
 
-            // Формируем данные отправителя
+            $stmt = $this->db->query("SELECT * FROM v_email_templates where code='auth.resetpassword.link' and locale='en'");
+            $response = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            $subject = $response['subject'] ?? 'Welcome to PetsBook - Reset Your Password';
+            $template = $response['header_html'] . $response['body_html'] . $response['footer_html'];
+
             $senderData = [
-                'Sender_Phone' => $_ENV['MAIL_SENDER_PHONE'],
-                'Sender_Email' => $_ENV['MAIL_SENDER_EMAIL'],
-                'Company_Address' => $_ENV['MAIL_COMPANY_ADDRESS'],
-                'Company_Website' => $_ENV['MAIL_COMPANY_WEBSITE']
+                "clientName" => $name,
+                "resetUrl" => $resetLink, // убедитесь, что $resetLink определён выше
+                "Sender_Phone" => $_ENV['MAIL_SENDER_PHONE'],
+                "Sender_Email" => $_ENV['MAIL_SENDER_EMAIL'],
+                "now" => date('Y')  
             ];
 
-            // Объединяем массивы
-            $templateData = array_merge($personalData, $senderData);
+            // Явно инициализируем Twig, если еще не установлен
+            if (\App\Mail\DTOs\PersonalizedRecipient::getTwigInstance() === null) {
+                $loader = new \Twig\Loader\ArrayLoader();
+                $twig = new \Twig\Environment($loader);
+                \App\Mail\DTOs\PersonalizedRecipient::setTwig($twig);
+            }
 
-            // Создаем объект PersonalizedRecipient с объединенными данными
-            $recipient = new PersonalizedRecipient($email, $templateData);
-            
-            Logger::info("Created PersonalizedRecipient", "AuthController", [
-                'email' => $email,
-                'personalizedVars' => $recipient->getPersonalizedVars()
+            // Рендерим subject и template через Twig
+            $twig = \App\Mail\DTOs\PersonalizedRecipient::getTwigInstance();
+            $renderedSubject = $twig->createTemplate($subject)->render($senderData);
+            $renderedTemplate = $twig->createTemplate($template)->render($senderData);
+
+            // Удалено: лишние mb_convert_encoding и base64_encode
+            Logger::info("Rendered subject and template", "AuthController", [
+                'subject' => $renderedSubject,
+                'template' => $renderedTemplate
             ]);
-            
+
             $mailService->sendMail(
-                $recipient,
-                'Password Reset Request - Petsbook',
-                'password_reset.twig',
-                'd-f9df34b3b3404f55a869bbccbbeba172' // ID вашего шаблона SendGrid
+                $email,
+                $renderedSubject,
+                $renderedTemplate
             );
             
             Logger::info("Reset email sent successfully", "AuthController", [
@@ -1050,3 +1073,4 @@ class AuthController extends BaseController {
         }
     }
 }
+
