@@ -9,3 +9,4 @@ composer.phar
 .env
 .env.local
 .env.production
+.env
