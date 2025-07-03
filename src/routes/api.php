@@ -42,6 +42,10 @@ $localeController = new LocaleController($db);
 $translationController = new TranslationController($db);
 $emailTemplateController = new EmailTemplateController($db);
 
+Flight::route('GET /', function() {
+    echo json_encode(['status' => 'API is alive', 'env' => APP_ENV]);
+});
+
 // Тестовый endpoint без базы
 Flight::route('GET /api/test', function() {
     Flight::json([
