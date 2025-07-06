@@ -672,43 +672,6 @@ class AuthController extends BaseController {
                 'originalUrl' => $_ENV['APP_URL'],
                 'baseUrl' => $baseUrl
             ]);
-            $mailService = new MailService();
-
-            // Ошибка была в использовании $stmt = $this->db->prepare(...); $stmt->execute([$email]);
-            // Для простого SELECT без плейсхолдеров используйте query()
-            $stmt = $this->db->query("SELECT * FROM v_email_templates WHERE code='auth.registration.welcome' AND locale='en'");
-            $response = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            $subject = $response['subject'] ?? 'Welcome to PetsBook - Please Verify Your Email';
-            $template = $response['header_html'] . $response['body_html'] . $response['footer_html'];
-
-            $senderData = [
-                "clientName" => $name,
-                "verifyUrl" => $verifyUrl,
-                "Sender_Phone" => $_ENV['MAIL_SENDER_PHONE'],
-                "Sender_Email" => $_ENV['MAIL_SENDER_EMAIL'],
-                "now" => date('Y')
-            ];
-
-            // Явно инициализируем Twig, если еще не установлен
-            if (\App\Mail\DTOs\PersonalizedRecipient::getTwigInstance() === null) {
-                $loader = new \Twig\Loader\ArrayLoader();
-                $twig = new \Twig\Environment($loader);
-                \App\Mail\DTOs\PersonalizedRecipient::setTwig($twig);
-            }
-
-            // Рендерим subject и template через Twig
-            $twig = \App\Mail\DTOs\PersonalizedRecipient::getTwigInstance();
-            $renderedSubject = $twig->createTemplate($subject)->render($senderData);
-            $renderedTemplate = $twig->createTemplate($template)->render($senderData);
-
-            // Удалено: лишние mb_convert_encoding и base64_encode
-            Logger::info("Rendered subject and template", "AuthController", [
-                'subject' => $renderedSubject,
-                'template' => $renderedTemplate
-            ]);
-
-            
             // Получаем шаблон из базы данных
             $stmt = $this->db->prepare("
                 SELECT * FROM v_email_templates WHERE code='auth.registration.welcome' AND locale='en'");

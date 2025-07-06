@@ -9,3 +9,18 @@ composer.phar
 .env.local
 .env.production
 
+# Production files
+ssl/*.crt
+ssl/*.key
+ssl/*.pem
+*.pem
+*.key
+*.crt
+
+# Docker volumes
+mysql_data/
+
+# Backup files
+*.backup
+*.bak
+
