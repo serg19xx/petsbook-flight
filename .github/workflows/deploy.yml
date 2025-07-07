@@ -28,5 +28,8 @@ jobs:
         ssh -o StrictHostKeyChecking=no $USERNAME@$HOST << EOF
           cd /var/www/petsbook-flight
           git pull origin main
-          ./deploy.sh
+          docker-compose down
+          cp .env.production .env
+          docker-compose up -d
+          docker-compose ps
         EOF
