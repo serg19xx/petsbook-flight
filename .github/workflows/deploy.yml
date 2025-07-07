@@ -1,4 +1,4 @@
-name: Deploy Backend
+name: Deploy to Production
 
 on:
   push:
@@ -7,40 +7,18 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v3
       
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          
-      - name: Install Composer Dependencies
-        run: composer install --no-dev --optimize-autoloader
-      
-      - name: Remove vendor before deploy
-        run: rm -rf vendor
-      
-      - name: 📂 Deploy to Server
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: ./
-          exclude: |
-            .git
-            .github
-            .env
-            node_modules
-            vendor
-            tests
-            docker
-            logs/*
-            *.md
-          dangerous-clean-slate: false
-          timeout: 600000
-          log-level: verbose
-          dry-run: false
-          retry: 3
-          retry-delay: 10000
+    - name: Deploy to server
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        script: |
+          cd /var/www/petsbook-flight
+          git pull origin main
+          ./deploy.sh
