@@ -195,7 +195,7 @@ class AuthController extends BaseController {
                 // Добавляем отладочную информацию
                 Logger::info("Setting auth cookie", "AuthController", [
                     'token_length' => strlen($token),
-                    'domain' => $isLocal ? 'localhost' : '.petsbook.ca',
+                    'domain' => $isLocal ? 'localhost' : '.site.petsbook.ca',
                     'secure' => !$isLocal,
                     'samesite' => $isLocal ? 'Lax' : 'None',
                     'env' => $_ENV['APP_ENV'] ?? 'not set'
@@ -210,7 +210,7 @@ class AuthController extends BaseController {
                 ];
 
                 if (!$isLocal) {
-                    $options['domain'] = '.petsbook.ca';
+                    $options['domain'] = '.site.petsbook.ca';
                 }
 
                 setcookie('auth_token', $token, $options);    
@@ -223,7 +223,7 @@ class AuthController extends BaseController {
                 ]);
 
                 // Добавляем заголовок для отладки
-                header('X-Set-Cookie-Debug: auth_token set with domain=' . ($isLocal ? 'localhost' : '.petsbook.ca'));
+                header('X-Set-Cookie-Debug: auth_token set with domain=' . ($isLocal ? 'localhost' : '.site.petsbook.ca'));
             }    
 
             return Flight::json([
@@ -428,7 +428,7 @@ class AuthController extends BaseController {
         setcookie('auth_token', '', [
             'expires' => time() - 3600,
             'path' => '/',
-            //'domain' => '.petsbook.ca'
+                            //'domain' => '.site.petsbook.ca'
             'secure' => false, // для локалки, для продакшена — true
             'httponly' => true,
             'samesite' => 'Lax'
