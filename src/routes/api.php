@@ -50,7 +50,7 @@ Flight::route('GET /', function() {
 Flight::route('GET /api/test', function() {
     Flight::json([
         'status' => 'success',
-        'message' => 'API работает!'
+        'message' => 'API работает!   Uraaaaah!   GitHub Actions!'
     ]);
 });
 
