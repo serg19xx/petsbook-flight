@@ -21,7 +21,7 @@ jobs:
     
     - name: Deploy to server
       run: |
-        ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} << 'EOF'
+        ssh -o StrictHostKeyChecking=no ${{ secrets.USERNAME }}@${{ secrets.HOST }} << EOF
           cd /var/www/petsbook-flight
           git pull origin main
           ./deploy.sh
