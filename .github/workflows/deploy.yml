@@ -45,10 +45,7 @@ jobs:
         echo "🚀 Deploying to $SERVER_IP..."
 
         # 1. Копируем проект
-        rsync -avz --delete \
-          --exclude='.git' --exclude='node_modules' --exclude='vendor' \
-          --exclude='logs/*' --exclude='.env*' \
-          ./ $SERVER_USER@$SERVER_IP:$PROJECT_PATH/ || (echo "Ошибка при rsync"; exit 1)
+        rsync -avz --exclude='ssl/' --exclude='.git/' ./ $SERVER_USER@$SERVER_IP:/var/www/petsbook-flight/ || (echo "Ошибка при rsync"; exit 1)
 
         # 2. Копируем .env.production
         ssh $SERVER_USER@$SERVER_IP "rm -f $PROJECT_PATH/.env.production" || (echo "Ошибка при удалении .env.production"; exit 1)
@@ -72,24 +69,23 @@ jobs:
     - name: Restore SSL certificates
       run: |
         mkdir -p ssl
-        echo "Checking secrets..."
-        if [ -n "${{ secrets.SSL_FULLCHAIN }}" ] && [ -n "${{ secrets.SSL_PRIVKEY }}" ]; then
+        # Проверяем, есть ли уже сертификаты
+        if [ -f ssl/fullchain.pem ] && [ -f ssl/privkey.pem ]; then
+          echo "SSL certificates already exist, skipping restoration"
+        elif [ -n "${{ secrets.SSL_FULLCHAIN }}" ] && [ -n "${{ secrets.SSL_PRIVKEY }}" ]; then
           echo "Secrets found, restoring certificates..."
           echo "${{ secrets.SSL_FULLCHAIN }}" | base64 -d > ssl/fullchain.pem
           echo "${{ secrets.SSL_PRIVKEY }}" | base64 -d > ssl/privkey.pem
           chmod 644 ssl/fullchain.pem
           chmod 600 ssl/privkey.pem
-          echo "SSL certificates restored from secrets"
-          ls -la ssl/
         else
-          echo "Secrets not found, creating self-signed certificates..."
+          echo "Creating self-signed certificates..."
           openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
             -keyout ssl/privkey.pem \
             -out ssl/fullchain.pem \
             -subj "/C=CA/ST=Ontario/L=Toronto/O=PetsBook/CN=api.petsbook.ca"
           chmod 644 ssl/fullchain.pem
           chmod 600 ssl/privkey.pem
-          echo "Self-signed SSL certificates created"
         fi
 
     - name: Debug SSL secrets
