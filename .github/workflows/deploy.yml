@@ -66,21 +66,13 @@ jobs:
         ssh $SERVER_USER@$SERVER_IP "docker logs petsbook-php-prod || true"
         ssh $SERVER_USER@$SERVER_IP "docker logs petsbook-nginx-prod || true"
 
-    - name: Create SSL certificates
+    - name: Create SSL certificates on server
+      env:
+        SERVER_IP: 64.188.10.53
+        SERVER_USER: root
+        PROJECT_PATH: /var/www/petsbook-flight
       run: |
-        mkdir -p ssl
-        openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-          -keyout ssl/privkey.pem \
-          -out ssl/fullchain.pem \
-          -subj "/C=CA/ST=Ontario/L=Toronto/O=PetsBook/CN=api.petsbook.ca"
-        chmod 644 ssl/fullchain.pem
-        chmod 600 ssl/privkey.pem
-
-    - name: Copy SSL certificates to server
-      run: |
-        scp ssl/fullchain.pem $SERVER_USER@$SERVER_IP:/var/www/petsbook-flight/ssl/
-        scp ssl/privkey.pem $SERVER_USER@$SERVER_IP:/var/www/petsbook-flight/ssl/
-        ssh $SERVER_USER@$SERVER_IP "chmod 644 /var/www/petsbook-flight/ssl/fullchain.pem && chmod 600 /var/www/petsbook-flight/ssl/privkey.pem"
+        ssh $SERVER_USER@$SERVER_IP "cd $PROJECT_PATH && mkdir -p ssl && openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ssl/privkey.pem -out ssl/fullchain.pem -subj '/C=CA/ST=Ontario/L=Toronto/O=PetsBook/CN=api.petsbook.ca' && chmod 644 ssl/fullchain.pem && chmod 600 ssl/privkey.pem"
 
     - name: Debug SSL secrets
       run: |
