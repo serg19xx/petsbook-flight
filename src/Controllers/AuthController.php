@@ -25,6 +25,8 @@ class AuthController extends BaseController {
     private $db;
     private $request;
     private $renderer;
+    
+
 
     /**
      * Constructor initializes database connection

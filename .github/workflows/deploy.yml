@@ -1,35 +1,83 @@
-name: Deploy to Production
+name: 🚀 Deploy to Production
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-      
-    - name: Setup SSH
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🔧 Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, bcmath
+        tools: composer:v2
+
+    - name: 📦 Install dependencies locally
+      run: composer install --no-dev --optimize-autoloader
+
+    - name: 🔐 Setup SSH
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: 🌐 Add server to known hosts
       run: |
         mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ secrets.HOST }} >> ~/.ssh/known_hosts
-    
-    - name: Deploy to server
+        ssh-keyscan -H 64.188.10.53 >> ~/.ssh/known_hosts
+
+    - name: 📤 Deploy to server
       env:
-        HOST: ${{ secrets.HOST }}
-        USERNAME: ${{ secrets.USERNAME }}
+        SERVER_IP: 64.188.10.53
+        SERVER_USER: root
+        PROJECT_PATH: /var/www/petsbook-flight
       run: |
-        echo "Connecting to $USERNAME@$HOST"
-        ssh -o StrictHostKeyChecking=no $USERNAME@$HOST << EOF
-          cd /var/www/petsbook-flight
-          git pull origin main
-          docker compose down
-          cp .env.production .env
-          docker compose up -d
-          docker compose ps
-        EOF
+        echo "🚀 Deploying to $SERVER_IP..."
+
+        # Copy files
+        echo "📤 Syncing project files to server..."
+        rsync -avz --delete \
+          --exclude='.git' --exclude='node_modules' --exclude='vendor' \
+          --exclude='logs/*' --exclude='.env*' \
+          ./ $SERVER_USER@$SERVER_IP:$PROJECT_PATH/
+
+        # Upload .env.production from GitHub Secret
+        echo "🔐 Uploading .env.production..."
+        ssh $SERVER_USER@$SERVER_IP "echo '${{ secrets.ENV_PROD_PRODUCTION }}' > $PROJECT_PATH/.env.production && chmod 600 $PROJECT_PATH/.env.production"
+
+        # Install dependencies on server
+        echo "📦 Installing dependencies on server..."
+        ssh $SERVER_USER@$SERVER_IP "cd $PROJECT_PATH && composer install --no-dev --optimize-autoloader"
+
+        # Docker compose up
+        echo "🐳 Restarting Docker containers..."
+        ssh $SERVER_USER@$SERVER_IP "cd $PROJECT_PATH && docker compose -f docker-compose.prod.yml down && docker compose -f docker-compose.prod.yml up -d --build"
+
+        # Wait for startup
+        sleep 15
+
+        # Container status
+        ssh $SERVER_USER@$SERVER_IP "cd $PROJECT_PATH && docker compose -f docker-compose.prod.yml ps"
+
+    - name: 🧪 Test API
+      run: |
+        sleep 10
+        if curl -f -s -k "https://64.188.10.53/api/test" > /dev/null; then
+          echo "✅ API is working!"
+        else
+          echo "❌ API test failed"
+          ssh root@64.188.10.53 "docker exec petsbook-php-prod tail -10 /var/www/html/logs/php_errors.log" || true
+          exit 1
+        fi
+
+    - name: 🎉 Deployment Status
+      run: |
+        echo "🎉 Deployed at: $(date)"
+        echo "🌐 API URL: https://64.188.10.53"

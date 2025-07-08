@@ -1,0 +1,138 @@
+name: 🚀 Deploy to Production
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch: # Позволяет запускать вручную
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🔧 Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, bcmath
+        tools: composer:v2
+        
+    - name: 📦 Install dependencies
+      run: composer install --no-dev --optimize-autoloader
+      
+    - name: 🔐 Setup SSH
+      uses: webfactory/ssh-agent@v0.8.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        
+    - name: 🌐 Add server to known hosts
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -H 64.188.10.53 >> ~/.ssh/known_hosts
+        
+    - name: 📤 Deploy to server
+      env:
+        SERVER_IP: 64.188.10.53
+        SERVER_USER: root
+        PROJECT_PATH: /var/www/petsbook-flight
+      run: |
+        echo "🚀 Deploying to $SERVER_IP..."
+        
+
+        
+        if [ -z "${{ secrets.JWT_SECRET }}" ]; then
+          echo "❌ JWT_SECRET is missing!"
+          exit 1
+        fi
+        
+        # Создаём временный .env.production из секретов
+        cat > .env.production << 'EOF'
+        # Application
+        APP_NAME=PetsBook
+        APP_ENV=production
+        APP_DEBUG=false
+        APP_URL=https://64.188.10.53
+        
+        # Database
+        DB_CONNECTION=mysql
+        DB_HOST=localhost
+        DB_PORT=3306
+        DB_NAME=petsbook_new
+        DB_USER=petsbook_serg
+        DB_PASSWORD=TapinkaPetulka
+        DB_ROOT_PASSWORD=your_secure_root_password_here
+        
+        # JWT
+        JWT_SECRET=${{ secrets.JWT_SECRET }}
+        
+        # Mail
+        MAIL_DRIVER=sendgrid_api
+        MAIL_SENDER_EMAIL=email@mail.com
+        MAIL_SENDER_PHONE=3123423412
+        SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }}
+        
+        # CORS
+        CORS_ALLOWED_ORIGINS=https://site.petsbook.ca,https://64.188.10.53,http://localhost:5173
+        
+        # Google Translate
+        GOOGLE_TRANSLATE_API_KEY=${{ secrets.GOOGLE_TRANSLATE_API_KEY }}
+        
+        # Logging
+        LOG_LEVEL=error
+        
+        # Security
+        SESSION_SECURE_COOKIE=true
+        SESSION_SAME_SITE=strict
+        EOF
+        
+        # Копируем файлы на сервер
+        echo "📤 Copying files to server..."
+        rsync -avz --exclude='.git' --exclude='node_modules' --exclude='vendor' \
+          --exclude='logs/*' --exclude='.env' \
+          ./ $SERVER_USER@$SERVER_IP:$PROJECT_PATH/
+          
+        # Копируем .env.production
+        echo "🔐 Copying .env.production..."
+        scp .env.production $SERVER_USER@$SERVER_IP:$PROJECT_PATH/
+        
+        # Устанавливаем зависимости на сервере
+        echo "📦 Installing dependencies on server..."
+        ssh $SERVER_USER@$SERVER_IP "cd $PROJECT_PATH && composer install --no-dev --optimize-autoloader"
+        
+        # Останавливаем старые контейнеры
+        echo "🛑 Stopping old containers..."
+        ssh $SERVER_USER@$SERVER_IP "cd $PROJECT_PATH && docker compose -f docker-compose.prod.yml down"
+        
+        # Запускаем новые контейнеры
+        echo "🚀 Starting new containers..."
+        ssh $SERVER_USER@$SERVER_IP "cd $PROJECT_PATH && docker compose -f docker-compose.prod.yml up -d --build"
+        
+        # Ждём запуска
+        echo "⏳ Waiting for containers to start..."
+        sleep 15
+        
+        # Проверяем статус
+        echo "✅ Checking container status..."
+        ssh $SERVER_USER@$SERVER_IP "cd $PROJECT_PATH && docker compose -f docker-compose.prod.yml ps"
+        
+    - name: 🧪 Test API
+      run: |
+        echo "🧪 Testing API..."
+        sleep 10
+        if curl -f -s -k "https://64.188.10.53/api/test" > /dev/null; then
+          echo "✅ API is working!"
+        else
+          echo "❌ API test failed"
+          echo "Checking logs..."
+          ssh root@64.188.10.53 "docker exec petsbook-php-prod tail -10 /var/www/html/logs/php_errors.log" || true
+          exit 1
+        fi
+        
+    - name: 📊 Deployment Status
+      run: |
+        echo "🎉 Deployment completed successfully!"
+        echo "🌐 API URL: https://64.188.10.53"
+        echo "📅 Deployed at: $(date)"
