@@ -28,6 +28,7 @@ services:
       - ./composer.json:/var/www/html/composer.json
       - ./composer.lock:/var/www/html/composer.lock
       - ./.env.production:/var/www/html/.env
+      - ./logs:/var/www/html/logs
     environment:
       - APP_ENV=production
     networks:
