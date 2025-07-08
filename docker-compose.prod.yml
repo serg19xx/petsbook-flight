@@ -17,6 +17,8 @@ services:
       - petsbook-network
 
   php:
+    env_file:
+      - .env.production
     build:
       context: .
       dockerfile: docker/php/Dockerfile

@@ -60,7 +60,6 @@ jobs:
         ssh $SERVER_USER@$SERVER_IP "
           cd $PROJECT_PATH
           docker compose -f docker-compose.prod.yml down
-          export \$(cat .env.production | xargs)
           docker compose -f docker-compose.prod.yml up -d --build
         "
 
