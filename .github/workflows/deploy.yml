@@ -72,14 +72,17 @@ jobs:
     - name: Restore SSL certificates
       run: |
         mkdir -p ssl
+        echo "Checking secrets..."
         if [ -n "${{ secrets.SSL_FULLCHAIN }}" ] && [ -n "${{ secrets.SSL_PRIVKEY }}" ]; then
+          echo "Secrets found, restoring certificates..."
           echo "${{ secrets.SSL_FULLCHAIN }}" | base64 -d > ssl/fullchain.pem
           echo "${{ secrets.SSL_PRIVKEY }}" | base64 -d > ssl/privkey.pem
           chmod 644 ssl/fullchain.pem
           chmod 600 ssl/privkey.pem
           echo "SSL certificates restored from secrets"
+          ls -la ssl/
         else
-          echo "Creating self-signed SSL certificates..."
+          echo "Secrets not found, creating self-signed certificates..."
           openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
             -keyout ssl/privkey.pem \
             -out ssl/fullchain.pem \
@@ -88,6 +91,13 @@ jobs:
           chmod 600 ssl/privkey.pem
           echo "Self-signed SSL certificates created"
         fi
+
+    - name: Debug SSL secrets
+      run: |
+        echo "SSL_FULLCHAIN exists: ${{ secrets.SSL_FULLCHAIN != '' }}"
+        echo "SSL_PRIVKEY exists: ${{ secrets.SSL_PRIVKEY != '' }}"
+        echo "SSL_FULLCHAIN length: ${#SSL_FULLCHAIN}"
+        echo "SSL_PRIVKEY length: ${#SSL_PRIVKEY}"
 
     - name: 🎉 Deployment Status
       run: |
