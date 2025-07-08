@@ -52,13 +52,13 @@ jobs:
         echo "🔐 Uploading .env.production..."
         ssh $SERVER_USER@$SERVER_IP "echo '${{ secrets.ENV_PROD_PRODUCTION }}' > $PROJECT_PATH/.env.production && chmod 600 $PROJECT_PATH/.env.production"
 
-        # Install dependencies on server
-        echo "📦 Installing dependencies on server..."
-        ssh $SERVER_USER@$SERVER_IP "cd $PROJECT_PATH && composer install --no-dev --optimize-autoloader"
-
-        # Docker compose up
+        # 🐳 Перезапускаем контейнеры
         echo "🐳 Restarting Docker containers..."
         ssh $SERVER_USER@$SERVER_IP "cd $PROJECT_PATH && docker compose -f docker-compose.prod.yml down && docker compose -f docker-compose.prod.yml up -d --build"
+
+        # 📦 Устанавливаем зависимости внутри контейнера
+        echo "📦 Installing dependencies inside Docker container..."
+        ssh $SERVER_USER@$SERVER_IP "docker exec petsbook-php-prod composer install --no-dev --optimize-autoloader"
 
         # Wait for startup
         sleep 15
