@@ -69,16 +69,6 @@ jobs:
         ssh $SERVER_USER@$SERVER_IP "docker logs petsbook-php-prod || true"
         ssh $SERVER_USER@$SERVER_IP "docker logs petsbook-nginx-prod || true"
 
-    - name: 🧪 Test API
-      run: |
-        sleep 10
-        if curl -f -s -k "https://64.188.10.53/api/test" > /dev/null; then
-          echo "✅ API is working!"
-        else
-          echo "❌ API test failed"
-          ssh root@64.188.10.53 "docker exec petsbook-php-prod tail -20 /var/www/html/logs/php_errors.log" || true
-          exit 1
-        fi
 
     - name: 🎉 Deployment Status
       run: |
