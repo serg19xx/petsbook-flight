@@ -76,6 +76,12 @@ jobs:
         chmod 644 ssl/fullchain.pem
         chmod 600 ssl/privkey.pem
 
+    - name: Copy SSL certificates to server
+      run: |
+        scp ssl/fullchain.pem $SERVER_USER@$SERVER_IP:/var/www/petsbook-flight/ssl/
+        scp ssl/privkey.pem $SERVER_USER@$SERVER_IP:/var/www/petsbook-flight/ssl/
+        ssh $SERVER_USER@$SERVER_IP "chmod 644 /var/www/petsbook-flight/ssl/fullchain.pem && chmod 600 /var/www/petsbook-flight/ssl/privkey.pem"
+
     - name: Debug SSL secrets
       run: |
         echo "SSL_FULLCHAIN exists: ${{ secrets.SSL_FULLCHAIN != '' }}"
