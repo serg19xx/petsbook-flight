@@ -28,7 +28,7 @@ class EmailTemplateController extends BaseController
         $this->translateService = new GoogleTranslateService();
         
         // Создаем директорию для изображений email шаблонов если она не существует
-        $this->uploadDir = __DIR__ . '/../../public/profile-images/email-tmpl/';
+        $this->uploadDir = __DIR__ . '/../../../public/profile-images/email-tmpl/';
         if (!is_dir($this->uploadDir)) {
             mkdir($this->uploadDir, 0755, true);
         }
@@ -132,7 +132,7 @@ class EmailTemplateController extends BaseController
         $filename = basename($path);
         
         // Поддерживаем оба варианта URL
-        $filePath = __DIR__ . '/../../public/profile-images/email-tmpl/' . $filename;
+        $filePath = __DIR__ . '/../../../public/profile-images/email-tmpl/' . $filename;
         
         // Отладочная информация
         Logger::info("Serving email template image", "EmailTemplateController", [

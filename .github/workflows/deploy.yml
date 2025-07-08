@@ -41,29 +41,32 @@ jobs:
       run: |
         echo "🚀 Deploying to $SERVER_IP..."
 
-        # Copy files
-        echo "📤 Syncing project files to server..."
+        # 1. Копируем проект (точная копия, кроме игнорируемых)
         rsync -avz --delete \
           --exclude='.git' --exclude='node_modules' --exclude='vendor' \
           --exclude='logs/*' --exclude='.env*' \
           ./ $SERVER_USER@$SERVER_IP:$PROJECT_PATH/
 
-        # Upload .env.production from GitHub Secret
-        echo "🔐 Uploading .env.production..."
+        # 2. Копируем .env.production
+        ssh $SERVER_USER@$SERVER_IP "rm -f $PROJECT_PATH/.env.production"
         ssh $SERVER_USER@$SERVER_IP "echo '${{ secrets.ENV_PROD_PRODUCTION }}' > $PROJECT_PATH/.env.production && chmod 600 $PROJECT_PATH/.env.production"
 
-        # 🐳 Перезапускаем контейнеры
-        echo "🐳 Restarting Docker containers..."
-        ssh $SERVER_USER@$SERVER_IP "cd $PROJECT_PATH && docker compose -f docker-compose.prod.yml down && docker compose -f docker-compose.prod.yml up -d --build"
+        # 3. Перезапускаем контейнеры с переменными окружения из .env.production
+        ssh $SERVER_USER@$SERVER_IP "
+          cd $PROJECT_PATH
+          docker compose -f docker-compose.prod.yml down
+          export \$(cat .env.production | xargs)
+          docker compose -f docker-compose.prod.yml up -d --build
+        "
 
-        # 📦 Устанавливаем зависимости внутри контейнера
-        echo "📦 Installing dependencies inside Docker container..."
+        # 4. Устанавливаем зависимости внутри контейнера
         ssh $SERVER_USER@$SERVER_IP "docker exec petsbook-php-prod composer install --no-dev --optimize-autoloader"
 
-        # Wait for startup
-        sleep 15
+        # 5. Чиним права (важно для upload- и кэш-папок)
+        ssh $SERVER_USER@$SERVER_IP "docker exec petsbook-php-prod chown -R www-data:www-data /var/www/html/public/profile-images"
+        ssh $SERVER_USER@$SERVER_IP "docker exec petsbook-php-prod chmod -R 755 /var/www/html/public/profile-images"
 
-        # Container status
+        # 6. Проверяем статус контейнеров
         ssh $SERVER_USER@$SERVER_IP "cd $PROJECT_PATH && docker compose -f docker-compose.prod.yml ps"
 
     - name: 🧪 Test API
@@ -73,7 +76,7 @@ jobs:
           echo "✅ API is working!"
         else
           echo "❌ API test failed"
-          ssh root@64.188.10.53 "docker exec petsbook-php-prod tail -10 /var/www/html/logs/php_errors.log" || true
+          ssh root@64.188.10.53 "docker exec petsbook-php-prod tail -20 /var/www/html/logs/php_errors.log" || true
           exit 1
         fi
 
