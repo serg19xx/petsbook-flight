@@ -71,19 +71,22 @@ jobs:
 
     - name: Restore SSL certificates
       run: |
-        if [ -n "${{ secrets.SSL_FULLCHAIN }}" ]; then
+        mkdir -p ssl
+        if [ -n "${{ secrets.SSL_FULLCHAIN }}" ] && [ -n "${{ secrets.SSL_PRIVKEY }}" ]; then
           echo "${{ secrets.SSL_FULLCHAIN }}" | base64 -d > ssl/fullchain.pem
           echo "${{ secrets.SSL_PRIVKEY }}" | base64 -d > ssl/privkey.pem
           chmod 644 ssl/fullchain.pem
           chmod 600 ssl/privkey.pem
+          echo "SSL certificates restored from secrets"
         else
-          # Создаем самоподписанные сертификаты если секреты не настроены
+          echo "Creating self-signed SSL certificates..."
           openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
             -keyout ssl/privkey.pem \
             -out ssl/fullchain.pem \
             -subj "/C=CA/ST=Ontario/L=Toronto/O=PetsBook/CN=api.petsbook.ca"
           chmod 644 ssl/fullchain.pem
           chmod 600 ssl/privkey.pem
+          echo "Self-signed SSL certificates created"
         fi
 
     - name: 🎉 Deployment Status

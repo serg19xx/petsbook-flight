@@ -5,6 +5,7 @@
 
 # SSL certificates
 ssl/
+!ssl/*.pem
 *.pem
 *.key
 *.crt
