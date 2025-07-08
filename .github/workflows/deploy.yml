@@ -69,6 +69,22 @@ jobs:
         ssh $SERVER_USER@$SERVER_IP "docker logs petsbook-php-prod || true"
         ssh $SERVER_USER@$SERVER_IP "docker logs petsbook-nginx-prod || true"
 
+    - name: Restore SSL certificates
+      run: |
+        if [ -n "${{ secrets.SSL_FULLCHAIN }}" ]; then
+          echo "${{ secrets.SSL_FULLCHAIN }}" | base64 -d > ssl/fullchain.pem
+          echo "${{ secrets.SSL_PRIVKEY }}" | base64 -d > ssl/privkey.pem
+          chmod 644 ssl/fullchain.pem
+          chmod 600 ssl/privkey.pem
+        else
+          # Создаем самоподписанные сертификаты если секреты не настроены
+          openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+            -keyout ssl/privkey.pem \
+            -out ssl/fullchain.pem \
+            -subj "/C=CA/ST=Ontario/L=Toronto/O=PetsBook/CN=api.petsbook.ca"
+          chmod 644 ssl/fullchain.pem
+          chmod 600 ssl/privkey.pem
+        fi
 
     - name: 🎉 Deployment Status
       run: |
