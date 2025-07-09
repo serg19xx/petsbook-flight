@@ -672,10 +672,11 @@ class AuthController extends BaseController {
 
             Logger::info("Generated verification link", "AuthController", [
                 'verifyUrl' => $verifyUrl,
-                'environment' => $_ENV['APP_ENV'] ?? 'development',
-                'protocol' => $protocol,
-                'originalUrl' => $_ENV['APP_URL'],
-                'baseUrl' => $baseUrl
+                //'environment' => $_ENV['APP_ENV'] ?? 'development',
+                //'protocol' => $protocol,
+                //'originalUrl' => $_ENV['APP_URL'],
+                //'baseUrl' => $baseUrl
+                'origin' => $origin
             ]);
             // Получаем шаблон из базы данных
             $stmt = $this->db->prepare("
