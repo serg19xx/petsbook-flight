@@ -349,20 +349,20 @@ class AuthController extends BaseController {
             
             $stmt->closeCursor();
             
-                try {
+            try {
                     // Create verification token
-                    $token = $this->createVerificationToken($result['id']);
+                $token = $this->createVerificationToken($result['id']);
                 
                 Logger::info("Verification token created", "AuthController", [
                     'userId' => $result['id'],
                     'token' => $token
                 ]);
                     
-                    // Close all possible open cursors before next query
-                    while ($this->db->inTransaction()) {
-                        $this->db->commit();
-                    }
-                    
+                // Close all possible open cursors before next query
+                while ($this->db->inTransaction()) {
+                    $this->db->commit();
+                }
+                
                 // Send welcome and verification email
                 $emailSent = $this->sendWelcomeVerificationEmail($email, $name, $token);
                 
@@ -371,43 +371,43 @@ class AuthController extends BaseController {
                     'email' => $email,
                     'emailSent' => $emailSent
                 ]);
-                    
-                    return Flight::json([
-                        'status' => 200,
-                        'error_code' => ResponseCodes::REGISTRATION_SUCCESS,
-                        'message' => '',
-                        'data' => [
-                            'user' => [
-                                'id' => $result['id'],
-                                'email' => $email,
-                                'name' => $name,
-                                'role' => $role,
-                                'email_verified' => false
-                            ]
+                
+                return Flight::json([
+                    'status' => 200,
+                    'error_code' => ResponseCodes::REGISTRATION_SUCCESS,
+                    'message' => '',
+                    'data' => [
+                        'user' => [
+                            'id' => $result['id'],
+                            'email' => $email,
+                            'name' => $name,
+                            'role' => $role,
+                            'email_verified' => false
                         ]
-                    ], 200);
-                } catch (\Exception $e) {
+                    ]
+                ], 200);
+            } catch (\Exception $e) {
                 Logger::error("Post-registration process error", "AuthController", [
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString(),
                     'userId' => $result['id'] ?? null
                 ]);
-                
-                    // Registration is successful even if email sending failed
-                    return Flight::json([
-                        'status' => 200,
-                        'error_code' => ResponseCodes::EMAIL_SEND_ERROR,
-                        'message' => '',
-                        'data' => [
-                            'user' => [
-                                'id' => $result['id'],
-                                'email' => $email,
-                                'name' => $name,
-                                'role' => $role,
-                                'email_verified' => false
-                            ]
+            
+                // Registration is successful even if email sending failed
+                return Flight::json([
+                    'status' => 200,
+                    'error_code' => ResponseCodes::EMAIL_SEND_ERROR,
+                    'message' => '',
+                    'data' => [
+                        'user' => [
+                            'id' => $result['id'],
+                            'email' => $email,
+                            'name' => $name,
+                            'role' => $role,
+                            'email_verified' => false
                         ]
-                    ], 200);
+                    ]
+                ], 200);
             }
 
         } catch (\Exception $e) {
@@ -663,9 +663,12 @@ class AuthController extends BaseController {
             }
             
             // Определяем протокол в зависимости от окружения
-            $protocol = $_ENV['APP_ENV'] === 'production' ? 'https://' : 'http://';
-            $baseUrl = preg_replace('/^https?:\/\//', '', $_ENV['APP_URL']);
-            $verifyUrl = $protocol . $baseUrl . '/verify-email/' . $token;
+            //$protocol = $_ENV['APP_ENV'] === 'production' ? 'https://' : 'http://';
+            //$baseUrl = preg_replace('/^https?:\/\//', '', $_ENV['APP_URL']);
+            //$verifyUrl = $protocol . $baseUrl . '/verify-email/' . $token;
+
+            $origin = $_SERVER['HTTP_ORIGIN'] ?? 'http://localhost:5173';
+            $verifyUrl = $origin . '/verify-email/' . $token;
 
             Logger::info("Generated verification link", "AuthController", [
                 'verifyUrl' => $verifyUrl,
