@@ -4,6 +4,7 @@ namespace App\Mail\Providers;
 
 use App\Mail\Contracts\MailProviderInterface;
 use App\Mail\DTOs\PersonalizedRecipient;
+use App\Utils\Logger;
 use SendGrid\Mail\Mail;
 use SendGrid\Mail\Attachment;
 use SendGrid\Mail\TypeException;
@@ -28,6 +29,12 @@ class SendGridApiProvider implements MailProviderInterface
         ?string $templateId = null
     ): bool {
         try {
+            Logger::info("SendGrid: Starting email send", "SendGridApiProvider", [
+                'to' => $to,
+                'subject' => $subject,
+                'templateId' => $templateId
+            ]);
+            
             $email = new Mail();
             $email->setFrom($this->config['from_address'], $this->config['from_name']);
             $email->setSubject($subject);
@@ -71,11 +78,48 @@ class SendGridApiProvider implements MailProviderInterface
                 $email->addAttachment($attachmentObj);
             }
             
+            Logger::info("SendGrid: Sending email", "SendGridApiProvider");
             $response = $this->sendgrid->send($email);
-            return $response->statusCode() >= 200 && $response->statusCode() < 300;
+            
+            $statusCode = $response->statusCode();
+            $responseBody = $response->body();
+            
+            Logger::info("SendGrid: Response received", "SendGridApiProvider", [
+                'statusCode' => $statusCode,
+                'responseBody' => $responseBody
+            ]);
+            
+            if ($statusCode >= 200 && $statusCode < 300) {
+                Logger::info("SendGrid: Email sent successfully", "SendGridApiProvider");
+                return true;
+            } else {
+                Logger::error("SendGrid: Failed to send email", "SendGridApiProvider", [
+                    'statusCode' => $statusCode,
+                    'responseBody' => $responseBody,
+                    'to' => $to,
+                    'subject' => $subject
+                ]);
+                return false;
+            }
             
         } catch (TypeException $e) {
-            error_log("SendGrid API Error: " . $e->getMessage());
+            Logger::error("SendGrid: TypeException occurred", "SendGridApiProvider", [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'to' => $to,
+                'subject' => $subject
+            ]);
+            return false;
+        } catch (\Exception $e) {
+            Logger::error("SendGrid: Exception occurred", "SendGridApiProvider", [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'to' => $to,
+                'subject' => $subject
+            ]);
             return false;
         }
     }

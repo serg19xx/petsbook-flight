@@ -61,8 +61,10 @@ class MailService
                 'subject' => $subject
             ]);
 
+            $result = false;
+            
             if ($_ENV['MAIL_DRIVER'] === 'sendgrid_api') {
-                $this->provider->send(
+                $result = $this->provider->send(
                     $recipient,
                     $subject,
                     $body,
@@ -71,14 +73,23 @@ class MailService
                     $templateId
                 );
             } else {
-                $this->provider->send(
+                $result = $this->provider->send(
                     $recipient,
                     $subject,
                     $body
                 );
             }
 
-            Logger::info("Email send result: success", "MailService");
+            if ($result) {
+                Logger::info("Email send result: success", "MailService");
+            } else {
+                Logger::error("Email send result: failed", "MailService", [
+                    'to' => $recipient,
+                    'subject' => $subject,
+                    'provider' => get_class($this->provider)
+                ]);
+                throw new \Exception("Failed to send email via " . get_class($this->provider));
+            }
         } catch (\Exception $e) {
             Logger::error("Failed to send email", "MailService", [
                 'error' => $e->getMessage(),

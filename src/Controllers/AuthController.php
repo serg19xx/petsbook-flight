@@ -815,22 +815,9 @@ class AuthController extends BaseController {
             $protocol = (isset($_ENV['APP_ENV']) && $_ENV['APP_ENV'] === 'production') ? 'https://' : 'http://';
 
             // Убираем существующие протоколы из APP_URL
-            $baseUrl = '';
-            if (!empty($_ENV['APP_URL'])) {
-                $baseUrl = preg_replace('/^https?:\/\//', '', $_ENV['APP_URL']);
-                $baseUrl = rtrim($baseUrl, '/');
-            }
+            $baseUrl = preg_replace('/^https?:\/\//', '', $_ENV['APP_URL']);
+            $baseUrl = rtrim($baseUrl, '/');
 
-            // Формируем ссылку с учетом протокола
-            // $resetLink = $protocol . $baseUrl . '/reset-password/' . $token;
-            // Исправляем порт на 5173 для локальной среды
-            if (
-                isset($_ENV['APP_ENV']) &&
-                ($_ENV['APP_ENV'] === 'local' || $_ENV['APP_ENV'] === 'development') &&
-                strpos($baseUrl, 'localhost:8080') === 0
-            ) {
-                $baseUrl = str_replace('localhost:8080', 'localhost:5173', $baseUrl);
-            }
             $resetLink = $protocol . $baseUrl . '/reset-password/' . $token;
 
             Logger::info("Generated reset link", "AuthController", [

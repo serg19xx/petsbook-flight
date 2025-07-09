@@ -74,6 +74,14 @@ jobs:
       run: |
         ssh $SERVER_USER@$SERVER_IP "cd $PROJECT_PATH && mkdir -p ssl && openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout ssl/privkey.pem -out ssl/fullchain.pem -subj '/C=CA/ST=Ontario/L=Toronto/O=PetsBook/CN=api.petsbook.ca' && chmod 644 ssl/fullchain.pem && chmod 600 ssl/privkey.pem"
 
+    - name: Restart containers
+      env:
+        SERVER_IP: 64.188.10.53
+        SERVER_USER: root
+        PROJECT_PATH: /var/www/petsbook-flight
+      run: |
+        ssh $SERVER_USER@$SERVER_IP "cd $PROJECT_PATH && docker compose -f docker-compose.prod.yml down && docker compose -f docker-compose.prod.yml up -d"
+
     - name: Debug SSL secrets
       run: |
         echo "SSL_FULLCHAIN exists: ${{ secrets.SSL_FULLCHAIN != '' }}"
