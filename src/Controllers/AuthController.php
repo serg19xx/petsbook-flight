@@ -197,7 +197,7 @@ class AuthController extends BaseController {
                 // Добавляем отладочную информацию
                 Logger::info("Setting auth cookie", "AuthController", [
                     'token_length' => strlen($token),
-                    'domain' => $isLocal ? 'localhost' : '.site.petsbook.ca',
+                    'domain' => $isLocal ? 'localhost' : '.petsbook.ca',
                     'secure' => !$isLocal,
                     'samesite' => $isLocal ? 'Lax' : 'None',
                     'env' => $_ENV['APP_ENV'] ?? 'not set'
@@ -212,7 +212,7 @@ class AuthController extends BaseController {
                 ];
 
                 if (!$isLocal) {
-                    $options['domain'] = '.site.petsbook.ca';
+                    $options['domain'] = '.petsbook.ca';
                 }
 
                 setcookie('auth_token', $token, $options);    
