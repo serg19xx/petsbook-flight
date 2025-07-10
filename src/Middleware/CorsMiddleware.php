@@ -29,7 +29,8 @@ class CorsMiddleware {
                 'http://localhost:8080',
                 'http://localhost:3000',
                 'https://64.188.10.53',
-                'https://site.petsbook.ca'
+                'https://site.petsbook.ca',
+                'https://api.petsbook.ca'
             ];
         }
 
