@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Services;
-
+// s
 class DatabaseService
 {
     private $pdo;
