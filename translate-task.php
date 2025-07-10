@@ -71,17 +71,26 @@ try {
     foreach ($strings as $index => $string) {
         Logger::info("====Обрабатываем строку $index=====", "", ["string" => $string]);
 
-        // Проверяем существующий перевод
-        $stmt = $db->prepare("SELECT id FROM i18n_translation_values WHERE key_id = ? AND locale = ?");
+        // Проверяем существующий перевод с учетом is_auto_translated
+        $stmt = $db->prepare("SELECT id, is_auto_translated FROM i18n_translation_values WHERE key_id = ? AND locale = ?");
         $stmt->execute([$string['id'], $targetLocale]);
         $result = $stmt->fetch();
 
         if ($result) {
-            Logger::info("====Перевод найден, пропускаем=====", "", ["stringId" => $string['id']]);
-            $skipped++;
-            $processed++;
+            if ($result['is_auto_translated'] == 0) {
+                // Ручной перевод - пропускаем
+                Logger::info("====Ручной перевод найден, пропускаем=====", "", ["stringId" => $string['id']]);
+                $skipped++;
+            } else {
+                // Автоматический перевод - обновляем
+                $stmt = $db->prepare("UPDATE i18n_translation_values SET value = ?, is_auto_translated = 1 WHERE key_id = ? AND locale = ?");
+                $stmt->execute([$translated, $string['id'], $targetLocale]);
+                $translatedCount++;
+                $processed++; // Добавить эту строку
+            }
         } else {
-            Logger::info("====Перевод не найден, продолжаем=====", "", ["stringId" => $string['id']]);
+            // Перевода нет - переводим и вставляем новый
+            Logger::info("====Перевода нет, переводим=====", "", ["stringId" => $string['id']]);
             
             Logger::info("====До вызова Google Translate=====");
             Logger::info("#########Здесь вызов гугл#########");
@@ -105,8 +114,8 @@ try {
                     "translated" => $translated
                 ]);
 
-                $processed++;
                 $translatedCount++;
+                $processed++; // Добавить эту строку
             } else {
                 Logger::error("====Перевод не удался=====", "", ["original" => $string['value']]);
                 $errors[] = "Failed to translate: {$string['namespace']}.{$string['key_name']}";

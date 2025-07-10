@@ -1,9 +1,8 @@
-version: '3.8'
-
 services:
   nginx:
     image: nginx:alpine
     container_name: petsbook-nginx-prod
+    restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
@@ -17,12 +16,13 @@ services:
       - petsbook-network
 
   php:
-    env_file:
-      - .env.production
     build:
       context: .
       dockerfile: docker/php/Dockerfile
     container_name: petsbook-php-prod
+    restart: unless-stopped
+    env_file:
+      - .env.production
     volumes:
       - ./src:/var/www/html/src
       - ./public:/var/www/html/public
@@ -31,6 +31,10 @@ services:
       - ./composer.lock:/var/www/html/composer.lock
       - ./.env.production:/var/www/html/.env
       - ./logs:/var/www/html/logs
+      - ./translate-task.php:/var/www/html/translate-task.php
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
     networks:
       - petsbook-network
 

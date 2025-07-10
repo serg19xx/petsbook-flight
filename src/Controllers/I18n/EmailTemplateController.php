@@ -9,6 +9,7 @@ use Firebase\JWT\Key;
 use \PDO;
 use \Flight;
 use App\Services\GoogleTranslateService;
+use App\Controllers\I18n\Exception;
 
 /**
  * Email Template Controller

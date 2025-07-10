@@ -8,6 +8,7 @@ use \PDO;
 use \Flight;
 use App\Services\GoogleTranslateService;
 use App\Utils\Logger;
+use Exception;
 
 class TranslationController extends BaseController
 {
@@ -338,7 +339,7 @@ class TranslationController extends BaseController
             );
             
             if (empty($languages)) {
-                throw new \Exception('No languages received from Google Translate');
+                throw new Exception('No languages received from Google Translate');
             }
             
             // Очищаем таблицу
@@ -1244,7 +1245,7 @@ Logger::info(
             return $result['data']['translations'][0]['translatedText'];
         }
         
-        throw new \Exception('Translation failed');
+        throw new Exception('Translation failed');
     }
 
     /**
