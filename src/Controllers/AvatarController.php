@@ -4,6 +4,7 @@ namespace App\Controllers;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Flight;
+use App\Utils\Logger;
 
 class AvatarController {
     private $db;
@@ -28,6 +29,9 @@ class AvatarController {
             return Flight::json(['success' => false, 'error' => 'No token provided'], 401);
         }
     
+
+        Logger::info("Token: " . $token, "AvatarController");
+
         try {
             // Decode token and get user data
             $decoded = JWT::decode($token, new Key($_ENV['JWT_SECRET'], 'HS256'));
@@ -74,7 +78,7 @@ class AvatarController {
                 'path' => '/profile-images/avatars/' . $filename . '?t=' . $timestamp
             ]);
         }
-    
+        Logger::success("Avatar uploaded successfully", "AvatarController");
         return Flight::json(['success' => false, 'error' => 'Upload failed'], 500);
     }
 
