@@ -231,7 +231,7 @@ class EmailTemplateController extends BaseController
                 Logger::info("Creating NEW template", "EmailTemplateController");
                 
                 // Получаем id лейаута для нужного языка
-                $sqlLayout = "SELECT id FROM i18n_email_layouts WHERE locale = ? AND name = ?";
+                $sqlLayout = "SELECT id FROM i18n_email_layouts WHERE locale = ? AND id = ?";
                 $stmtLayout = $this->db->prepare($sqlLayout);
                 $stmtLayout->execute([$locale, $layoutId]);
                 $layoutRow = $stmtLayout->fetch(PDO::FETCH_ASSOC);
@@ -278,7 +278,7 @@ class EmailTemplateController extends BaseController
                 ]);
                 
                 // Получаем id лейаута для нужного языка
-                $sqlLayout = "SELECT id FROM i18n_email_layouts WHERE locale = ? AND name = ?";
+                $sqlLayout = "SELECT id FROM i18n_email_layouts WHERE locale = ? AND id = ?";
                 $stmtLayout = $this->db->prepare($sqlLayout);
                 $stmtLayout->execute([$locale, $layoutId]);
                 $layoutRow = $stmtLayout->fetch(PDO::FETCH_ASSOC);
@@ -384,7 +384,7 @@ class EmailTemplateController extends BaseController
             // Получаем все английские шаблоны, которые нужно переводить
             $sqlEnglishTemplates = "
                 SELECT * FROM i18n_email_templates
-                WHERE locale = 'en' AND to_translate = 1
+                WHERE locale = 'en' AND to_translate = 0
             ";
             $stmtEnglish = $this->db->prepare($sqlEnglishTemplates);
             $stmtEnglish->execute();

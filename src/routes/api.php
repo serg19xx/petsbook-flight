@@ -154,6 +154,12 @@ Flight::route('GET /api/profile-images/avatars/*', [$avatarController, 'serveIma
 Flight::route('GET /api/profile-images/covers/*', [$coverController, 'serveImage']);
 Flight::route('GET /api/profile-images/email-tmpl/*', [$emailTemplateController, 'serveImage']);
 
+// Добавить эти роуты для совместимости с фронтендом
+Flight::route('POST /user/cover', [$coverController, 'upload']);
+Flight::route('POST /user/avatar', [$avatarController, 'upload']);
+Flight::route('GET /user/cover/*', [$coverController, 'serveImage']);
+Flight::route('GET /user/avatar/*', [$avatarController, 'serveImage']);
+
 // Handle 404
 Flight::map('notFound', function() {
     Flight::json([
