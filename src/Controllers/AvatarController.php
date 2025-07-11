@@ -42,10 +42,25 @@ class AvatarController {
             return Flight::json(['success' => false, 'error' => 'Invalid token: ' . $e->getMessage()], 401);
         }
 
-        Logger::info("User ID: " . $userId, "AvatarController");
-        Logger::info("User Role: " . $userRole, "AvatarController");
-    
+        Logger::info("User data", "AvatarController", [
+            'user_id' => $userId,
+            'user_role' => $userRole
+        ]);
+
+        // Добавить логи для проверки файла
+        Logger::info("Files array", "AvatarController", [
+            'files' => $_FILES,
+            'request_files' => Flight::request()->files
+        ]);
+
         $file = Flight::request()->files->photo;
+        Logger::info("File object", "AvatarController", [
+            'file_exists' => !empty($file),
+            'file_name' => $file->name ?? 'NOT_SET',
+            'file_size' => $file->size ?? 'NOT_SET',
+            'file_type' => $file->type ?? 'NOT_SET'
+        ]);
+
         if (!$file) {
             Logger::error("No file uploaded", "AvatarController");
             return Flight::json(['success' => false, 'error' => 'No file uploaded'], 400);
