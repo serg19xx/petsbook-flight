@@ -143,6 +143,25 @@ class AvatarController {
             'target_dir_writable' => is_writable(dirname($filePath))
         ]);
 
+        // В методе upload() перед move_uploaded_file добавить:
+        Logger::info("Final file path check", "AvatarController", [
+            'upload_dir' => $this->uploadDir,
+            'upload_dir_realpath' => realpath($this->uploadDir),
+            'upload_dir_writable' => is_writable($this->uploadDir),
+            'php_user' => get_current_user(),
+            'php_process_user' => posix_getpwuid(posix_geteuid())['name'] ?? 'unknown'
+        ]);
+
+        // New filename format: [role]-[id].[ext]
+        $filename = $userRole . '-' . $userId . '.' . $extension;
+        $filePath = $this->uploadDir . $filename;
+
+        Logger::info("File path details", "AvatarController", [
+            'filename' => $filename,
+            'filepath' => $filePath,
+            'filepath_exists' => file_exists($filePath)
+        ]);
+
         if (move_uploaded_file($file['tmp_name'], $filePath)) {
             Logger::info("File moved successfully", "AvatarController", [
                 'target_path' => $filePath,
