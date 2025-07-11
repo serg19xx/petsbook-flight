@@ -115,8 +115,20 @@ class AvatarController {
 
         Logger::info("File exists: " . file_exists($filePath), "AvatarController");
     
+        // После всех проверок добавить:
+        Logger::info("Starting file move", "AvatarController", [
+            'tmp_name' => $file['tmp_name'],
+            'target_path' => $filePath,
+            'target_dir_exists' => is_dir(dirname($filePath)),
+            'target_dir_writable' => is_writable(dirname($filePath))
+        ]);
+
         if (move_uploaded_file($file['tmp_name'], $filePath)) {
-            Logger::success("Avatar moved successfully", "AvatarController");
+            Logger::info("File moved successfully", "AvatarController", [
+                'target_path' => $filePath,
+                'file_exists' => file_exists($filePath),
+                'file_size' => filesize($filePath)
+            ]);
             // Добавляем timestamp для предотвращения кеширования
             $timestamp = time();
             return Flight::json([
@@ -124,10 +136,14 @@ class AvatarController {
                 'filename' => $filename,
                 'path' => '/profile-images/avatars/' . $filename . '?t=' . $timestamp
             ]);
+        } else {
+            Logger::error("Failed to move file", "AvatarController", [
+                'tmp_name' => $file['tmp_name'],
+                'target_path' => $filePath,
+                'error' => error_get_last()
+            ]);
+            return Flight::json(['success' => false, 'error' => 'Upload failed'], 500);
         }
-
-        Logger::success("Avatar uploaded successfully", "AvatarController");
-        return Flight::json(['success' => false, 'error' => 'Upload failed'], 500);
     }
 
     public function serveImage() {
