@@ -53,12 +53,12 @@ class AvatarController {
             'request_files' => Flight::request()->files
         ]);
 
-        $file = Flight::request()->files->photo;
+        $file = Flight::request()->files['photo'] ?? null;
         Logger::info("File object", "AvatarController", [
             'file_exists' => !empty($file),
-            'file_name' => $file->name ?? 'NOT_SET',
-            'file_size' => $file->size ?? 'NOT_SET',
-            'file_type' => $file->type ?? 'NOT_SET'
+            'file_name' => $file['name'] ?? 'NOT_SET',
+            'file_size' => $file['size'] ?? 'NOT_SET',
+            'file_type' => $file['type'] ?? 'NOT_SET'
         ]);
 
         if (!$file) {
@@ -66,8 +66,6 @@ class AvatarController {
             return Flight::json(['success' => false, 'error' => 'No file uploaded'], 400);
         }
     
-        Logger::info("File: " . $file, "AvatarController");
-
         $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         if (!in_array($extension, $this->allowedTypes)) {
             return Flight::json(['success' => false, 'error' => 'Invalid file type'], 400);
