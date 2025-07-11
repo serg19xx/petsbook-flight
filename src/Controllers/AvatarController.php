@@ -71,19 +71,33 @@ class AvatarController {
             return Flight::json(['success' => false, 'error' => 'No file uploaded'], 400);
         }
     
+        // После проверки файла добавить:
+        Logger::info("File validation passed", "AvatarController");
+
         $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        Logger::info("File extension: " . $extension, "AvatarController");
+
         if (!in_array($extension, $this->allowedTypes)) {
+            Logger::error("Invalid file type: " . $extension, "AvatarController");
             return Flight::json(['success' => false, 'error' => 'Invalid file type'], 400);
         }
-    
-        Logger::info("Upload directory: " . $this->uploadDir, "AvatarController");
+
+        Logger::info("File type validation passed", "AvatarController");
 
         // Убедимся что директория существует и доступна для записи
         if (!is_dir($this->uploadDir)) {
+            Logger::info("Creating upload directory", "AvatarController");
             mkdir($this->uploadDir, 0755, true);
         }
 
         Logger::info("Upload directory is writable: " . is_writable($this->uploadDir), "AvatarController");
+
+        if (!is_writable($this->uploadDir)) {
+            Logger::error("Upload directory is not writable", "AvatarController");
+            return Flight::json(['success' => false, 'error' => 'Upload directory is not writable'], 500);
+        }
+
+        Logger::info("Directory permissions check passed", "AvatarController");
 
         // Добавить логи для проверки файла
         Logger::info("File tmp_name: " . $file['tmp_name'], "AvatarController");
@@ -96,10 +110,6 @@ class AvatarController {
         // Проверить ошибки загрузки
         Logger::info("File upload error: " . $file['error'], "AvatarController");
         
-        if (!is_writable($this->uploadDir)) {
-            return Flight::json(['success' => false, 'error' => 'Upload directory is not writable'], 500);
-        }
-
         Logger::info("File is writable: " . is_writable($file['tmp_name']), "AvatarController");
     
         // New filename format: [role]-[id].[ext]
