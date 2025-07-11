@@ -20,7 +20,7 @@ class AvatarController {
             mkdir($this->uploadDir, 0777, true);
         }
         
-        // Принудительно устанавливаем права доступа
+        // Принудительно устанавливаем права доступа при каждом запуске
         chmod($this->uploadDir, 0777);
         
         Logger::info("AvatarController initialized", "AvatarController", [

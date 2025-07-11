@@ -35,6 +35,11 @@ services:
     environment:
       - APP_ENV=production
       - APP_DEBUG=false
+    command: >
+      sh -c "
+        chmod -R 777 /var/www/html/public/profile-images/avatars/ &&
+        php-fpm
+      "
     networks:
       - petsbook-network
 
