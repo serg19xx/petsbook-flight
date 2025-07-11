@@ -38,6 +38,7 @@ services:
     command: >
       sh -c "
         chmod -R 777 /var/www/html/public/profile-images/avatars/ &&
+        chmod -R 777 /var/www/html/public/profile-images/covers/ &&
         php-fpm
       "
     networks:

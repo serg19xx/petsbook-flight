@@ -65,3 +65,12 @@ else
 fi
 
 echo "🏁 Деплой завершён!" 
+
+# После деплоя автоматически исправить права
+chmod -R 777 public/profile-images/avatars/
+chmod -R 777 public/profile-images/covers/
+chown -R 1001:999 public/profile-images/avatars/
+chown -R 1001:999 public/profile-images/covers/
+
+# Перезапустить контейнеры
+docker compose -f docker-compose.prod.yml restart 

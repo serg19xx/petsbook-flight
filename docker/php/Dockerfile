@@ -10,6 +10,12 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip
 
+# Добавить в Dockerfile:
+RUN mkdir -p /var/www/html/public/profile-images/avatars/
+RUN mkdir -p /var/www/html/public/profile-images/covers/
+RUN chmod -R 777 /var/www/html/public/profile-images/avatars/
+RUN chmod -R 777 /var/www/html/public/profile-images/covers/
+
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
