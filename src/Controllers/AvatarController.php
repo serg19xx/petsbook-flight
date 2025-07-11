@@ -53,7 +53,12 @@ class AvatarController {
             'request_files' => Flight::request()->files
         ]);
 
-        $file = Flight::request()->files['photo'] ?? null;
+        // Работает везде:
+        $file = $_FILES['photo'] ?? null;
+
+        // Вместо (работает только локально):
+        // $file = Flight::request()->files->photo;
+
         Logger::info("File object", "AvatarController", [
             'file_exists' => !empty($file),
             'file_name' => $file['name'] ?? 'NOT_SET',
@@ -79,6 +84,17 @@ class AvatarController {
         }
 
         Logger::info("Upload directory is writable: " . is_writable($this->uploadDir), "AvatarController");
+
+        // Добавить логи для проверки файла
+        Logger::info("File tmp_name: " . $file['tmp_name'], "AvatarController");
+        Logger::info("File tmp_name exists: " . file_exists($file['tmp_name']), "AvatarController");
+        Logger::info("File tmp_name is readable: " . is_readable($file['tmp_name']), "AvatarController");
+
+        // Проверить размер файла
+        Logger::info("File size check: " . ($file['size'] > 0 ? 'OK' : 'ZERO'), "AvatarController");
+
+        // Проверить ошибки загрузки
+        Logger::info("File upload error: " . $file['error'], "AvatarController");
         
         if (!is_writable($this->uploadDir)) {
             return Flight::json(['success' => false, 'error' => 'Upload directory is not writable'], 500);
