@@ -38,38 +38,55 @@ class AvatarController {
             $userId = $decoded->user_id;
             $userRole = $decoded->role;
         } catch(\Exception $e) {
+            Logger::error("Invalid token: " . $e->getMessage(), "AvatarController");
             return Flight::json(['success' => false, 'error' => 'Invalid token: ' . $e->getMessage()], 401);
         }
+
+        Logger::info("User ID: " . $userId, "AvatarController");
+        Logger::info("User Role: " . $userRole, "AvatarController");
     
         $file = Flight::request()->files->photo;
         if (!$file) {
             return Flight::json(['success' => false, 'error' => 'No file uploaded'], 400);
         }
     
+        Logger::info("File: " . $file, "AvatarController");
+
         $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         if (!in_array($extension, $this->allowedTypes)) {
             return Flight::json(['success' => false, 'error' => 'Invalid file type'], 400);
         }
     
+        Logger::info("Upload directory: " . $this->uploadDir, "AvatarController");
+
         // Убедимся что директория существует и доступна для записи
         if (!is_dir($this->uploadDir)) {
             mkdir($this->uploadDir, 0755, true);
         }
+
+        Logger::info("Upload directory is writable: " . is_writable($this->uploadDir), "AvatarController");
         
         if (!is_writable($this->uploadDir)) {
             return Flight::json(['success' => false, 'error' => 'Upload directory is not writable'], 500);
         }
+
+        Logger::info("File is writable: " . is_writable($file['tmp_name']), "AvatarController");
     
         // New filename format: [role]-[id].[ext]
         $filename = $userRole . '-' . $userId . '.' . $extension;
         $filePath = $this->uploadDir . $filename;
+
+        Logger::info("File path: " . $filePath, "AvatarController");
     
         // Remove old avatar if exists
         if (file_exists($filePath)) {
             unlink($filePath);
         }
+
+        Logger::info("File exists: " . file_exists($filePath), "AvatarController");
     
         if (move_uploaded_file($file['tmp_name'], $filePath)) {
+            Logger::success("Avatar moved successfully", "AvatarController");
             // Добавляем timestamp для предотвращения кеширования
             $timestamp = time();
             return Flight::json([
@@ -78,6 +95,7 @@ class AvatarController {
                 'path' => '/profile-images/avatars/' . $filename . '?t=' . $timestamp
             ]);
         }
+
         Logger::success("Avatar uploaded successfully", "AvatarController");
         return Flight::json(['success' => false, 'error' => 'Upload failed'], 500);
     }
