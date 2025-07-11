@@ -17,11 +17,18 @@ class AvatarController {
         
         // Создаем директорию если она не существует
         if (!is_dir($this->uploadDir)) {
-            mkdir($this->uploadDir, 0755, true);
+            mkdir($this->uploadDir, 0777, true);
         }
         
-        // Устанавливаем права доступа
-        chmod($this->uploadDir, 0755);
+        // Устанавливаем права доступа (временно 777 для отладки)
+        chmod($this->uploadDir, 0777);
+        
+        Logger::info("AvatarController initialized", "AvatarController", [
+            'upload_dir' => $this->uploadDir,
+            'dir_exists' => is_dir($this->uploadDir),
+            'dir_writable' => is_writable($this->uploadDir),
+            'dir_permissions' => substr(sprintf('%o', fileperms($this->uploadDir)), -4)
+        ]);
     }
 
     public function upload() {
