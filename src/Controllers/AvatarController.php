@@ -47,6 +47,7 @@ class AvatarController {
     
         $file = Flight::request()->files->photo;
         if (!$file) {
+            Logger::error("No file uploaded", "AvatarController");
             return Flight::json(['success' => false, 'error' => 'No file uploaded'], 400);
         }
     
