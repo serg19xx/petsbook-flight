@@ -20,13 +20,13 @@ class AvatarController {
             mkdir($this->uploadDir, 0777, true);
         }
         
-        // Устанавливаем права доступа (временно 777 для отладки)
+        // Принудительно устанавливаем права доступа
         chmod($this->uploadDir, 0777);
         
         Logger::info("AvatarController initialized", "AvatarController", [
             'upload_dir' => $this->uploadDir,
-            'dir_exists' => is_dir($this->uploadDir),
-            'dir_writable' => is_writable($this->uploadDir),
+            'dir_exists' => is_dir($this->uploadDir) ? 'YES' : 'NO',
+            'dir_writable' => is_writable($this->uploadDir) ? 'YES' : 'NO',
             'dir_permissions' => substr(sprintf('%o', fileperms($this->uploadDir)), -4)
         ]);
     }
@@ -99,6 +99,14 @@ class AvatarController {
             Logger::info("Creating upload directory", "AvatarController");
             mkdir($this->uploadDir, 0755, true);
         }
+
+        // В методе upload() перед проверкой is_writable добавить:
+        Logger::info("Directory check before upload", "AvatarController", [
+            'upload_dir' => $this->uploadDir,
+            'dir_exists' => is_dir($this->uploadDir) ? 'YES' : 'NO',
+            'dir_writable' => is_writable($this->uploadDir) ? 'YES' : 'NO',
+            'dir_permissions' => substr(sprintf('%o', fileperms($this->uploadDir)), -4)
+        ]);
 
         Logger::info("Upload directory is writable: " . is_writable($this->uploadDir), "AvatarController");
 
