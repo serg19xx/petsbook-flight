@@ -371,11 +371,11 @@ class EmailTemplateController extends BaseController
      */
     public function translateTemplates()
     {
-        $userData = $this->validateToken();
-        if (!$userData) {
-            return Flight::json(['success' => false, 'error' => 'No token provided'], 401);
-        }
-
+        // Убрать эти строки если есть:
+        // $this->checkAuth();
+        // $this->requireAuth();
+        
+        // Оставить только логику перевода
         try {
             $availableLanguages = $this->getAvailableLanguages();
             $translatedCount = 0;
@@ -546,13 +546,14 @@ class EmailTemplateController extends BaseController
      */
     public function translateLayouts()
     {
-        $userData = $this->validateToken();
-        if (!$userData) {
-            return Flight::json(['success' => false, 'error' => 'No token provided'], 401);
-        }
+        // Убираем проверку токена
+        // $userData = $this->validateToken();
+        // if (!$userData) {
+        //     return Flight::json(['success' => false, 'error' => 'No token provided'], 401);
+        // }
 
         Logger::info("Translating email layouts", "EmailTemplateController", [
-            'user_id' => $userData['user_id']
+            // 'user_id' => $userData['user_id']  // убираем эту строку
         ]);
 
         try {

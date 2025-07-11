@@ -142,8 +142,9 @@ Flight::route('POST /api/i18n/email-templates/save', [$emailTemplateController, 
 
 // Short URL for email template images
 Flight::route('GET /api/email-tmpl/*', [$emailTemplateController, 'serveImage']);
+// Эти роуты должны быть БЕЗ AuthMiddleware
 Flight::route('POST /api/email-templates/translate', [$emailTemplateController, 'translateTemplates']);
-Flight::route('POST /api/email-layouts/translate', [$emailTemplateController, 'translateLayouts']);
+Flight::route('POST /api/email-templates/translate-layouts', [$emailTemplateController, 'translateLayouts']);
 
 // Email template images
 Flight::route('GET /api/email-tmpl-images/*', [$emailTemplateController, 'serveImage']);
