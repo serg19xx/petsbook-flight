@@ -19,6 +19,9 @@ class AvatarController {
         if (!is_dir($this->uploadDir)) {
             mkdir($this->uploadDir, 0755, true);
         }
+        
+        // Устанавливаем права доступа
+        chmod($this->uploadDir, 0755);
     }
 
     public function upload() {
