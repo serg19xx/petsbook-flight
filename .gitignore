@@ -26,3 +26,5 @@ mysql_data/
 
 .env.development
 .env
+.env.development
+.env
