@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip
 
-# Добавить в Dockerfile:
+# Добавить в Dockerfile:      
 RUN mkdir -p /var/www/html/public/profile-images/avatars/
 RUN mkdir -p /var/www/html/public/profile-images/covers/
 RUN chmod -R 777 /var/www/html/public/profile-images/avatars/
