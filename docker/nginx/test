@@ -1,0 +1,20 @@
+
+server {
+    listen 443 ssl http2;
+    server_name site.petsbook.ca;
+    
+    root /var/www/html;  # ← Проверить этот путь
+    index index.html;
+    
+    # Статические файлы
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+    
+    # Vue Router - все остальные запросы на index.html
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+} 
