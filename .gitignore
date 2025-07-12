@@ -24,3 +24,5 @@ mysql_data/
 *.backup
 *.bak
 
+.env.development
+.env

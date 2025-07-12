@@ -90,6 +90,7 @@ Flight::route('POST /api/auth/password-reset', [$authController, 'passwordReset'
 Flight::route('POST /api/auth/set-new-password', [$authController, 'setNewPassword']);
 Flight::route('POST /api/auth/validate-reset-token', [$authController, 'validateResetToken']);
 Flight::route('GET /api/auth/verify-email/@token', [$authController, 'verifyEmail']);
+Flight::route('GET /auth/verify-email/@token', [$authController, 'verifyEmail']);
 
 /**
  * User Routes
