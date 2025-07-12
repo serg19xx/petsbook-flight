@@ -15,19 +15,12 @@ class MailService
     {
         Logger::info("Starting MailService initialization", "MailService");
 
-        Logger::info("Using mail driver: " . $_ENV['MAIL_DRIVER'], "MailService", [
-            'driver' => $_ENV['MAIL_DRIVER'],
-            'env' => [
-                'MAIL_DRIVER' => $_ENV['MAIL_DRIVER'],
-                'MAILTRAP_HOST' => $_ENV['MAILTRAP_HOST'] ?? 'not set',
-                'MAILTRAP_PORT' => $_ENV['MAILTRAP_PORT'] ?? 'not set',
-                'MAILTRAP_USERNAME' => isset($_ENV['MAILTRAP_USERNAME']) ? 'set' : 'not set',
-                'MAILTRAP_PASSWORD' => isset($_ENV['MAILTRAP_PASSWORD']) ? 'set' : 'not set'
-            ]
-        ]);
-
         Logger::info("Creating mail provider", "MailService");
-        $this->provider = MailProviderFactory::create($_ENV['MAIL_DRIVER']);
+        $config = MailProviderFactory::getConfigForDriver($_ENV['MAIL_DRIVER']);
+        Logger::info("Config loaded successfully", "MailService", [
+            'config' => $config
+        ]);
+        $this->provider = MailProviderFactory::create($_ENV['MAIL_DRIVER'], $config);
         Logger::info("Mail provider created successfully", "MailService", [
             'provider' => get_class($this->provider)
         ]);
