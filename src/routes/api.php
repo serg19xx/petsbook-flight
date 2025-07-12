@@ -93,7 +93,7 @@ Flight::route('GET /api/auth/verify-email/@token', [$authController, 'verifyEmai
 Flight::route('GET /auth/verify-email/@token', [$authController, 'verifyEmail']);
 
 /**
- * User Routes
+ * User Routes    
  * 
  * @route GET /api/user/getuser - Get current user data
  */
