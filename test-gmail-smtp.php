@@ -27,11 +27,14 @@ try {
     
     if ($result) {
         echo "✅ Письмо отправлено успешно!\n";
+        exit(0);
     } else {
         echo "❌ Ошибка отправки письма\n";
+        exit(1);
     }
     
 } catch (Exception $e) {
     echo "❌ Ошибка: " . $e->getMessage() . "\n";
     echo "📋 Trace: " . $e->getTraceAsString() . "\n";
+    exit(1);
 } 
