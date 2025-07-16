@@ -64,6 +64,7 @@ petsbook-flight/
 - **Nginx** веб-сервер
 - **GitHub Actions** автоматический деплой
 - **SendGrid** отправка email
+- **Gmail SMTP** отправка email
 - **Google Translate** API
 
 ## 🌍 API Endpoints
@@ -90,6 +91,38 @@ petsbook-flight/
 - SSL сертификаты на сервере
 - Все секреты в GitHub Secrets
 - Валидация входных данных
+
+## 📧 Email провайдеры
+
+### SendGrid API
+```env
+MAIL_DRIVER=sendgrid_api
+SENDGRID_API_KEY=your_api_key
+SENDGRID_FROM_ADDRESS=noreply@petsbook.ca
+SENDGRID_FROM_NAME=PetsBook
+```
+
+### SendGrid SMTP
+```env
+MAIL_DRIVER=sendgrid_smtp
+SENDGRID_SMTP_PASSWORD=your_smtp_password
+SENDGRID_FROM_ADDRESS=noreply@petsbook.ca
+SENDGRID_FROM_NAME=PetsBook
+```
+
+### Gmail SMTP
+```env
+MAIL_DRIVER=gmail_smtp
+GMAIL_USERNAME=your_email@gmail.com
+GMAIL_APP_PASSWORD=your_app_password
+GMAIL_FROM_ADDRESS=your_email@gmail.com
+GMAIL_FROM_NAME=PetsBook
+```
+
+**Важно для Gmail:** Используйте App Password вместо обычного пароля. Для получения App Password:
+1. Включите 2FA в Google аккаунте
+2. Перейдите в [Google Account Settings](https://myaccount.google.com/apppasswords)
+3. Сгенерируйте App Password для "Mail"
 
 ## 📊 Мониторинг
 
