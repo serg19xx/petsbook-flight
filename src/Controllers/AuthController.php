@@ -12,7 +12,21 @@ use App\Constants\ResponseCodes;
 use App\Mail\MailService;
 use App\Mail\DTOs\PersonalizedRecipient;
 use App\Services\EmailTemplateRenderer;
+use App\Exceptions\EmailException;
+use App\Exceptions\ValidationException;
+use App\Exceptions\DatabaseException;
+use App\Exceptions\TokenException;
 
+/*
+
+LOGIN_SUCCESS, MISSING_CREDENTIALS, EMAIL_NOT_VERIFIED
+REGISTRATION_SUCCESS, EMAIL_ALREADY_EXISTS
+LOGOUT_SUCCESS
+EMAIL_VERIFICATION_SUCCESS, INVALID_TOKEN
+PASSWORD_RESET_SUCCESS, SYSTEM_ERROR
+TOKEN_ALREADY_USED, TOKEN_EXPIRED, TOKEN_VALID
+
+*/
 
 /**
  * Authentication Controller
@@ -50,6 +64,10 @@ class AuthController extends BaseController {
      * - USER_DATA_SUCCESS: Successfully retrieved user data
      * - PASSWORD_RESET_SUCCESS: Successfully reset password
      * - EMAIL_VERIFICATION_SUCCESS: Successfully verified email
+     *   FROM SP_LOGIN
+     *   - INVALID_CREDENTIALS: Invalid credentials
+     *   - ACCOUNT_BLOCKED: Account is blocked
+     *   - EMAIL_NOT_VERIFIED: Your email is not verified. Please check your email and follow the verification link.
      * 
      * Authentication error codes:
      * - MISSING_CREDENTIALS: Missing email or password
@@ -98,21 +116,11 @@ class AuthController extends BaseController {
             $data = json_decode($requestBody, true);
             
             if (json_last_error() !== JSON_ERROR_NONE) {
-                return Flight::json([
-                    'status' => 400,
-                    'error_code' => ResponseCodes::INVALID_REQUEST,
-                    'message' => 'Invalid JSON data',
-                    'data' => null
-                ], 400);
+                throw new ValidationException("Invalid JSON format");
             }
             
             if (!isset($data['email']) || !isset($data['password'])) {
-                return Flight::json([
-                    'status' => 400,
-                    'error_code' => ResponseCodes::MISSING_CREDENTIALS,
-                    'message' => 'Email and password are required',
-                    'data' => null
-                ], 400);
+                throw new ValidationException("Missing email or password");
             }
 
             Logger::info("Login attempt Data: " . json_encode([
@@ -128,10 +136,16 @@ class AuthController extends BaseController {
             Logger::info("Login procedure result: " . json_encode($result), "AuthController");
             
             if (!$result['success']) {
+                $statusCode = 400;
+                
+                // Специальная обработка для EMAIL_NOT_VERIFIED
+                if ($result['error_code'] === 'EMAIL_NOT_VERIFIED') {
+                    $statusCode = 403; // Forbidden - более подходящий статус для неподтвержденного email
+                }
+                
                 $response = [
-                    'status' => 400,
+                    'status' => $statusCode,
                     'error_code' => $result['error_code'],
-                    'message' => $result['message'],
                     'data' => null
                 ];
                 
@@ -140,15 +154,14 @@ class AuthController extends BaseController {
                     'result' => $result
                 ]);
                 
-                return Flight::json($response, 400);
+                return Flight::json($response, $statusCode);
             }
 
             // Проверяем пароль
             if (!password_verify($data['password'], $result['stored_password'])) {
                 return Flight::json([
                     'status' => 400,
-                    'error_code' => ResponseCodes::INVALID_PASSWORD,
-                    'message' => 'Invalid password',
+                    'error_code' => 'INVALID_PASSWORD',
                     'data' => null
                 ], 400);
             }
@@ -230,8 +243,7 @@ class AuthController extends BaseController {
 
             return Flight::json([
                 'status' => 200,
-                'error_code' => ResponseCodes::LOGIN_SUCCESS,
-                'message' => $result['message'],
+                'error_code' => 'LOGIN_SUCCESS',
                 'data' => [
                     'token' => $token,
                     'user' => [
@@ -243,18 +255,47 @@ class AuthController extends BaseController {
                 ]
             ], 200);
 
+        } catch (ValidationException $e) {
+            Logger::warning("Validation error in login", "AuthController", [
+                'error' => $e->getMessage()
+            ]);
+            return Flight::json([
+                'status' => 400,
+                'error_code' => 'INVALID_REQUEST',
+                'data' => null
+            ], 400);
+        } catch (DatabaseException $e) {
+            Logger::error("Database error in login", "AuthController", [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return Flight::json([
+                'status' => 500,
+                'error_code' => 'DATABASE_ERROR',
+                'data' => [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString()
+                ]
+            ], 500);
         } catch (\Exception $e) {
-            Logger::error("Login error", "AuthController", [
+            Logger::error("System error in login", "AuthController", [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
             ]);
+            
             return Flight::json([
                 'status' => 500,
-                'error_code' => ResponseCodes::SYSTEM_ERROR,
-                'message' => 'An unexpected error occurred. Please try again later.',
-                'data' => null
+                'error_code' => 'SYSTEM_ERROR',
+                'data' => [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString()
+                ]
             ], 500);
         }
     }
@@ -282,13 +323,7 @@ class AuthController extends BaseController {
             $data = json_decode($requestBody, true);
             
             if (json_last_error() !== JSON_ERROR_NONE) {
-                Logger::error("JSON decode error: " . json_last_error_msg(), 'AuthController');
-                return Flight::json([
-                    'status' => 400,
-                    'error_code' => ResponseCodes::INVALID_USER_DATA,
-                    'message' => '',
-                    'data' => null
-                ], 400);
+                throw new ValidationException("Invalid JSON format");
             }
 
             // Input data sanitization and normalization
@@ -305,28 +340,12 @@ class AuthController extends BaseController {
 
             // Data validation
             if (empty($email) || empty($password) || empty($name) || empty($role)) {
-                Logger::warning("Missing credentials in registration", "AuthController", [
-                    'email' => $email,
-                    'name' => $name,
-                    'role' => $role
-                ]);
-                return Flight::json([
-                    'status' => 400,
-                    'error_code' => ResponseCodes::MISSING_CREDENTIALS,
-                    'message' => '',
-                    'data' => null
-                ], 400);
+                throw new ValidationException("Missing required fields");
             }
 
             $allowedRoles = ['agent', 'bussiness', 'user'];
             if (!in_array($role, $allowedRoles)) {
-                Logger::warning("Invalid role in registration", "AuthController", ['role' => $role]);
-                return Flight::json([
-                    'status' => 400,
-                    'error_code' => ResponseCodes::INVALID_ROLE,
-                    'message' => '',
-                    'data' => null
-                ], 400);
+                throw new ValidationException("Invalid role");
             }
 
             // Password hashing
@@ -350,7 +369,7 @@ class AuthController extends BaseController {
             $stmt->closeCursor();
             
             try {
-                    // Create verification token
+                // Create verification token
                 $token = $this->createVerificationToken($result['id']);
                 
                 Logger::info("Verification token created", "AuthController", [
@@ -374,8 +393,7 @@ class AuthController extends BaseController {
                 
                 return Flight::json([
                     'status' => 200,
-                    'error_code' => ResponseCodes::REGISTRATION_SUCCESS,
-                    'message' => '',
+                    'error_code' => 'REGISTRATION_SUCCESS',
                     'data' => [
                         'user' => [
                             'id' => $result['id'],
@@ -386,18 +404,16 @@ class AuthController extends BaseController {
                         ]
                     ]
                 ], 200);
-            } catch (\Exception $e) {
-                Logger::error("Post-registration process error", "AuthController", [
+            } catch (EmailException $e) {
+                Logger::error("Email sending failed during registration", "AuthController", [
                     'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
                     'userId' => $result['id'] ?? null
                 ]);
             
                 // Registration is successful even if email sending failed
                 return Flight::json([
                     'status' => 200,
-                    'error_code' => ResponseCodes::EMAIL_SEND_ERROR,
-                    'message' => '',
+                    'error_code' => 'REGISTRATION_SUCCESS',
                     'data' => [
                         'user' => [
                             'id' => $result['id'],
@@ -410,17 +426,45 @@ class AuthController extends BaseController {
                 ], 200);
             }
 
+        } catch (ValidationException $e) {
+            Logger::warning("Validation error in registration", "AuthController", [
+                'error' => $e->getMessage()
+            ]);
+            return Flight::json([
+                'status' => 400,
+                'error_code' => 'INVALID_REQUEST',
+                'data' => null
+            ], 400);
+        } catch (DatabaseException $e) {
+            Logger::error("Database error in registration", "AuthController", [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return Flight::json([
+                'status' => 500,
+                'error_code' => 'DATABASE_ERROR',
+                'data' => [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString()
+                ]
+            ], 500);
         } catch (\Exception $e) {
-            Logger::error("Registration error", "AuthController", [
+            Logger::error("System error in registration", "AuthController", [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
             
             return Flight::json([
                 'status' => 500,
-                'error_code' => ResponseCodes::EMAIL_ALREADY_EXISTS,
-                'message' => $e->getMessage(),
-                'data' => null
+                'error_code' => 'SYSTEM_ERROR',
+                'data' => [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString()
+                ]
             ], 500);
         }
     }
@@ -438,8 +482,7 @@ class AuthController extends BaseController {
         
         return Flight::json([
             'status' => 200,
-            'error_code' => ResponseCodes::LOGOUT_SUCCESS,
-            'message' => '',
+            'error_code' => 'LOGOUT_SUCCESS',
             'data' => null
         ], 200);
     }
@@ -458,30 +501,27 @@ class AuthController extends BaseController {
     public function passwordReset() {
         try {
             Logger::info("Starting password reset process", "AuthController");
-            $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
             
             $requestBody = Flight::request()->getBody();
             $data = json_decode($requestBody, true);
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new ValidationException("Invalid JSON format");
+            }
+            
+            if (!isset($data['email']) || empty(trim($data['email']))) {
+                throw new ValidationException("Email is required");
+            }
+
             $email = trim($data['email']);
-    
+
             Logger::info("Password reset request", "AuthController", [
                 'email' => $email,
                 'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown'
             ]);
 
-            if (!isset($data['email']) || empty(trim($data['email']))) {
-                Logger::warning("Password reset attempt without email", "AuthController");
-                return Flight::json([
-                    'status' => 400,
-                    'error_code' => ResponseCodes::MISSING_CREDENTIALS,
-                    'message' => 'Email is required',
-                    'data' => null
-                ], 400);
-            }
-
-            $email = trim($data['email']);
-
             Logger::info("Checking user existence", "AuthController", ['email' => $email]);
+            
             // Check if user exists
             $stmt = $this->db->prepare("
                 SELECT id, email, role
@@ -500,8 +540,7 @@ class AuthController extends BaseController {
 
                 return Flight::json([
                     'status' => 200,
-                    'error_code' => ResponseCodes::PASSWORD_RESET_SUCCESS,
-                    'message' => 'If the email exists, you will receive a password reset link',
+                    'error_code' => 'PASSWORD_RESET_SUCCESS',
                     'data' => null
                 ], 200);
             }
@@ -555,7 +594,7 @@ class AuthController extends BaseController {
                     Logger::error("Error getting user name", "AuthController", [
                         'error' => $e->getMessage(),
                         'userId' => $user['id'],
-                        'role' => $role['name'] ?? 'unknown',
+                        'role' => $user['role'] ?? 'unknown',
                         'sql' => $stmt->queryString
                     ]);
                     $name = $user['email'];
@@ -584,13 +623,11 @@ class AuthController extends BaseController {
             ");
             $stmt->execute([$user['id'], $token]);
 
-
             Logger::info("Sending reset email", "AuthController", [
                 'email' => $user['email'],
                 'name' => $name
             ]);
 
-            // Добавим логирование перед отправкой письма для отладки
             Logger::info("Calling sendPasswordResetEmail", "AuthController", [
                 'email' => $user['email'],
                 'name' => $name,
@@ -603,16 +640,53 @@ class AuthController extends BaseController {
                 'email' => $user['email']
             ]);                
 
-
             return Flight::json([
                 'status' => 200,
-                'error_code' => ResponseCodes::PASSWORD_RESET_SUCCESS,
-                'message' => 'If the email exists, you will receive a password reset link',
+                'error_code' => 'PASSWORD_RESET_SUCCESS',
                 'data' => null
             ], 200);
 
+        } catch (ValidationException $e) {
+            Logger::warning("Validation error in password reset", "AuthController", [
+                'error' => $e->getMessage()
+            ]);
+            return Flight::json([
+                'status' => 400,
+                'error_code' => 'INVALID_REQUEST',
+                'data' => null
+            ], 400);
+        } catch (EmailException $e) {
+            Logger::error("Email sending error in password reset", "AuthController", [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return Flight::json([
+                'status' => 500,
+                'error_code' => 'EMAIL_SEND_ERROR',
+                'data' => [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString()
+                ]
+            ], 500);
+        } catch (DatabaseException $e) {
+            Logger::error("Database error in password reset", "AuthController", [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return Flight::json([
+                'status' => 500,
+                'error_code' => 'DATABASE_ERROR',
+                'data' => [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString()
+                ]
+            ], 500);
         } catch (\Exception $e) {
-            Logger::error("Password reset error", "AuthController", [
+            Logger::error("System error in password reset", "AuthController", [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'email' => $email ?? 'not provided'
@@ -620,9 +694,13 @@ class AuthController extends BaseController {
 
             return Flight::json([
                 'status' => 500,
-                'error_code' => ResponseCodes::SYSTEM_ERROR,
-                'message' => 'System error occurred: ' . $e->getMessage(),
-                'data' => null
+                'error_code' => 'SYSTEM_ERROR',
+                'data' => [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString()
+                ]
             ], 500);
         }
     }
@@ -753,6 +831,10 @@ class AuthController extends BaseController {
 
     public function verifyEmail($token) {
         try {
+            if (empty($token)) {
+                throw new ValidationException("Token is required");
+            }
+
             $stmt = $this->db->prepare("
                 SELECT t.user_id, t.expires_at 
                 FROM email_verification_tokens t
@@ -764,8 +846,7 @@ class AuthController extends BaseController {
             if (!$result) {
                 return Flight::json([
                     'status' => 400,
-                    'error_code' => ResponseCodes::INVALID_TOKEN,
-                    'message' => '',
+                    'error_code' => 'INVALID_TOKEN',
                     'data' => null
                 ], 400);
             }
@@ -787,18 +868,48 @@ class AuthController extends BaseController {
 
             return Flight::json([
                 'status' => 200,
-                'error_code' => ResponseCodes::EMAIL_VERIFICATION_SUCCESS,
-                'message' => '',
+                'error_code' => 'EMAIL_VERIFICATION_SUCCESS',
                 'data' => null
             ], 200);
 
-        } catch (\Exception $e) {
-            Logger::info("Email verification error: " . $e->getMessage(),'AuthController');
+        } catch (ValidationException $e) {
+            Logger::warning("Validation error in email verification", "AuthController", [
+                'error' => $e->getMessage()
+            ]);
+            return Flight::json([
+                'status' => 400,
+                'error_code' => 'INVALID_REQUEST',
+                'data' => null
+            ], 400);
+        } catch (DatabaseException $e) {
+            Logger::error("Database error in email verification", "AuthController", [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return Flight::json([
                 'status' => 500,
-                'error_code' => ResponseCodes::SYSTEM_ERROR,
-                'message' => '',
-                'data' => null
+                'error_code' => 'DATABASE_ERROR',
+                'data' => [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString()
+                ]
+            ], 500);
+        } catch (\Exception $e) {
+            Logger::error("System error in email verification", "AuthController", [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return Flight::json([
+                'status' => 500,
+                'error_code' => 'SYSTEM_ERROR',
+                'data' => [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString()
+                ]
             ], 500);
         }
     }
@@ -882,11 +993,12 @@ class AuthController extends BaseController {
             $requestBody = Flight::request()->getBody();
             $data = json_decode($requestBody, true);
 
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new ValidationException("Invalid JSON format");
+            }
+
             if (!isset($data['token']) || !isset($data['password'])) {
-                return Flight::json([
-                    'success' => false,
-                    'message' => 'Token and password are required'
-                ], 400);
+                throw new ValidationException("Token and password are required");
             }
 
             $token = trim($data['token']);
@@ -907,22 +1019,25 @@ class AuthController extends BaseController {
 
             if (!$result) {
                 return Flight::json([
-                    'success' => false,
-                    'message' => 'Invalid or expired password reset link'
+                    'status' => 400,
+                    'error_code' => 'INVALID_TOKEN',
+                    'data' => null
                 ], 400);
             }
 
             if ($result['used']) {
                 return Flight::json([
-                    'success' => false,
-                    'message' => 'This password reset link has already been used'
+                    'status' => 400,
+                    'error_code' => 'TOKEN_ALREADY_USED',
+                    'data' => null
                 ], 400);
             }
 
             if (strtotime($result['expires_at']) < time()) {
                 return Flight::json([
-                    'success' => false,
-                    'message' => 'Password reset link has expired'
+                    'status' => 400,
+                    'error_code' => 'TOKEN_EXPIRED',
+                    'data' => null
                 ], 400);
             }
 
@@ -960,20 +1075,66 @@ class AuthController extends BaseController {
                 $this->db->commit();
 
                 return Flight::json([
-                    'success' => true,
-                    'message' => 'Password has been successfully reset'
+                    'status' => 200,
+                    'error_code' => 'PASSWORD_RESET_SUCCESS',
+                    'data' => null
                 ], 200);
 
             } catch (\Exception $e) {
                 $this->db->rollBack();
-                Logger::info("Transaction rolled back due to error: " . $e->getMessage(), 'AuthController');
+                Logger::error("Transaction rolled back due to error", "AuthController", [
+                    'error' => $e->getMessage()
+                ]);
                 throw $e;
             }
 
-        } catch (\Exception $e) {
+        } catch (ValidationException $e) {
+            Logger::warning("Validation error in set new password", "AuthController", [
+                'error' => $e->getMessage()
+            ]);
             return Flight::json([
-                'success' => false,
-                'message' => 'An error occurred while changing the password'
+                'status' => 400,
+                'error_code' => 'INVALID_REQUEST',
+                'data' => null
+            ], 400);
+        } catch (TokenException $e) {
+            Logger::warning("Token error in set new password", "AuthController", [
+                'error' => $e->getMessage()
+            ]);
+            return Flight::json([
+                'status' => 400,
+                'error_code' => 'INVALID_TOKEN',
+                'data' => null
+            ], 400);
+        } catch (DatabaseException $e) {
+            Logger::error("Database error in set new password", "AuthController", [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return Flight::json([
+                'status' => 500,
+                'error_code' => 'DATABASE_ERROR',
+                'data' => [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString()
+                ]
+            ], 500);
+        } catch (\Exception $e) {
+            Logger::error("System error in set new password", "AuthController", [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return Flight::json([
+                'status' => 500,
+                'error_code' => 'SYSTEM_ERROR',
+                'data' => [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString()
+                ]
             ], 500);
         }
     }
@@ -994,13 +1155,12 @@ class AuthController extends BaseController {
             $requestBody = Flight::request()->getBody();
             $data = json_decode($requestBody, true);
 
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new ValidationException("Invalid JSON format");
+            }
+
             if (!isset($data['token'])) {
-                return Flight::json([
-                    'status' => 400,
-                    'error_code' => ResponseCodes::TOKEN_NOT_PROVIDED,
-                    'message' => 'Token is required',
-                    'data' => null
-                ], 400);
+                throw new ValidationException("Token is required");
             }
 
             $token = trim($data['token']);
@@ -1018,8 +1178,7 @@ class AuthController extends BaseController {
             if (!$result) {
                 return Flight::json([
                     'status' => 400,
-                    'error_code' => ResponseCodes::INVALID_TOKEN,
-                    'message' => 'Invalid or non-existent token',
+                    'error_code' => 'INVALID_TOKEN',
                     'data' => null
                 ], 400);
             }
@@ -1027,8 +1186,7 @@ class AuthController extends BaseController {
             if ($result['used']) {
                 return Flight::json([
                     'status' => 400,
-                    'error_code' => ResponseCodes::INVALID_TOKEN,
-                    'message' => 'Token has already been used',
+                    'error_code' => 'TOKEN_ALREADY_USED',
                     'data' => null
                 ], 400);
             }
@@ -1036,8 +1194,7 @@ class AuthController extends BaseController {
             if (strtotime($result['expires_at']) < time()) {
                 return Flight::json([
                     'status' => 400,
-                    'error_code' => ResponseCodes::TOKEN_EXPIRED,
-                    'message' => 'Token has expired',
+                    'error_code' => 'TOKEN_EXPIRED',
                     'data' => null
                 ], 400);
             }
@@ -1045,17 +1202,47 @@ class AuthController extends BaseController {
             return Flight::json([
                 'status' => 200,
                 'error_code' => 'TOKEN_VALID',
-                'message' => 'Token is valid',
                 'data' => null
             ], 200);
 
-        } catch (\Exception $e) {
-            Logger::info("Token validation error: " . $e->getMessage(),'AuthController');
+        } catch (ValidationException $e) {
+            Logger::warning("Validation error in token validation", "AuthController", [
+                'error' => $e->getMessage()
+            ]);
+            return Flight::json([
+                'status' => 400,
+                'error_code' => 'INVALID_REQUEST',
+                'data' => null
+            ], 400);
+        } catch (DatabaseException $e) {
+            Logger::error("Database error in token validation", "AuthController", [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return Flight::json([
                 'status' => 500,
-                'error_code' => ResponseCodes::SYSTEM_ERROR,
-                'message' => 'System error occurred',
-                'data' => null
+                'error_code' => 'DATABASE_ERROR',
+                'data' => [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString()
+                ]
+            ], 500);
+        } catch (\Exception $e) {
+            Logger::error("System error in token validation", "AuthController", [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return Flight::json([
+                'status' => 500,
+                'error_code' => 'SYSTEM_ERROR',
+                'data' => [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString()
+                ]
             ], 500);
         }
     }

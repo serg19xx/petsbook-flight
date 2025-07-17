@@ -9,6 +9,7 @@ use App\Controllers\StatsController;
 use App\Controllers\I18n\LocaleController;
 use App\Controllers\I18n\TranslationController;
 use App\Controllers\I18n\EmailTemplateController;
+use App\Controllers\AuthUnverifiedEmailController;
 
 /**
  * API Routes configuration
@@ -41,6 +42,7 @@ $statsController = new StatsController($db);
 $localeController = new LocaleController($db);
 $translationController = new TranslationController($db);
 $emailTemplateController = new EmailTemplateController($db);
+$authUnverifiedEmailController = new AuthUnverifiedEmailController($db);
 
 Flight::route('GET /', function() {
     echo json_encode(['status' => 'API is alive', 'env' => $_ENV['APP_ENV'] ?? getenv('APP_ENV') ?? 'not set']);
@@ -91,6 +93,12 @@ Flight::route('POST /api/auth/set-new-password', [$authController, 'setNewPasswo
 Flight::route('POST /api/auth/validate-reset-token', [$authController, 'validateResetToken']);
 Flight::route('GET /api/auth/verify-email/@token', [$authController, 'verifyEmail']);
 Flight::route('GET /auth/verify-email/@token', [$authController, 'verifyEmail']);
+
+// Auth Unverified Email routes
+Flight::route('POST /auth/resend-unverified-email', [$authUnverifiedEmailController, 'resendUnverifiedEmail']);
+Flight::route('DELETE /auth/delete-unverified-email', [$authUnverifiedEmailController, 'deleteUnverifiedEmail']);
+Flight::route('PATCH /auth/update-unverified-email', [$authUnverifiedEmailController, 'updateUnverifiedEmail']);
+
 
 /**
  * User Routes    
