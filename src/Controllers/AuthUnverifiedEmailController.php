@@ -325,26 +325,46 @@ class AuthUnverifiedEmailController extends BaseController {
      * @return void JSON response with status
      * 
      * @api {patch} /api/auth/update-unverified-email Update unverified email address
-     * @apiBody {String} old_email Current email address
-     * @apiBody {String} new_email New email address
+     * @apiBody {String} oldEmail Current email address
+     * @apiBody {String} newEmail New email address
      * 
      * @apiSuccess {String} status Success status
      * @apiSuccess {String} error_code Response code
      */
     public function updateUnverifiedEmail() {
         try {
+            Logger::info("=== UPDATE UNVERIFIED EMAIL START ===", "AuthUnverifiedEmailController");
+            
             $requestBody = Flight::request()->getBody();
+            Logger::info("Request body received", "AuthUnverifiedEmailController", [
+                'body' => $requestBody
+            ]);
+            
             $data = json_decode($requestBody, true);
             
             if (json_last_error() !== JSON_ERROR_NONE) {
+                Logger::error("JSON decode error", "AuthUnverifiedEmailController", [
+                    'error' => json_last_error_msg(),
+                    'body' => $requestBody
+                ]);
                 throw new ValidationException("Invalid JSON format");
             }
             
-            $oldEmail = $data['old_email'] ?? null;
-            $newEmail = $data['new_email'] ?? null;
+            Logger::info("JSON decoded successfully", "AuthUnverifiedEmailController", [
+                'data' => $data
+            ]);
+            
+            // Исправляем: используем camelCase ключи как в frontend
+            $oldEmail = $data['oldEmail'] ?? null;
+            $newEmail = $data['newEmail'] ?? null;
+
+            Logger::info("Email parameters extracted", "AuthUnverifiedEmailController", [
+                'oldEmail' => $oldEmail,
+                'newEmail' => $newEmail
+            ]);
 
             if (empty($oldEmail) || empty($newEmail)) {
-                throw new ValidationException("Both old_email and new_email are required");
+                throw new ValidationException("Both oldEmail and newEmail are required");
             }
 
             if ($oldEmail === $newEmail) {
@@ -512,12 +532,41 @@ class AuthUnverifiedEmailController extends BaseController {
     }
 
     /**
+     * Clean old verification tokens for user
+     * 
+     * @param int $userId User ID
+     */
+    private function cleanOldVerificationTokens($userId) {
+        try {
+            $stmt = $this->db->prepare("
+                DELETE FROM email_verification_tokens 
+                WHERE user_id = ?
+            ");
+            $stmt->execute([$userId]);
+            
+            Logger::info("Old verification tokens cleaned", "AuthUnverifiedEmailController", [
+                'userId' => $userId
+            ]);
+        } catch (\Exception $e) {
+            Logger::error("Error cleaning old verification tokens", "AuthUnverifiedEmailController", [
+                'error' => $e->getMessage(),
+                'userId' => $userId
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
      * Create verification token for user
      * 
      * @param int $userId User ID
      * @return string Generated token
      */
     private function createVerificationToken($userId) {
+        // Сначала очищаем старые токены
+        $this->cleanOldVerificationTokens($userId);
+        
+        // Создаем новый токен
         $token = bin2hex(random_bytes(32));
         $stmt = $this->db->prepare("
             INSERT INTO email_verification_tokens (user_id, token, expires_at)
@@ -525,6 +574,7 @@ class AuthUnverifiedEmailController extends BaseController {
         ");
         $stmt->execute([$userId, $token]);
         $stmt->closeCursor();
+        
         return $token;
     }
 
