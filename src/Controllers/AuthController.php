@@ -71,7 +71,6 @@ class AuthController extends BaseController {
      * 
      * Authentication error codes:
      * - MISSING_CREDENTIALS: Missing email or password
-     * - INVALID_CREDENTIALS: Invalid email or password
      * - LOGIN_FAILED: Login error (general)
      * - ACCOUNT_INACTIVE: Account is inactive
      * - EMAIL_NOT_VERIFIED: Email not verified
@@ -356,74 +355,132 @@ class AuthController extends BaseController {
                 'role' => $role
             ]);
             
-            // Call registration procedure
-            $stmt = $this->db->prepare("CALL sp_Register(?, ?, ?, ?)");
-            $stmt->execute([$name, $email, $hashedPassword, $role]);
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            Logger::info("Registration procedure completed", "AuthController", [
-                'userId' => $result['id'] ?? null,
-                'message' => $result['message'] ?? 'User registered successfully'
-            ]);
-            
-            $stmt->closeCursor();
-            
             try {
-                // Create verification token
-                $token = $this->createVerificationToken($result['id']);
-                
-                Logger::info("Verification token created", "AuthController", [
-                    'userId' => $result['id'],
-                    'token' => $token
+                // Call registration procedure
+                $stmt = $this->db->prepare("CALL sp_Register(?, ?, ?, ?)");
+                $stmt->execute([$name, $email, $hashedPassword, $role]);
+                $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                $stmt->closeCursor();
+
+                // Временное логирование для отладки
+                Logger::info("DEBUG: Full registration result", "AuthController", [
+                    'result' => $result,
+                    'resultType' => gettype($result),
+                    'resultKeys' => $result ? array_keys($result) : 'null',
+                    'success' => $result['success'] ?? 'not set',
+                    'error_code' => $result['error_code'] ?? 'not set',
+                    'id' => $result['id'] ?? 'not set'
                 ]);
+
+                Logger::info("Registration procedure completed", "AuthController", [
+                    'userId' => $result['id'] ?? null,
+                    'success' => $result['success'] ?? null,
+                    'error_code' => $result['error_code'] ?? null,
+                    'message' => $result['message'] ?? 'User registered successfully'
+                ]);
+                
+                // Проверяем успешность регистрации
+                if (!$result || $result['success'] == 0) {  // Изменили === false на == 0
+                    // Проверяем специфичные ошибки
+                    if (isset($result['error_code']) && $result['error_code'] === 'EMAIL_ALREADY_EXISTS') {
+                        Logger::warning("Email already exists during registration", "AuthController", [
+                            'email' => $email,
+                            'message' => $result['message']
+                        ]);
+                        
+                        return Flight::json([
+                            'status' => 400,
+                            'error_code' => 'EMAIL_ALREADY_EXISTS',
+                            'data' => null
+                        ], 400);
+                    }
                     
-                // Close all possible open cursors before next query
-                while ($this->db->inTransaction()) {
-                    $this->db->commit();
+                    Logger::error("Registration failed", "AuthController", [
+                        'result' => $result
+                    ]);
+                    
+                    return Flight::json([
+                        'status' => 500,
+                        'error_code' => 'REGISTRATION_FAILED',
+                        'data' => null
+                    ], 500);
                 }
                 
-                // Send welcome and verification email
-                $emailSent = $this->sendWelcomeVerificationEmail($email, $name, $token);
+                // Проверяем, что есть ID пользователя
+                if (!isset($result['id']) || $result['id'] === null) {
+                    Logger::error("Registration failed - no user ID returned", "AuthController", [
+                        'result' => $result
+                    ]);
+                    
+                    return Flight::json([
+                        'status' => 500,
+                        'error_code' => 'REGISTRATION_FAILED',
+                        'data' => null
+                    ], 500);
+                }
                 
-                Logger::info("Registration completed successfully", "AuthController", [
-                    'userId' => $result['id'],
-                    'email' => $email,
-                    'emailSent' => $emailSent
-                ]);
+                // Только если регистрация прошла успешно, создаем токен и отправляем email
+                try {
+                    // Create verification token
+                    $token = $this->createVerificationToken($result['id']);
+                    
+                    Logger::info("Verification token created", "AuthController", [
+                        'userId' => $result['id'],
+                        'token' => $token
+                    ]);
+                        
+                    // Close all possible open cursors before next query
+                    while ($this->db->inTransaction()) {
+                        $this->db->commit();
+                    }
+                    
+                    // Send welcome and verification email
+                    $emailSent = $this->sendWelcomeVerificationEmail($email, $name, $token);
+                    
+                    Logger::info("Registration completed successfully", "AuthController", [
+                        'userId' => $result['id'],
+                        'email' => $email,
+                        'emailSent' => $emailSent
+                    ]);
+                    
+                    return Flight::json([
+                        'status' => 200,
+                        'error_code' => 'REGISTRATION_SUCCESS',
+                        'data' => [
+                            'user' => [
+                                'id' => $result['id'],
+                                'email' => $email,
+                                'name' => $name,
+                                'role' => $role,
+                                'email_verified' => false
+                            ]
+                        ]
+                    ], 200);
+                } catch (EmailException $e) {
+                    Logger::error("Email sending failed during registration", "AuthController", [
+                        'error' => $e->getMessage(),
+                        'userId' => $result['id'] ?? null
+                    ]);
                 
-                return Flight::json([
-                    'status' => 200,
-                    'error_code' => 'REGISTRATION_SUCCESS',
-                    'data' => [
-                        'user' => [
-                            'id' => $result['id'],
-                            'email' => $email,
-                            'name' => $name,
-                            'role' => $role,
-                            'email_verified' => false
+                    // Registration is successful even if email sending failed
+                    return Flight::json([
+                        'status' => 200,
+                        'error_code' => 'REGISTRATION_SUCCESS',
+                        'data' => [
+                            'user' => [
+                                'id' => $result['id'],
+                                'email' => $email,
+                                'name' => $name,
+                                'role' => $role,
+                                'email_verified' => false
+                            ]
                         ]
-                    ]
-                ], 200);
-            } catch (EmailException $e) {
-                Logger::error("Email sending failed during registration", "AuthController", [
-                    'error' => $e->getMessage(),
-                    'userId' => $result['id'] ?? null
-                ]);
-            
-                // Registration is successful even if email sending failed
-                return Flight::json([
-                    'status' => 200,
-                    'error_code' => 'REGISTRATION_SUCCESS',
-                    'data' => [
-                        'user' => [
-                            'id' => $result['id'],
-                            'email' => $email,
-                            'name' => $name,
-                            'role' => $role,
-                            'email_verified' => false
-                        ]
-                    ]
-                ], 200);
+                    ], 200);
+                }
+                
+            } catch (\PDOException $e) {
+                // Обработка других ошибок базы данных
+                throw $e;
             }
 
         } catch (ValidationException $e) {
@@ -1244,6 +1301,51 @@ class AuthController extends BaseController {
                     'trace' => $e->getTraceAsString()
                 ]
             ], 500);
+        }
+    }
+
+    /**
+     * Execute stored procedure with error handling
+     * 
+     * @param string $procedureName Name of the procedure
+     * @param array $params Parameters for the procedure
+     * @return array Result from procedure
+     * @throws DatabaseException|ValidationException
+     */
+    private function executeStoredProcedure($procedureName, $params) {
+        try {
+            $placeholders = str_repeat('?,', count($params) - 1) . '?';
+            $stmt = $this->db->prepare("CALL {$procedureName}({$placeholders})");
+            $stmt->execute($params);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+            
+            return $result;
+            
+        } catch (\PDOException $e) {
+            // Обработка специфичных ошибок из хранимых процедур
+            if ($e->getCode() == 45000) {
+                $message = $e->getMessage();
+                
+                if (strpos($message, 'Email already exists') !== false) {
+                    throw new ValidationException("Email already exists");
+                }
+                
+                if (strpos($message, 'Invalid role') !== false) {
+                    throw new ValidationException("Invalid role");
+                }
+                
+                if (strpos($message, 'User not found') !== false) {
+                    throw new ValidationException("User not found");
+                }
+                
+                if (strpos($message, 'Email already verified') !== false) {
+                    throw new ValidationException("Email already verified");
+                }
+            }
+            
+            // Другие ошибки базы данных
+            throw new DatabaseException("Database error: " . $e->getMessage(), $e->getCode(), $e);
         }
     }
 }

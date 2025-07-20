@@ -336,32 +336,14 @@ class AuthUnverifiedEmailController extends BaseController {
             Logger::info("=== UPDATE UNVERIFIED EMAIL START ===", "AuthUnverifiedEmailController");
             
             $requestBody = Flight::request()->getBody();
-            Logger::info("Request body received", "AuthUnverifiedEmailController", [
-                'body' => $requestBody
-            ]);
-            
             $data = json_decode($requestBody, true);
             
             if (json_last_error() !== JSON_ERROR_NONE) {
-                Logger::error("JSON decode error", "AuthUnverifiedEmailController", [
-                    'error' => json_last_error_msg(),
-                    'body' => $requestBody
-                ]);
                 throw new ValidationException("Invalid JSON format");
             }
             
-            Logger::info("JSON decoded successfully", "AuthUnverifiedEmailController", [
-                'data' => $data
-            ]);
-            
-            // Исправляем: используем camelCase ключи как в frontend
             $oldEmail = $data['oldEmail'] ?? null;
             $newEmail = $data['newEmail'] ?? null;
-
-            Logger::info("Email parameters extracted", "AuthUnverifiedEmailController", [
-                'oldEmail' => $oldEmail,
-                'newEmail' => $newEmail
-            ]);
 
             if (empty($oldEmail) || empty($newEmail)) {
                 throw new ValidationException("Both oldEmail and newEmail are required");
@@ -406,26 +388,19 @@ class AuthUnverifiedEmailController extends BaseController {
                 ], 400);
             }
 
-            // Check if new email already exists
-            $stmt = $this->db->prepare("
-                SELECT id FROM logins WHERE email = ?
-            ");
-            $stmt->execute([$newEmail]);
-            if ($stmt->fetch()) {
+            // Вызываем хранимую процедуру
+            $stmt = $this->db->prepare("CALL sp_UpdateUnverifiedEmail(?, ?)");
+            $stmt->execute([$oldEmail, $newEmail]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+
+            if (!$result['success']) {
                 return Flight::json([
                     'status' => 400,
-                    'error_code' => 'EMAIL_ALREADY_EXISTS',
+                    'error_code' => 'UPDATE_FAILED',
                     'data' => null
                 ], 400);
             }
-
-            // Update email address
-            $stmt = $this->db->prepare("
-                UPDATE logins 
-                SET email = ? 
-                WHERE id = ?
-            ");
-            $stmt->execute([$newEmail, $user['id']]);
 
             // Get user name
             $name = $this->getUserName($user['id']);
