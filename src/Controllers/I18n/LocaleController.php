@@ -23,7 +23,17 @@ class LocaleController extends BaseController
      */
     public function index()
     {
-        $stmt = $this->db->query("SELECT * FROM v_i18n_locales");
+        $stmt = $this->db->query("
+            SELECT 
+                `i18n_locales`.`code` AS `code`,
+                `i18n_locales`.`name` AS `name`,
+                `i18n_locales`.`native_name` AS `native_name`,
+                `i18n_locales`.`is_default` AS `is_default`,
+                `i18n_locales`.`is_enabled` AS `is_enabled`
+            FROM
+                `i18n_locales`
+            ORDER BY `i18n_locales`.`is_default` DESC , `i18n_locales`.`name`            
+        ");
         $locales = $stmt->fetchAll();
 
         return Flight::json([
@@ -44,7 +54,18 @@ class LocaleController extends BaseController
      */
     public function show($code)
     {
-        $stmt = $this->db->prepare("SELECT * FROM v_i18n_locales WHERE code = ?");
+        $stmt = $this->db->prepare("        
+            SELECT 
+                `i18n_locales`.`code` AS `code`,
+                `i18n_locales`.`name` AS `name`,
+                `i18n_locales`.`native_name` AS `native_name`,
+                `i18n_locales`.`is_default` AS `is_default`,
+                `i18n_locales`.`is_enabled` AS `is_enabled`
+            FROM
+                `i18n_locales`
+            WHERE code = ?
+            ORDER BY `i18n_locales`.`is_default` DESC , `i18n_locales`.`name`            
+        ");
         $stmt->execute([$code]);
         $locale = $stmt->fetch();
 

@@ -45,17 +45,23 @@ class StatsController extends BaseController {
             $stmt->execute([$ip, $country, $visitTime, $timeZone, $language, $referrer, $userAgent]);
 
             return Flight::json([
-                'status' => 'success',
-                'message' => 'Visit recorded',
+                'status' => 200,
+                'error_code' => 'VISIT_RECORDED',
                 'data' => [
                     'country' => $country
                 ]
-            ]);
+            ], 200);
         } catch (\Exception $e) {
             Logger::error('Stats visit error: ' . $e->getMessage(),'StatsController');
             return Flight::json([
-                'status' => 'error',
-                'message' => $e->getMessage()
+                'status' => 500,
+                'error_code' => 'SYSTEM_ERROR',
+                'data' => [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'trace' => $e->getTraceAsString()
+                ]
             ], 500);
         }
     }

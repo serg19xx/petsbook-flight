@@ -30,8 +30,22 @@ class TranslationController extends BaseController
     public function getByLocale($locale)
     {
         $stmt = $this->db->prepare("
-            SELECT * FROM v_i18n_translations 
-            WHERE locale = ?
+            SELECT 
+                `tv`.`id` AS `id`,
+                `tk`.`key_name` AS `key_name`,
+                `tv`.`value` AS `value`,
+                `l`.`direction` AS `direction`,
+                `tv`.`locale` AS `locale`,
+                `tk`.`namespace` AS `namespace`,
+                `tk`.`description` AS `description`,
+                `tv`.`is_auto_translated` AS `is_auto_translated`,
+                `tv`.`created_at` AS `created_at`,
+                `tv`.`updated_at` AS `updated_at`
+            FROM
+                ((`i18n_translation_values` `tv`
+                JOIN `i18n_translation_keys` `tk` ON (`tv`.`key_id` = `tk`.`id`))
+                JOIN `i18n_locales` `l` ON (`tv`.`locale` = `l`.`code`))        
+            WHERE `tv`.`locale` = ?
         ");
         $stmt->execute([$locale]);
         $translations = $stmt->fetchAll();
@@ -40,7 +54,6 @@ class TranslationController extends BaseController
             return Flight::json([
                 'status' => 404,
                 'error_code' => 'TRANSLATIONS_NOT_FOUND',
-                'message' => 'Translations not found for this locale',
                 'data' => null
             ], 404);
         }
@@ -55,8 +68,7 @@ class TranslationController extends BaseController
 
         return Flight::json([
             'status' => 200,
-            'error_code' => 'SUCCESS',
-            'message' => 'Translations retrieved successfully',
+            'error_code' => 'TRANSLATIONS_RETRIEVED',
             'data' => [
                 'translations' => $groupedTranslations
             ]
@@ -73,8 +85,22 @@ class TranslationController extends BaseController
     public function getByNamespace($locale, $namespace)
     {
         $stmt = $this->db->prepare("
-            SELECT * FROM v_i18n_translations 
-            WHERE locale = ? AND namespace = ?
+            SELECT 
+                `tv`.`id` AS `id`,
+                `tk`.`key_name` AS `key_name`,
+                `tv`.`value` AS `value`,
+                `l`.`direction` AS `direction`,
+                `tv`.`locale` AS `locale`,
+                `tk`.`namespace` AS `namespace`,
+                `tk`.`description` AS `description`,
+                `tv`.`is_auto_translated` AS `is_auto_translated`,
+                `tv`.`created_at` AS `created_at`,
+                `tv`.`updated_at` AS `updated_at`
+            FROM
+                ((`i18n_translation_values` `tv`
+                JOIN `i18n_translation_keys` `tk` ON (`tv`.`key_id` = `tk`.`id`))
+                JOIN `i18n_locales` `l` ON (`tv`.`locale` = `l`.`code`))
+                WHERE `tv`.`locale` = ? AND `tk`.`namespace` = ?
         ");
         $stmt->execute([$locale, $namespace]);
         $translations = $stmt->fetchAll();
@@ -83,7 +109,6 @@ class TranslationController extends BaseController
             return Flight::json([
                 'status' => 404,
                 'error_code' => 'TRANSLATIONS_NOT_FOUND',
-                'message' => 'Translations not found for this locale and namespace',
                 'data' => null
             ], 404);
         }

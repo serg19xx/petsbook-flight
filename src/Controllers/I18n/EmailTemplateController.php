@@ -83,7 +83,28 @@ class EmailTemplateController extends BaseController
         ]);
 
         try {
-            $stmt = $this->db->prepare("SELECT * FROM v_email_templates");
+            $stmt = $this->db->prepare("
+                SELECT 
+                    `t`.`id` AS `template_id`,
+                    `t`.`code` AS `code`,
+                    `t`.`layout_id` AS `layout_id`,
+                    `t`.`subject` AS `subject`,
+                    `t`.`body_html` AS `body_html`,
+                    `t`.`test_data_json` AS `test_data_json`,
+                    `t`.`is_auto_translated` AS `is_auto_translated`,
+                    `t`.`created_at` AS `t_created_at`,
+                    `t`.`updated_at` AS `t_updated_at`,
+                    `l`.`locale` AS `locale`,
+                    `l`.`name` AS `name`,
+                    `l`.`header_html` AS `header_html`,
+                    `l`.`footer_html` AS `footer_html`,
+                    `l`.`created_at` AS `l_created_at`,
+                    `l`.`updated_at` AS `l_updated_at`
+                FROM
+                    (`i18n_email_layouts` `l`
+                    JOIN `i18n_email_templates` `t` ON (`t`.`locale` = `l`.`locale`
+                        AND `t`.`layout_id` = `l`.`id`))
+            ");
             $stmt->execute();
             $templates = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -327,7 +348,29 @@ class EmailTemplateController extends BaseController
             ]);
 
             // Получаем полные данные сохраненного шаблона
-            $stmt = $this->db->prepare("SELECT * FROM petsbook_new.v_email_templates WHERE template_id = ?");
+            $stmt = $this->db->prepare("
+                SELECT 
+                    `t`.`id` AS `template_id`,
+                    `t`.`code` AS `code`,
+                    `t`.`layout_id` AS `layout_id`,
+                    `t`.`subject` AS `subject`,
+                    `t`.`body_html` AS `body_html`,
+                    `t`.`test_data_json` AS `test_data_json`,
+                    `t`.`is_auto_translated` AS `is_auto_translated`,
+                    `t`.`created_at` AS `t_created_at`,
+                    `t`.`updated_at` AS `t_updated_at`,
+                    `l`.`locale` AS `locale`,
+                    `l`.`name` AS `name`,
+                    `l`.`header_html` AS `header_html`,
+                    `l`.`footer_html` AS `footer_html`,
+                    `l`.`created_at` AS `l_created_at`,
+                    `l`.`updated_at` AS `l_updated_at`
+                FROM
+                    (`i18n_email_layouts` `l`
+                    JOIN `i18n_email_templates` `t` ON (`t`.`locale` = `l`.`locale`
+                        AND `t`.`layout_id` = `l`.`id`))
+                WHERE `t`.`id` = ?
+            ");
             $stmt->execute([$finalTemplateId]);
             $template = $stmt->fetch(PDO::FETCH_ASSOC);
 
