@@ -1069,6 +1069,43 @@ class MyPetsController extends BaseController {
                     }
                 }
                 
+                // Проверяем и устанавливаем права доступа
+                if (!is_writable($baseDir)) {
+                    Logger::error("Base directory is not writable", "MyPetsController", [
+                        'base_dir' => $baseDir,
+                        'permissions' => substr(sprintf('%o', fileperms($baseDir)), -4)
+                    ]);
+                    return Flight::json([
+                        'status' => 500,
+                        'error_code' => 'DIRECTORY_NOT_WRITABLE',
+                        'data' => null
+                    ], 500);
+                }
+                
+                if (!is_writable($userDir)) {
+                    Logger::error("User directory is not writable", "MyPetsController", [
+                        'user_dir' => $userDir,
+                        'permissions' => substr(sprintf('%o', fileperms($userDir)), -4)
+                    ]);
+                    return Flight::json([
+                        'status' => 500,
+                        'error_code' => 'DIRECTORY_NOT_WRITABLE',
+                        'data' => null
+                    ], 500);
+                }
+                
+                if (!is_writable($petDir)) {
+                    Logger::error("Pet directory is not writable", "MyPetsController", [
+                        'pet_dir' => $petDir,
+                        'permissions' => substr(sprintf('%o', fileperms($petDir)), -4)
+                    ]);
+                    return Flight::json([
+                        'status' => 500,
+                        'error_code' => 'DIRECTORY_NOT_WRITABLE',
+                        'data' => null
+                    ], 500);
+                }
+                
                 // Устанавливаем права доступа
                 if (!chmod($baseDir, 0777)) {
                     Logger::warning("Failed to set permissions for base directory", "MyPetsController");
@@ -1191,8 +1228,38 @@ class MyPetsController extends BaseController {
                 'operation_type' => $isNewFile ? 'CREATE_NEW' : 'UPDATE_EXISTING'
             ]);
 
+            // Проверяем права на запись в директорию перед загрузкой файла
+            if (!is_writable($petDir)) {
+                Logger::error("Pet directory is not writable before file upload", "MyPetsController", [
+                    'pet_dir' => $petDir,
+                    'permissions' => substr(sprintf('%o', fileperms($petDir)), -4),
+                    'owner' => posix_getpwuid(fileowner($petDir))['name'] ?? 'unknown',
+                    'group' => posix_getgrgid(filegroup($petDir))['name'] ?? 'unknown'
+                ]);
+                return Flight::json([
+                    'status' => 500,
+                    'error_code' => 'UPLOAD_DIR_NOT_WRITABLE',
+                    'data' => null
+                ], 500);
+            }
+
             // Загружаем файл
             if (move_uploaded_file($file['tmp_name'], $filePath)) {
+                // Проверяем, что файл действительно создался и доступен для чтения
+                if (!file_exists($filePath) || !is_readable($filePath)) {
+                    Logger::error("File was not created or is not readable after upload", "MyPetsController", [
+                        'file_path' => $filePath,
+                        'file_exists' => file_exists($filePath),
+                        'is_readable' => is_readable($filePath),
+                        'file_size' => file_exists($filePath) ? filesize($filePath) : 'N/A'
+                    ]);
+                    return Flight::json([
+                        'status' => 500,
+                        'error_code' => 'FILE_CREATION_FAILED',
+                        'data' => null
+                    ], 500);
+                }
+                
                 // Формируем относительный путь для ответа (БД не обновляем - пути не храним)
                 $photoPath = "/profile-images/pet-photos/user-{$userId}/pet-{$petId}/{$finalFilename}";
 
@@ -1204,6 +1271,7 @@ class MyPetsController extends BaseController {
                     'owner_id' => $userId,
                     'filename' => $finalFilename,
                     'file_size' => filesize($filePath),
+                    'file_permissions' => substr(sprintf('%o', fileperms($filePath)), -4),
                     'operation_type' => $isNewFile ? 'NEW_FILE' : 'UPDATE_FILE',
                     'total_photos' => $totalPhotos
                 ]);
