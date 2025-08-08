@@ -15,6 +15,10 @@ RUN mkdir -p /var/www/html/public/profile-images/avatars/
 RUN mkdir -p /var/www/html/public/profile-images/covers/
 RUN chmod -R 777 /var/www/html/public/profile-images/avatars/
 RUN chmod -R 777 /var/www/html/public/profile-images/covers/
+# Create pet-photos directory structure with correct permissions
+RUN mkdir -p /var/www/html/public/profile-images/pet-photos
+RUN chown -R www-data:www-data /var/www/html/public/profile-images/
+RUN chmod -R 777 /var/www/html/public/profile-images/
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*

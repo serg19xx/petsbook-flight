@@ -37,8 +37,11 @@ services:
       - APP_DEBUG=false
     command: >
       sh -c "
-        chmod -R 777 /var/www/html/public/profile-images/avatars/ &&
-        chmod -R 777 /var/www/html/public/profile-images/covers/ &&
+      mkdir -p /var/www/html/public/profile-images/pet-photos &&
+      chown -R www-data:www-data /var/www/html/public/profile-images/ &&
+      chmod -R 777 /var/www/html/public/profile-images/avatars/ &&
+      chmod -R 777 /var/www/html/public/profile-images/covers/ &&
+      chmod -R 777 /var/www/html/public/profile-images/pet-photos/ &&
         php-fpm
       "
     networks:
