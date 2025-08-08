@@ -11,6 +11,7 @@ use App\Controllers\I18n\TranslationController;
 use App\Controllers\I18n\EmailTemplateController;
 use App\Controllers\AuthUnverifiedEmailController;
 use App\Controllers\MyPetsController;
+use App\Utils\Logger;
 
 /**
  * API Routes configuration
@@ -21,6 +22,14 @@ use App\Controllers\MyPetsController;
 
 // Enable CORS
 CorsMiddleware::handle();
+
+// Логируем все входящие запросы для отладки
+Logger::info("API request received", "Routes", [
+    'method' => $_SERVER['REQUEST_METHOD'] ?? 'N/A',
+    'uri' => $_SERVER['REQUEST_URI'] ?? 'N/A',
+    'content_type' => $_SERVER['CONTENT_TYPE'] ?? 'N/A',
+    'content_length' => $_SERVER['CONTENT_LENGTH'] ?? 'N/A'
+]);
 
 $db = new PDO(
     "mysql:host=" . $_ENV['DB_HOST'] . 

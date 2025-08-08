@@ -748,11 +748,43 @@ class MyPetsController extends BaseController {
      * pet_id = 0 - create new pet, pet_id > 0 - update existing pet photo
      */
     public function uploadPetPhoto() {
+        Logger::info("uploadPetPhoto called", "MyPetsController");
+        
         try {
+            // Проверяем, что это POST запрос
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                Logger::error("Invalid request method", "MyPetsController", [
+                    'method' => $_SERVER['REQUEST_METHOD'] ?? 'N/A'
+                ]);
+                return Flight::json([
+                    'status' => 405,
+                    'error_code' => 'METHOD_NOT_ALLOWED',
+                    'data' => null
+                ], 405);
+            }
+            
+            // Логируем входящие данные для отладки
+            Logger::info("Request details", "MyPetsController", [
+                'method' => $_SERVER['REQUEST_METHOD'] ?? 'N/A',
+                'content_type' => $_SERVER['CONTENT_TYPE'] ?? 'N/A',
+                'content_length' => $_SERVER['CONTENT_LENGTH'] ?? 'N/A',
+                'cookies' => $_COOKIE,
+                'files_count' => count($_FILES),
+                'post_data' => $_POST,
+                'raw_input' => file_get_contents('php://input')
+            ]);
+            
             // Получаем токен из cookie
             $token = $_COOKIE['auth_token'] ?? null;
             
+            Logger::info("Token check", "MyPetsController", [
+                'token_exists' => !empty($token),
+                'token_length' => $token ? strlen($token) : 0,
+                'all_cookies' => $_COOKIE
+            ]);
+            
             if (!$token) {
+                Logger::error("No auth token found", "MyPetsController");
                 return Flight::json([
                     'status' => 401,
                     'error_code' => 'MISSING_TOKEN',
@@ -762,12 +794,30 @@ class MyPetsController extends BaseController {
 
             Logger::info("Token from cookie: " . $token, "MyPetsController");
             
+            // Проверяем JWT конфигурацию
+            if (!isset($_ENV['JWT_SECRET'])) {
+                Logger::error("JWT_SECRET not set", "MyPetsController");
+                return Flight::json([
+                    'status' => 500,
+                    'error_code' => 'JWT_CONFIG_MISSING',
+                    'data' => null
+                ], 500);
+            }
+            
             try {
                 $decoded = JWT::decode($token, new Key($_ENV['JWT_SECRET'], 'HS256'));
                 $userId = $decoded->user_id;
                 $userRole = $decoded->role;
+                
+                Logger::info("Token decoded successfully", "MyPetsController", [
+                    'user_id' => $userId,
+                    'user_role' => $userRole ?? 'N/A'
+                ]);
             } catch (\Exception $e) {
-                Logger::error("Token decode error: " . $e->getMessage(), "MyPetsController");
+                Logger::error("Token decode error: " . $e->getMessage(), "MyPetsController", [
+                    'jwt_secret_exists' => isset($_ENV['JWT_SECRET']),
+                    'jwt_secret_length' => isset($_ENV['JWT_SECRET']) ? strlen($_ENV['JWT_SECRET']) : 0
+                ]);
                 return Flight::json([
                     'status' => 401,
                     'error_code' => 'INVALID_TOKEN',
@@ -857,12 +907,51 @@ class MyPetsController extends BaseController {
             }
 
             // Проверяем загруженный файл
+            Logger::info("Checking uploaded file", "MyPetsController", [
+                'files_array' => $_FILES,
+                'files_count' => count($_FILES)
+            ]);
+            
             $file = $_FILES['photo'] ?? null;
             if (!$file) {
-                Logger::error("No file uploaded", "MyPetsController");
+                Logger::error("No file uploaded", "MyPetsController", [
+                    'available_files' => array_keys($_FILES)
+                ]);
                 return Flight::json([
                     'status' => 400,
                     'error_code' => 'NO_FILE_UPLOADED',
+                    'data' => null
+                ], 400);
+            }
+            
+            Logger::info("File details", "MyPetsController", [
+                'file_name' => $file['name'] ?? 'N/A',
+                'file_size' => $file['size'] ?? 'N/A',
+                'file_type' => $file['type'] ?? 'N/A',
+                'file_error' => $file['error'] ?? 'N/A',
+                'tmp_name' => $file['tmp_name'] ?? 'N/A'
+            ]);
+
+            // Проверяем ошибки загрузки файла
+            if ($file['error'] !== UPLOAD_ERR_OK) {
+                $uploadErrors = [
+                    UPLOAD_ERR_INI_SIZE => 'File exceeds upload_max_filesize',
+                    UPLOAD_ERR_FORM_SIZE => 'File exceeds MAX_FILE_SIZE',
+                    UPLOAD_ERR_PARTIAL => 'File was only partially uploaded',
+                    UPLOAD_ERR_NO_FILE => 'No file was uploaded',
+                    UPLOAD_ERR_NO_TMP_DIR => 'Missing temporary folder',
+                    UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk',
+                    UPLOAD_ERR_EXTENSION => 'A PHP extension stopped the file upload'
+                ];
+                
+                $errorMessage = $uploadErrors[$file['error']] ?? 'Unknown upload error';
+                Logger::error("File upload error: " . $errorMessage, "MyPetsController", [
+                    'upload_error_code' => $file['error']
+                ]);
+                
+                return Flight::json([
+                    'status' => 400,
+                    'error_code' => 'FILE_UPLOAD_ERROR',
                     'data' => null
                 ], 400);
             }
@@ -930,21 +1019,75 @@ class MyPetsController extends BaseController {
             $userDir = $baseDir . "user-{$userId}/";
             $petDir = $userDir . "pet-{$petId}/";
             
-            // Создаем все необходимые директории
-            if (!is_dir($baseDir)) {
-                mkdir($baseDir, 0777, true);
-            }
-            if (!is_dir($userDir)) {
-                mkdir($userDir, 0777, true);
-            }
-            if (!is_dir($petDir)) {
-                mkdir($petDir, 0777, true);
-            }
+            Logger::info("Directory paths prepared", "MyPetsController", [
+                'base_dir' => $baseDir,
+                'user_dir' => $userDir,
+                'pet_dir' => $petDir
+            ]);
             
-            // Устанавливаем права доступа
-            chmod($baseDir, 0777);
-            chmod($userDir, 0777);
-            chmod($petDir, 0777);
+            // Создаем все необходимые директории
+            try {
+                if (!is_dir($baseDir)) {
+                    if (!mkdir($baseDir, 0777, true)) {
+                        Logger::error("Failed to create base directory", "MyPetsController", [
+                            'base_dir' => $baseDir,
+                            'error' => error_get_last()
+                        ]);
+                        return Flight::json([
+                            'status' => 500,
+                            'error_code' => 'DIRECTORY_CREATION_FAILED',
+                            'data' => null
+                        ], 500);
+                    }
+                }
+                
+                if (!is_dir($userDir)) {
+                    if (!mkdir($userDir, 0777, true)) {
+                        Logger::error("Failed to create user directory", "MyPetsController", [
+                            'user_dir' => $userDir,
+                            'error' => error_get_last()
+                        ]);
+                        return Flight::json([
+                            'status' => 500,
+                            'error_code' => 'DIRECTORY_CREATION_FAILED',
+                            'data' => null
+                        ], 500);
+                    }
+                }
+                
+                if (!is_dir($petDir)) {
+                    if (!mkdir($petDir, 0777, true)) {
+                        Logger::error("Failed to create pet directory", "MyPetsController", [
+                            'pet_dir' => $petDir,
+                            'error' => error_get_last()
+                        ]);
+                        return Flight::json([
+                            'status' => 500,
+                            'error_code' => 'DIRECTORY_CREATION_FAILED',
+                            'data' => null
+                        ], 500);
+                    }
+                }
+                
+                // Устанавливаем права доступа
+                if (!chmod($baseDir, 0777)) {
+                    Logger::warning("Failed to set permissions for base directory", "MyPetsController");
+                }
+                if (!chmod($userDir, 0777)) {
+                    Logger::warning("Failed to set permissions for user directory", "MyPetsController");
+                }
+                if (!chmod($petDir, 0777)) {
+                    Logger::warning("Failed to set permissions for pet directory", "MyPetsController");
+                }
+                
+            } catch (\Exception $e) {
+                Logger::error("Directory creation error: " . $e->getMessage(), "MyPetsController");
+                return Flight::json([
+                    'status' => 500,
+                    'error_code' => 'DIRECTORY_CREATION_FAILED',
+                    'data' => null
+                ], 500);
+            }
 
             Logger::info("Directory structure created", "MyPetsController", [
                 'base_dir' => $baseDir,
@@ -1095,7 +1238,11 @@ class MyPetsController extends BaseController {
             }
 
         } catch (\Exception $e) {
-            Logger::error("uploadPetPhoto error: " . $e->getMessage(), "MyPetsController");
+            Logger::error("uploadPetPhoto error: " . $e->getMessage(), "MyPetsController", [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return Flight::json([
                 'status' => 500,
                 'error_code' => 'SYSTEM_ERROR',
