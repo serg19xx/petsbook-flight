@@ -868,6 +868,35 @@ class MyPetsController extends BaseController {
                 'is_new_pet' => $petId === 0
             ]);
 
+            // Проверяем, есть ли файл перед созданием питомца
+            $file = $_FILES['photo'] ?? null;
+            if (!$file) {
+                Logger::error("No file uploaded - cannot create pet without photo", "MyPetsController", [
+                    'available_files' => array_keys($_FILES),
+                    'content_type' => $_SERVER['CONTENT_TYPE'] ?? 'N/A',
+                    'request_data' => $requestData
+                ]);
+                
+                // Проверяем, если это JSON запрос с пустым photo объектом
+                if ($_SERVER['CONTENT_TYPE'] === 'application/json' && 
+                    isset($requestData['photo']) && 
+                    (empty($requestData['photo']) || is_array($requestData['photo']))) {
+                    return Flight::json([
+                        'status' => 400,
+                        'error_code' => 'INVALID_REQUEST_FORMAT',
+                        'message' => 'File upload requires multipart/form-data format, not JSON. Please send the file as form data.',
+                        'data' => null
+                    ], 400);
+                }
+                
+                return Flight::json([
+                    'status' => 400,
+                    'error_code' => 'NO_FILE_UPLOADED',
+                    'message' => 'No file was uploaded. Please select a file to upload.',
+                    'data' => null
+                ], 400);
+            }
+            
             // Если pet_id = 0, создаем нового питомца
             if ($petId === 0) {
                 Logger::info("Creating new pet", "MyPetsController", ['user_id' => $userId]);
@@ -906,23 +935,13 @@ class MyPetsController extends BaseController {
                 ]);
             }
 
-            // Проверяем загруженный файл
+            // Проверяем загруженный файл (файл уже проверен выше)
             Logger::info("Checking uploaded file", "MyPetsController", [
                 'files_array' => $_FILES,
                 'files_count' => count($_FILES)
             ]);
             
-            $file = $_FILES['photo'] ?? null;
-            if (!$file) {
-                Logger::error("No file uploaded", "MyPetsController", [
-                    'available_files' => array_keys($_FILES)
-                ]);
-                return Flight::json([
-                    'status' => 400,
-                    'error_code' => 'NO_FILE_UPLOADED',
-                    'data' => null
-                ], 400);
-            }
+            // $file уже определен выше
             
             Logger::info("File details", "MyPetsController", [
                 'file_name' => $file['name'] ?? 'N/A',
