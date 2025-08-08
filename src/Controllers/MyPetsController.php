@@ -1046,46 +1046,103 @@ class MyPetsController extends BaseController {
             
             // Создаем все необходимые директории
             try {
+                Logger::info("Checking base directory", "MyPetsController", [
+                    'base_dir' => $baseDir,
+                    'exists' => is_dir($baseDir),
+                    'parent_exists' => is_dir(dirname($baseDir)),
+                    'parent_writable' => is_writable(dirname($baseDir)),
+                    'current_user' => posix_getpwuid(posix_geteuid())['name'] ?? 'unknown',
+                    'current_group' => posix_getgrgid(posix_getegid())['name'] ?? 'unknown'
+                ]);
+                
                 if (!is_dir($baseDir)) {
+                    Logger::info("Creating base directory", "MyPetsController", [
+                        'base_dir' => $baseDir,
+                        'parent_permissions' => substr(sprintf('%o', fileperms(dirname($baseDir))), -4)
+                    ]);
+                    
                     if (!mkdir($baseDir, 0777, true)) {
+                        $lastError = error_get_last();
                         Logger::error("Failed to create base directory", "MyPetsController", [
                             'base_dir' => $baseDir,
-                            'error' => error_get_last()
+                            'error' => $lastError,
+                            'parent_dir' => dirname($baseDir),
+                            'parent_exists' => is_dir(dirname($baseDir)),
+                            'parent_writable' => is_writable(dirname($baseDir)),
+                            'parent_permissions' => is_dir(dirname($baseDir)) ? substr(sprintf('%o', fileperms(dirname($baseDir))), -4) : 'N/A'
                         ]);
                         return Flight::json([
                             'status' => 500,
                             'error_code' => 'DIRECTORY_CREATION_FAILED',
+                            'message' => 'Failed to create base directory: ' . ($lastError['message'] ?? 'Unknown error'),
                             'data' => null
                         ], 500);
                     }
+                    
+                    Logger::info("Base directory created successfully", "MyPetsController", [
+                        'base_dir' => $baseDir,
+                        'permissions' => substr(sprintf('%o', fileperms($baseDir)), -4)
+                    ]);
                 }
                 
                 if (!is_dir($userDir)) {
+                    Logger::info("Creating user directory", "MyPetsController", [
+                        'user_dir' => $userDir,
+                        'parent_exists' => is_dir(dirname($userDir)),
+                        'parent_writable' => is_writable(dirname($userDir))
+                    ]);
+                    
                     if (!mkdir($userDir, 0777, true)) {
+                        $lastError = error_get_last();
                         Logger::error("Failed to create user directory", "MyPetsController", [
                             'user_dir' => $userDir,
-                            'error' => error_get_last()
+                            'error' => $lastError,
+                            'parent_dir' => dirname($userDir),
+                            'parent_exists' => is_dir(dirname($userDir)),
+                            'parent_writable' => is_writable(dirname($userDir))
                         ]);
                         return Flight::json([
                             'status' => 500,
                             'error_code' => 'DIRECTORY_CREATION_FAILED',
+                            'message' => 'Failed to create user directory: ' . ($lastError['message'] ?? 'Unknown error'),
                             'data' => null
                         ], 500);
                     }
+                    
+                    Logger::info("User directory created successfully", "MyPetsController", [
+                        'user_dir' => $userDir,
+                        'permissions' => substr(sprintf('%o', fileperms($userDir)), -4)
+                    ]);
                 }
                 
                 if (!is_dir($petDir)) {
+                    Logger::info("Creating pet directory", "MyPetsController", [
+                        'pet_dir' => $petDir,
+                        'parent_exists' => is_dir(dirname($petDir)),
+                        'parent_writable' => is_writable(dirname($petDir))
+                    ]);
+                    
                     if (!mkdir($petDir, 0777, true)) {
+                        $lastError = error_get_last();
                         Logger::error("Failed to create pet directory", "MyPetsController", [
                             'pet_dir' => $petDir,
-                            'error' => error_get_last()
+                            'error' => $lastError,
+                            'parent_dir' => dirname($petDir),
+                            'parent_exists' => is_dir(dirname($petDir)),
+                            'parent_writable' => is_writable(dirname($petDir))
                         ]);
                         return Flight::json([
                             'status' => 500,
                             'error_code' => 'DIRECTORY_CREATION_FAILED',
+                            'message' => 'Failed to create pet directory: ' . ($lastError['message'] ?? 'Unknown error'),
                             'data' => null
                         ], 500);
                     }
+                    
+                    Logger::info("Pet directory created successfully", "MyPetsController", [
+                        'pet_dir' => $petDir,
+                        'permissions' => substr(sprintf('%o', fileperms($petDir)), -4)
+                    ]);
                 }
                 
                 // Проверяем и устанавливаем права доступа
@@ -1125,15 +1182,13 @@ class MyPetsController extends BaseController {
                     ], 500);
                 }
                 
-                // Устанавливаем права доступа
-                if (!chmod($baseDir, 0777)) {
-                    Logger::warning("Failed to set permissions for base directory", "MyPetsController");
-                }
-                if (!chmod($userDir, 0777)) {
-                    Logger::warning("Failed to set permissions for user directory", "MyPetsController");
-                }
-                if (!chmod($petDir, 0777)) {
-                    Logger::warning("Failed to set permissions for pet directory", "MyPetsController");
+                // Устанавливаем права доступа (только если возможно)
+                try {
+                    @chmod($baseDir, 0777); // @ подавляет ошибки
+                    @chmod($userDir, 0777);
+                    @chmod($petDir, 0777);
+                } catch (\Exception $e) {
+                    Logger::warning("Could not set directory permissions: " . $e->getMessage(), "MyPetsController");
                 }
                 
             } catch (\Exception $e) {
