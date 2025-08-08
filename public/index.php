@@ -17,10 +17,6 @@ ini_set('display_errors', 'Off');
 use App\Utils\Logger;
 Logger::init();
 
-// Initialize controllers
-$authController = new App\Controllers\AuthController($db);
-$authUnverifiedEmailController = new App\Controllers\AuthUnverifiedEmailController($db);
-
 // Загружаем маршруты (CORS middleware вызывается внутри api.php)
 require __DIR__ . '/../src/routes/api.php';
 

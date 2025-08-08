@@ -10,6 +10,7 @@ use App\Controllers\I18n\LocaleController;
 use App\Controllers\I18n\TranslationController;
 use App\Controllers\I18n\EmailTemplateController;
 use App\Controllers\AuthUnverifiedEmailController;
+use App\Controllers\MyPetsController;
 
 /**
  * API Routes configuration
@@ -43,6 +44,7 @@ $localeController = new LocaleController($db);
 $translationController = new TranslationController($db);
 $emailTemplateController = new EmailTemplateController($db);
 $authUnverifiedEmailController = new AuthUnverifiedEmailController($db);
+$myPetsController = new MyPetsController($db);
 
 Flight::route('GET /', function() {
     echo json_encode(['status' => 'API is alive', 'env' => $_ENV['APP_ENV'] ?? getenv('APP_ENV') ?? 'not set']);
@@ -148,6 +150,44 @@ Flight::route('POST /api/i18n/delete-translation-key', [$translationController, 
 
 Flight::route('GET /api/i18n/email-templates', [$emailTemplateController, 'getTemplates']);
 Flight::route('POST /api/i18n/email-templates/save', [$emailTemplateController, 'saveTemplate']);
+
+/**
+ * Pet Management Routes
+ * 
+ * @route GET /api/pets/my-pets - Get user's pets
+ * @route POST /api/pets - Create new pet
+ * @route PUT /api/pets/:id - Update pet
+ * @route DELETE /api/pets/:id - Delete pet
+ * @route PATCH /api/pets/:id/status - Update pet status
+ * @route POST /api/pets/photo/upload - Upload pet photo
+ * 
+ * Pet Photo Management (via request body):
+ * @route POST /api/pets/photo/upload
+ *   - petId: 0 → создать нового питомца и загрузить фото
+ *   - petId: 229 → добавить фото к существующему питомцу #229
+ *   - petId: null → создать нового питомца и загрузить фото
+ * 
+ * Request structure:
+ *   JSON body: { petId: number|null, filename: string|null, fileInfo: {...} }
+ *   OR multipart/form-data with petId field
+ *   + файл в $_FILES['photo']
+ * 
+ * File naming:
+ *   - filename: null → создается новый файл pet_{uniqueId}.{ext}
+ *   - filename: "pet_64f8a1b2.jpg" → обновляется существующий файл
+ * 
+ * Examples:
+ *   { petId: 0, filename: null } → новый питомец + pet_64f8a1b2c3d4e.jpg
+ *   { petId: 229, filename: null } → новое фото pet_64f8a1b2c3d4f.jpg для питомца #229
+ *   { petId: 229, filename: "pet_64f8a1b2c3d4e.jpg" } → обновление существующего файла
+ */
+Flight::route('GET /api/pets/my-pets', [$myPetsController, 'getMyPets']);
+Flight::route('POST /api/pets', [$myPetsController, 'createPet']);
+Flight::route('PUT /api/pets/@id', [$myPetsController, 'updatePet']);
+Flight::route('DELETE /api/pets/@id', [$myPetsController, 'deletePet']);
+Flight::route('PATCH /api/pets/@id/status', [$myPetsController, 'updatePetStatus']);
+Flight::route('POST /api/pets/photo/upload', [$myPetsController, 'uploadPetPhoto']);
+Flight::route('POST /api/pets/photo/delete', [$myPetsController, 'deletePetPhotos']);  // /api/pets/photo/delete
 
 // Short URL for email template images
 Flight::route('GET /api/email-tmpl/*', [$emailTemplateController, 'serveImage']);
