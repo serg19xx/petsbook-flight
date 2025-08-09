@@ -11,6 +11,7 @@ use App\Controllers\I18n\TranslationController;
 use App\Controllers\I18n\EmailTemplateController;
 use App\Controllers\AuthUnverifiedEmailController;
 use App\Controllers\MyPetsController;
+use App\Controllers\PetGalleryController;
 use App\Utils\Logger;
 
 /**
@@ -54,6 +55,7 @@ $translationController = new TranslationController($db);
 $emailTemplateController = new EmailTemplateController($db);
 $authUnverifiedEmailController = new AuthUnverifiedEmailController($db);
 $myPetsController = new MyPetsController($db);
+$petGalleryController = new PetGalleryController($db);
 
 Flight::route('GET /', function() {
     echo json_encode(['status' => 'API is alive', 'env' => $_ENV['APP_ENV'] ?? getenv('APP_ENV') ?? 'not set']);
@@ -197,6 +199,45 @@ Flight::route('DELETE /api/pets/@id', [$myPetsController, 'deletePet']);
 Flight::route('PATCH /api/pets/@id/status', [$myPetsController, 'updatePetStatus']);
 Flight::route('POST /api/pets/photo/upload', [$myPetsController, 'uploadPetPhoto']);
 Flight::route('POST /api/pets/photo/delete', [$myPetsController, 'deletePetPhotos']);  // /api/pets/photo/delete
+
+/**
+ * Public Pet Gallery Routes (no authentication required)
+ * 
+ * @route GET /api/pets/public - Get public pets gallery with pagination and filters
+ * @route GET /api/pets/public/:id - Get public pet details by ID
+ * 
+ * Query parameters for /api/pets/public:
+ * - page: Page number (default: 1)
+ * - limit: Items per page (default: 12, max: 50)
+ * - species: Filter by species (dog, cat, bird, etc.)
+ * - gender: Filter by gender (male, female)
+ * - age: Filter by age (young, adult, senior)
+ * - location: Location filter (NOT IMPLEMENTED)
+ * - radius: Search radius in km (TEMPORARILY DISABLED)
+ * - user_lat: User's latitude (TEMPORARILY DISABLED)
+ * - user_lng: User's longitude (TEMPORARILY DISABLED)
+ * - sort: Sort order (newest, oldest, name) - distance temporarily disabled
+ */
+Flight::route('GET /api/pets/public', [$petGalleryController, 'getPublicPets']);
+Flight::route('GET /api/pets/public/@id', [$petGalleryController, 'getPetDetails']);
+
+/**
+ * Pet Like Routes (requires authentication)
+ * 
+ * @route POST /api/pets/:id/like - Toggle pet like status
+ * @apiParam {Number} id Pet ID
+ * @apiHeader {String} Authorization JWT token
+ * 
+ * @apiSuccess {Number} liked Like status (1 if liked, 0 if unliked)
+ * @apiSuccess {String} action Action performed (liked or unliked)
+ * 
+ * @apiError {String} error_code Error codes:
+ *   - MISSING_TOKEN: Authorization header missing
+ *   - INVALID_TOKEN: Invalid or expired JWT token
+ *   - PET_NOT_FOUND: Pet not found or not published
+ *   - SYSTEM_ERROR: Database or system error
+ */
+Flight::route('POST /api/pets/@id/like', [$petGalleryController, 'togglePetLike']);
 
 // Short URL for email template images
 Flight::route('GET /api/email-tmpl/*', [$emailTemplateController, 'serveImage']);
