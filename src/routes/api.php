@@ -260,6 +260,16 @@ Flight::route('POST /user/avatar', [$avatarController, 'upload']);
 Flight::route('GET /user/cover/*', [$coverController, 'serveImage']);
 Flight::route('GET /user/avatar/*', [$avatarController, 'serveImage']);
 
+// Роуты для статических файлов без /api/ префикса
+Flight::route('GET /profile-images/avatars/*', [$avatarController, 'serveImage']);
+Flight::route('GET /profile-images/covers/*', [$coverController, 'serveImage']);
+
+// Тестовый роут для проверки
+Flight::route('GET /test-avatar', function() {
+    Logger::info("Test avatar route called", "Routes");
+    Flight::json(['status' => 'test avatar route works']);
+});
+
 // Handle 404
 Flight::map('notFound', function() {
     Flight::json([

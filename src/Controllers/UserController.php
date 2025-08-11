@@ -451,34 +451,21 @@ class UserController extends BaseController {
     }
 
     private function generateDicebearUrl($userData) {
-        $defaultSeeds = [
-            'female' => 'Wyatt',
-            'male' => 'Robert',
-            'other' => 'Alex'
-        ];
-        $params = [
-            'backgroundColor' => $this->avatarSettings['backgroundColor'],
-            'radius' => '50',
-            'size' => $this->avatarSettings['size']
-        ];
-        
         if (isset($userData['gender'])) {
             $gender = strtolower($userData['gender']);
             
-            if (isset($defaultSeeds[$gender])) {
-                $params['seed'] = $defaultSeeds[$gender];
-            } else {
-                $params['seed'] = $defaultSeeds['other'];
+            switch ($gender) {
+                case 'male':
+                    return "https://api.dicebear.com/9.x/adventurer/svg?seed=Brian";
+                case 'female':
+                    return "https://api.dicebear.com/9.x/adventurer/svg?seed=Andrea";
+                default:
+                    return "https://api.dicebear.com/9.x/thumbs/svg?seed=Brooklynn";
             }
         } else {
-            $params['seed'] = $defaultSeeds['other'];
+            // Если пол не установлен - нейтральный
+            return "https://api.dicebear.com/9.x/thumbs/svg?seed=Brooklynn";
         }
-        
-        $baseUrl = $this->avatarSettings['baseUrl'];
-        $style = $this->avatarSettings['style'];
-        $url = "{$baseUrl}/{$style}/svg?" . http_build_query($params);
-
-        return $url; // <-- обязательно!
     }
 
     private function sendContactEmailVerification($email, $name, $token) {

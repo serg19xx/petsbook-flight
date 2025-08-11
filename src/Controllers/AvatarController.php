@@ -194,18 +194,107 @@ class AvatarController {
     }
 
     public function serveImage() {
+        Logger::info("serveImage called", "AvatarController", [
+            'url' => Flight::request()->url,
+            'method' => $_SERVER['REQUEST_METHOD'] ?? 'N/A'
+        ]);
+        
         $path = Flight::request()->url;
         $filename = basename($path);
         $filePath = $this->uploadDir . $filename;
         
-        if (!file_exists($filePath)) {
-            return Flight::json(['error' => 'File not found'], 404);
+        Logger::info("File check", "AvatarController", [
+            'filename' => $filename,
+            'filePath' => $filePath,
+            'exists' => file_exists($filePath)
+        ]);
+        
+        // Проверяем существует ли файл (без учета параметров)
+        $cleanFilename = explode('?', $filename)[0]; // Убираем параметры
+        $cleanFilePath = $this->uploadDir . $cleanFilename;
+        
+        Logger::info("Clean file check", "AvatarController", [
+            'cleanFilename' => $cleanFilename,
+            'cleanFilePath' => $cleanFilePath,
+            'exists' => file_exists($cleanFilePath)
+        ]);
+        
+        if (!file_exists($cleanFilePath)) {
+            Logger::info("File not found, generating default avatar", "AvatarController");
+            
+            // Получаем пол из токена
+            $gender = 'other'; // дефолтный пол
+            
+            $token = $_COOKIE['auth_token'] ?? null;
+            Logger::info("Token check", "AvatarController", [
+                'token_exists' => !empty($token)
+            ]);
+            
+            if ($token) {
+                try {
+                    $decoded = JWT::decode($token, new Key($_ENV['JWT_SECRET'], 'HS256'));
+                    $userId = $decoded->user_id;
+                    
+                    Logger::info("JWT decoded", "AvatarController", [
+                        'userId' => $userId
+                    ]);
+                    
+                    // Используем хранимую процедуру как в UserController
+                    $stmt = $this->db->prepare("CALL sp_GetUserData(:login_id)");
+                    $stmt->execute([':login_id' => $userId]);
+                    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                    
+                    Logger::info("User data from DB", "AvatarController", [
+                        'result' => $result
+                    ]);
+                    
+                    if ($result) {
+                        $userData = json_decode($result['data'], true);
+                        if ($userData && isset($userData['user']['gender']) && !empty($userData['user']['gender'])) {
+                            $gender = strtolower(trim($userData['user']['gender']));
+                            Logger::info("Gender extracted", "AvatarController", [
+                                'original' => $userData['user']['gender'],
+                                'normalized' => $gender
+                            ]);
+                        }
+                    }
+                } catch (\Exception $e) {
+                    Logger::error("JWT decode error", "AvatarController", [
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+            
+            Logger::info("Final gender determined", "AvatarController", [
+                'gender' => $gender
+            ]);
+            
+            // Определяем URL в зависимости от пола
+            switch ($gender) {
+                case 'male':
+                    $dicebearUrl = "https://api.dicebear.com/9.x/adventurer/svg?seed=Brian";
+                    break;
+                case 'female':
+                    $dicebearUrl = "https://api.dicebear.com/9.x/adventurer/svg?seed=Andrea";
+                    break;
+                default:
+                    $dicebearUrl = "https://api.dicebear.com/9.x/icons/svg?seed=Easton";
+                    break;
+            }
+            
+            Logger::info("Redirecting to Dicebear", "AvatarController", [
+                'url' => $dicebearUrl,
+                'gender_used' => $gender
+            ]);
+            
+            header('Location: ' . $dicebearUrl);
+            exit;
         }
         
-        $mimeType = mime_content_type($filePath);
+        $mimeType = mime_content_type($cleanFilePath);
         header('Content-Type: ' . $mimeType);
-        header('Content-Length: ' . filesize($filePath));
-        readfile($filePath);
+        header('Content-Length: ' . filesize($cleanFilePath));
+        readfile($cleanFilePath);
     }
 
 }
